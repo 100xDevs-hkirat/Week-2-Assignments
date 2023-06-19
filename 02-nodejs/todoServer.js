@@ -41,7 +41,7 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-const { promises:fs, readFileSync } = require("node:fs");
+const fs = require("node:fs/promises");
 
 const app = express();
 
@@ -169,8 +169,12 @@ app.put('/todos/:id', updateTodoById);
 
 app.delete('/todos/:id', deleteTodoById);
 
-app.listen(4000, () => {
-  console.log("Server listening on 4000");
-});
+app.use((req, res) => {
+  res.status(400).send();
+})
+
+// app.listen(4000, () => {
+//   console.log("Server listening on 4000");
+// });
 
 module.exports = app;

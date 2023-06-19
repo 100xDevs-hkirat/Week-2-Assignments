@@ -22,4 +22,45 @@ const path = require('path');
 const app = express();
 
 
+function getFileNames(req, res) {
+  fs.readdir('./files','utf-8', (err, files) => {
+    if (err) {
+      return res.status(500).json({ error:"Failed to retrieve files" });
+    }
+    res.json(files);
+  });
+}
+
+function getFileContentsByName(req, res) {
+  const fileName = req.params.name;
+  const filesList = fs.readdirSync(path.join(__dirname, './files'), 'utf-8');
+  
+  if(filesList.includes(fileName)) {
+    try {
+      const fileContent = fs.readFileSync(path.join(__dirname, 'files', fileName), 'utf-8');
+      res.status(200).send(fileContent);
+    } catch(err) {
+      res.status(500).send('Internal error');
+    }
+  } else {
+    res.status(404).send('File not found');
+  }
+}
+
+app.get('/files', getFileNames);
+
+app.get('/file/:name', getFileContentsByName);
+
+// app.use((req, res) => {
+//   res.status(404).send("Route not found");
+// });
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
+// app.get()
+// getFileNames(null, null);
+// getFileContentsByName({ params:{ name:"a.txt" } });
 module.exports = app;
+
