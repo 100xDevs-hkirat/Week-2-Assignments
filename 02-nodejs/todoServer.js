@@ -39,11 +39,93 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
+const express = require("express");
 const app = express();
+const port = 3000;
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
 
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+
+const todos = [
+  {
+    title: "First ToDo",
+    description: "Demo todo",
+    id: `${uuidv4()}`,
+  },
+  {
+    title: "Second ToDo",
+    description: "Demo todo",
+    id: `${uuidv4()}`,
+  },
+  {
+    title: "Third ToDo",
+    description: "Demo todo",
+    id: `${uuidv4()}`,
+  },
+];
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.get("/todos", (req, res) => {
+  res.status(200).send(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const found = todos.find((todo) => todo.id === id);
+  if (!found) {
+    res.status(404).send("Not found");
+  }
+  res.status(200).send(found);
+});
+
+app.post("/todos", (req, res) => {
+  const { title, completed, description } = req.body;
+  const id = `${uuidv4()}`;
+  const todo = {
+    title: title,
+    completed: completed,
+    description: description,
+    id: id,
+  };
+  todos.push(todo);
+  res.status(201).redirect(`/todos/${id}`);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const found = todos.find((todo) => todo.id === id);
+  if (!found) {
+    res.status(404).send("Not found");
+  }
+  const { title, completed } = req.body;
+  found.title = title;
+  found.completed = completed;
+  res.status(200).send("updated");
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const found = todos.find((todo) => todo.id === id);
+  if (!found) {
+    res.status(404).send("Not found");
+  }
+  const index = todos.indexOf(found);
+  todos.splice(index, 1);
+  res.status(200).send("deleted");
+});
+
+app.use((req, res) => {
+  res.status(404).send("404 Not Found");
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 
 module.exports = app;
