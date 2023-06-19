@@ -41,9 +41,103 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+//const fs= require('fs');
 
 const app = express();
 
 app.use(bodyParser.json());
 
+let todos = [];
+
+//retrieve all to todos
+
+app.get('/todos', getTodos)
+
+//retrieve particular todo by id
+app.get('/todos/:id', retrieveTodoById)
+
+//create a new todo
+app.post('/todos', createTodo)
+
+
+//update an existing todo by id
+app.put('/todos/:id', updateTodo)
+
+//delete a todo by an id
+app.delete('/todos/:id', deleteTodo)
+
+function getTodos(req, res) {
+  res.status(200).send(todos)
+}
+
+
+function createTodo(req, res) {
+  let id = todos.length + "";
+  const { title, description } = req.body;
+  let completed = false;
+  todos.push({ id, title, description, completed });
+  console.log(todos)
+
+  res.status(201).send({ "id": id });
+}
+
+function retrieveTodoById(req, res) {
+  const id = req.params.id;
+
+  const todo = todos.filter((todo) => { return todo.id === id })
+  console.log(todo)
+  if (todo[0])
+    res.status(200).send(todo[0])
+  else
+    res.status(404).send("wrong id");
+}
+
+function updateTodo(req, res) {
+  const id = req.params.id;
+  let n = todos.length;
+  let todo;
+  let updated = false;
+  for (let i = 0; i < n; i++) {
+    if (todos[i].id === id) {
+      updated = true;
+      let { title, completed } = req.body;
+      todos[i].completed = completed;
+      todos[i].title = title;
+      todo = todos[i];
+      break;
+    }
+  }
+  console.log(todo);
+  if (updated)
+
+    res.status(200).send(todo);
+  else
+
+    res.status(404).send("not updated");
+
+
+}
+
+function deleteTodo(req, res) {
+  const id = req.params.id;
+  let found = false;
+
+  todos = todos.filter((todo) => {
+    if (todo.id === id)
+      found = true;
+    return todo.id !== id
+  });
+
+  console.log(found)
+
+  if (found)
+    res.send("deleted");
+  else
+    res.status(404).send("not found");
+
+}
+
+// app.listen(3000, () => {
+//   console.log("server is ready to serve")
+// })
 module.exports = app;
