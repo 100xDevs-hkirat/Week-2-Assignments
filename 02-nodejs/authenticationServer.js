@@ -32,6 +32,74 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+
+// ->>>>>>>> Using an array as mentioned above but ideally should use set or map for constant lookup times  <<<<<-
+const Users = []
+
+app.use(express.json());
+
+app.post('/signup', (req, res) => {
+  const details = req.body;
+  const email = details.email;
+
+  Users.forEach((user)=>{
+    if(user.username === email) res.status(400).send('Already Exists');
+  })
+
+  const user = details;
+  Users.push(user);
+  res.status(201).send('Signup successful');
+});
+
+app.post('/login', (req, res) => {
+  const username = req.body.email;
+  const password = req.body.password;
+
+  let found = false;
+  let authUser;
+
+  Users.forEach((user)=>{
+    if(user.email === username && user.password === password){
+      authUser = user;
+      found = true;
+    } 
+  })
+  if(!found) res.sendStatus(401);
+  else {
+    res.status(200).json({
+      email : authUser.email,
+      firstName : authUser.firstName,
+      lastName : authUser.lastName,
+      token : 'Goofyy aa jwt token'
+    })
+  }
+  
+})
+
+app.get('/data', (req,res)=>{
+  const email = req.headers['email'];
+  const password = req.headers['password'];
+
+  console.log(email, password);
+  console.log(Users);
+
+  let found = false;
+  let authUser;
+
+  Users.forEach((user)=>{
+    if(user.email === email && user.password === password){
+      authUser = user;
+      found = true;
+    } 
+  })
+
+  if(!found) res.status(401).send('Unauthorized');
+  else{
+    res.status(200).json({users: [authUser]})
+  }
+
+})
+
 
 module.exports = app;
