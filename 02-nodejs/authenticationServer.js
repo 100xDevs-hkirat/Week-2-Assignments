@@ -30,8 +30,76 @@
  */
 
 const express = require("express")
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid')
 const PORT = 3000;
-const app = express();
+const app = express()
+app.use(bodyParser.json())
+
+let users = []
+
+const signUpUser = (req, res) => {
+  let user = req.body;
+
+  let isUser = users.find(u => {
+    return u.email === user.email
+  })
+
+  if (isUser == undefined) {
+    user.id = uuidv4();
+    users.push(user);
+    // console.log(users)
+    res.status(201).send("Signup successful")
+  } else res.sendStatus(400)
+
+}
+const loginUser = (req, res) => {
+  let user = req.body;
+  let isUser = users.find(u => {
+    return (u.email === user.email && u.password === user.password)
+  })
+  if (isUser != undefined) {
+    token = uuidv4();
+    res.status(200).json({
+      email: isUser.email,
+      firstName: isUser.firstName,
+      lastName: isUser.lastName,
+      authToken: token,
+
+    })
+  } else res.sendStatus(401)
+}
+
+const getAllUsers = (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let isUser = users.find(u => {
+    return (u.email === email && u.password === password)
+  })
+  if (isUser != undefined) {
+    let usersArr = []
+    users.forEach(user => {
+      usersArr.push({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user.id
+      })
+    })
+    res.status(200).json({ users: usersArr })
+
+
+  } else res.sendStatus(401)
+}
+
+app.post('/signup', signUpUser);
+app.post('/login', loginUser);
+app.get('/data', getAllUsers);
+app.get('*', (req, res) => {
+  res.status(404).send("Route not found")
+})
+
+// app.listen(5000, () => console.log("Server listening at port 5000"));
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;

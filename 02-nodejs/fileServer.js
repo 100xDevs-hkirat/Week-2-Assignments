@@ -19,7 +19,44 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
+
 const app = express();
 
+const getAllFiles = (req, res) => {
 
+  const filePath = path.join(__dirname, './files')
+
+  fs.readdir(filePath, (err, files) => {
+
+    if (err) { res.status(500).send("Internal server error") }
+
+    res.setHeader('Content-Type', 'application/json');
+
+    res.status(200).send(JSON.stringify(files))
+  })
+}
+
+
+const getFIle = (req, res) => {
+  const file = req.params.filename
+
+  const filePath = path.join(__dirname, `./files/${file}`)
+
+  fs.readFile(filePath, 'utf-8', (err, data) => {
+
+    if (err) { res.status(404).send("File not found") }
+
+    res.status(200).send(data)
+  })
+
+
+
+}
+
+app.get('/files', getAllFiles)
+app.get('/file/:filename', getFIle)
+app.get('/*', (req, res) => { res.status(404).send("Route not found") })
+
+// app.listen(4000, () => console.log("App listening at 4000"))
 module.exports = app;
