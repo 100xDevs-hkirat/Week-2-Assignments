@@ -1,0 +1,27 @@
+GET http://localhost:3000/todos
+
+###
+
+GET http://localhost:3000/todos/4
+###
+
+POST http://localhost:3000/todos
+Content-Type: application/json
+
+{ 
+    "title": "5",
+    "description": "I should buy groceries" 
+}
+
+###
+
+PUT http://localhost:3000/todos/0
+Content-Type: application/json
+
+{
+    "completed": true
+}
+
+###
+
+DELETE http://localhost:3000/todos/5
