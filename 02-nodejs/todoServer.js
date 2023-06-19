@@ -45,5 +45,73 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.json());
+const TODOS = [];
 
+app.get('/todos', (req, res) => {
+  res.json(TODOS);
+});
+
+app.get('/todos/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const todo = TODOS.find((item) => {
+    return item.id === id
+  })
+  if(!todo) {
+    res.status(404).json({status: 'Not Found'})
+  }
+  res.status(200).json(todo);
+});
+
+app.post('/todos', (req, res) => {
+  let {title, completed, description} = req.body;
+  // { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+  const id = TODOS.length + 1
+  TODOS.push({id, title, completed, description});
+  res.status(201).json({id});
+});
+
+app.put('/todos/:id', (req, res) => {
+  const id = Number(req.params.id);
+  let {title, completed, description} = req.body;
+  let flag = true;
+  TODOS.forEach((item) => {
+    if (item.id === id) {
+      if (title) item.title = title;
+      if (completed) item.completed = completed;
+      if (description) item.description = description;
+      flag = false;
+    }
+  })
+  if (flag) {
+    res.status(404).json({status:'Not Found'});
+  }
+  res.status(200).json({status:'Updated'});
+});
+
+app.delete('/todos/:id', (req, res) => {
+  const id = Number(req.params.id);
+  let ind = TODOS.length - 1;
+  let flag = true;
+  while (ind >= 0) {
+    if (TODOS[ind].id === id) {
+      TODOS.splice(ind, 1);
+      flag = false;
+    }
+    ind -= 1;
+  }
+  if (flag) {
+    res.status(404).json({status:'Not Found'});
+  }
+  res.status(200).json({status:'Found and Deleted'});
+});
+
+ // for all other routes, return 404
+ app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+//Uncomment to start the server
+app.listen(3000, ()=>{
+  console.log('ToDo Server started.')
+})
 module.exports = app;

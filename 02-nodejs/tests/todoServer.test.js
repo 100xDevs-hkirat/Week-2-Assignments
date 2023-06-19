@@ -57,6 +57,8 @@ describe('Todo API', () => {
   test('should retrieve all todo items', (done) => {
     http.get(`${baseUrl}/todos`, (res) => {
       expect(res.statusCode).toBe(200);
+      console.log('TJr',res.data);
+
       let data = '';
 
       res.on('data', (chunk) => {
@@ -78,7 +80,7 @@ describe('Todo API', () => {
     http.get(`${baseUrl}/todos/${createdTodoId}`, (res) => {
       expect(res.statusCode).toBe(200);
       let data = '';
-
+      // console.log('TJr',res);
       res.on('data', (chunk) => {
         data += chunk;
       });
