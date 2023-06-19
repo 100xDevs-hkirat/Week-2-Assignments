@@ -39,11 +39,95 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
+const port = 5000;
 const app = express();
 
+const toDos = [];
+
+let currentId = 1;
+
 app.use(bodyParser.json());
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(toDos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const reqTodo = toDos.find((toDo) => {
+    return toDo.id === parseInt(id);
+  });
+
+  if (!reqTodo) {
+    res.status(404).send("Todo Not Found");
+    return;
+  }
+
+  res.status(200).send(reqTodo);
+});
+
+app.post("/todos", (req, res) => {
+  const { title, completed, description } = req.body;
+
+  const newTodo = {
+    id: currentId++, //! push same id to response as well
+    title,
+    completed: completed || false,
+    description,
+  };
+
+  toDos.push(newTodo);
+
+  res.status(201).json({ id: newTodo.id });
+});
+
+app.put("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const { title, completed, description } = req.body;
+
+  const reqTodo = toDos.find((toDo) => {
+    return toDo.id === parseInt(id);
+  });
+
+  if (!reqTodo) {
+    res.status(404).send("Todo Not Found");
+    return;
+  }
+
+  reqTodo.title = title;
+  reqTodo.completed = completed || reqTodo.completed;
+  reqTodo.description = description || reqTodo.description;
+
+  res.status(200).send("Todo Updated");
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const { id } = req.params;
+
+  const reqTodoIndex = toDos.findIndex((toDo) => {
+    return toDo.id === parseInt(id);
+  });
+
+  if (reqTodoIndex === -1) {
+    res.status(404).send("Todo Not Found");
+    return; //! optional
+  }
+
+  toDos.splice(reqTodoIndex, 1);
+
+  res.status(200).send("Todo Deleted");
+});
+
+app.use((req, res) => {
+  //!any other route --> 404
+  res.status(404).send("Not Found");
+});
+
+app.listen(port, () => {
+  console.log(`Listening at port ${port}`);
+});
 
 module.exports = app;
