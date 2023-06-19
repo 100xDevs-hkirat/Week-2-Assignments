@@ -12,7 +12,7 @@
      Response: 200 OK with the file content as the response body if found, or 404 Not Found if not found. Should return `File not found` as text if file is not found
      Example: GET http://localhost:3000/file/example.txt
 
-    - For any other route not defined in the server return 404
+    - For any other route not defined in the server return 404.Should return `Route not found` as text if route is not found.
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
@@ -21,5 +21,35 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files', (req, res) => {
+  const filePath = path.join(__dirname, 'files');
+
+  fs.readdir(filePath, (err, fileList) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Internal Server Error');
+    }
+
+    res.status(200).json(fileList);
+  });
+});
+
+app.get('/file/:filename', (req, res) => {
+  fileName = req.params.filename;
+
+  const filePath = path.join(__dirname, 'files', fileName);
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(404).send('File not found');
+    }
+    res.status(200).send(data);
+  });
+});
+
+// Handle undefined routes
+app.use((req, res) => {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;
