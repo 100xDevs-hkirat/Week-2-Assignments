@@ -41,9 +41,140 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require("node:fs/promises");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+// let lastId;
+// ( () => {
+//   const todoDataArr = readFileSync('./todoData.txt', 'utf-8').trim().split('\n');
+//   if(!todoDataArr || todoDataArr.length === 0 || todoDataArr[0] === '') {
+//     lastId = 0;
+//     return;
+//   }
+//   lastId = JSON.parse(todoDataArr[todoDataArr.length - 1]).id;
+// })();
+
+// generate Id
+function genUniqueId() {
+  const timeStamp = Date.now().toString();
+  const random = Math.random().toString(36).substring(2, 9);
+  return timeStamp + random;
+}
+
+// add
+async function addTodoItem(req, res) {
+  const id = genUniqueId();
+  const todoItem = { data:req.body, id };
+
+  await fs.appendFile('./todoData.txt', JSON.stringify(todoItem) + '\n', 'utf-8');
+  res.status(201).json({ id });
+}
+
+// get
+async function getAllTodos(req, res) {
+  let fileSize = (await fs.stat('./todoData.txt', )).size;
+  if(fileSize == 0) {
+    res.status(404).send();
+    return;
+  }
+
+  let todoItems = await fs.readFile('./todoData.txt', 'utf-8');
+  let todoItemsArr = [];
+  todoItems.trim().split('\n').forEach(str => {
+    todoItemsArr.push(JSON.parse(str).data);
+  });
+
+  res.json(todoItemsArr).send();
+}
+
+// get:id
+async function getTodoById(req, res) {
+  const id = req.params.id;
+
+  let todoItems = await fs.readFile('./todoData.txt', 'utf-8');
+  const todoItemsArr = todoItems.trim().split('\n');
+
+  for(let i = 0; i<todoItemsArr.length; i++) {
+    if(!todoItemsArr[i] || todoItemsArr[i] === '') break;
+    const obj = JSON.parse(todoItemsArr[i]);
+
+    if (obj.id === id) {
+      res.json({ ...obj.data, id:obj.id }).send();
+      return;
+    }
+  }
+
+  res.status(404).send();
+}
+
+// update
+async function updateTodoById(req, res) {
+  const id = req.params.id;
+  const body = req.body;
+
+  const todoItems = await fs.readFile('./todoData.txt', 'utf-8');
+  let todoItemsArr = todoItems.trim().split('\n');
+
+  for(let i = 0; i<todoItemsArr.length; i++) {
+    const obj = JSON.parse(todoItemsArr[i]);
+    if (obj.id === id) {
+      todoItemsArr[i] = JSON.stringify({ body, id });
+
+      await fs.writeFile('./todoData.txt', todoItemsArr.join('\n')+'\n', 'utf-8');
+
+      res.status(200).json(obj.data).send();
+      return;
+    }
+  }
+  res.status(404).send();
+}
+
+// delete
+async function deleteTodoById(req, res) {
+  const id = req.params.id;
+
+  const todoItems = await fs.readFile('./todoData.txt', 'utf-8');
+  let todoItemsArr = todoItems.trim().split('\n');
+
+  for(let i = 0; i<todoItemsArr.length; i++) {
+    if (JSON.parse(todoItemsArr[i]).id === id) {
+      todoItemsArr.splice(i, 1);
+      await fs.writeFile('./todoData.txt', todoItemsArr.join('\n')+'\n', 'utf-8');
+
+      res.status(200).send();
+      return;
+    }
+  }
+
+  res.status(404).send();
+}
+
+// let req = { body: {title:"heyy there ", description: "jkjk"} };
+// // addTodoItem(req, null);
+// getAllTodos(null, null);
+// getTodoById({ params: { id:2 }}, null);
+// updateTodoById({"body": {"title":'hehehe', "description": "hello"}, params:{ "id":2 } }, null);
+// deleteTodoById({params:{id:4}}, null);
+
+app.get('/todos', getAllTodos);
+
+app.get('/todos/:id', getTodoById);
+
+app.post('/todos', addTodoItem);
+
+app.put('/todos/:id', updateTodoById);
+
+app.delete('/todos/:id', deleteTodoById);
+
+app.use((req, res) => {
+  res.status(400).send();
+})
+
+// app.listen(4000, () => {
+//   console.log("Server listening on 4000");
+// });
 
 module.exports = app;
