@@ -16,24 +16,36 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const app = express();
+    const express = require('express');
+    const path = require('path');
+    const fs = require('fs');
+    const app = express()
+    
+    app.get('/files',(req,res)=>{
+      const together = path.join(__dirname,'./files');
+      fs.readdir(together,(err,files)=>{
+          if(err){
+            return res.status(500).json({error:'Failed to retrieve files'})
+          }
+          res.json(files);
+      });
+    })
 
-function call(req,res){
-  const directory = './files/';
-  fs.readdir(directory,(err,files)=>{
-    if(err){
-      console.error(err);
-      res.status(500).json("Internal server error")
-      return;
-    }
-    res.status(200).json({files});
-  })
-}
-//1
-app.get('/files',call)
+    app.get('/file/:filename',(req,res)=>{
+      const together = path.join(__dirname,'./files/',req.params.filename)
+      fs.readFile(together,'utf-8',(err,data)=>{
+          if(err){
+            return res.status(404).send("File not found")
+          }
+          //the data here
+          res.send(data);
+      });
+    })
 
-app.listen(3000)
-module.exports = app;
+    app.all('*',(req,res)=>{
+      res.status(404).send("Route not found");
+    })
+
+
+    app.listen(5002)
+    module.exports = app;
