@@ -53,14 +53,14 @@ app.get('/todos', (req, res) => {
 
 // Returns a specific todo item identified by its ID
 app.get('/todos/:id', (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
   for (i = 0; i < todoList.length; i++) {
-    if (todoList[i]['id'] == id) {
+    if (todoList[i].id == id) {
       res.status(200).json(todoList[i]);
     }
   }
-  res.status(404).send()
+  res.status(404).send();
 });
 
 // Creates a new todo item.
@@ -71,29 +71,29 @@ app.post('/todos', (req, res) => {
   res.status(201).send({ id: item.id });
 });
 
-//Updates an existing todo item identified by its ID.
+// Updates an existing todo item identified by its ID.
 
 app.put('/todos/:id', (req, res) => {
-  const id = req.params.id;
-  const item = req.body
-  item.id = id
+  const { id } = req.params;
+  const item = req.body;
+  item.id = id;
 
   for (i = 0; i < todoList.length; i++) {
-    if (todoList[i]['id'] === id) {
-      todoList[i] = item
+    if (todoList[i].id === id) {
+      todoList[i] = item;
       res.status(200).send();
     }
   }
   res.status(404).send();
 });
 
-//Deletes a todo item identified by its ID.
+// Deletes a todo item identified by its ID.
 app.delete('/todos/:id', (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
   for (i = 0; i < todoList.length; i++) {
-    if (todoList[i]['id'] === id) {
-      todoList.splice(i, 1)
+    if (todoList[i].id === id) {
+      todoList.splice(i, 1);
       res.status(200).send();
     }
   }

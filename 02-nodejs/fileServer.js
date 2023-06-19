@@ -22,39 +22,34 @@ const path = require('path');
 const app = express();
 
 app.get('/files', (req, res) => {
-  const filePath = path.join(__dirname, 'files')
+  const filePath = path.join(__dirname, 'files');
 
   fs.readdir(filePath, (err, fileList) => {
-
     if (err) {
-      console.log(err)
+      console.log(err);
       res.status(500).send('Internal Server Error');
     }
 
-    res.status(200).json(fileList)
-
-  })
-
-})
+    res.status(200).json(fileList);
+  });
+});
 
 app.get('/file/:filename', (req, res) => {
-  fileName = req.params.filename
+  fileName = req.params.filename;
 
-  const filePath = path.join(__dirname, 'files', fileName)
+  const filePath = path.join(__dirname, 'files', fileName);
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      console.log(err)
+      console.log(err);
       res.status(404).send('File not found');
     }
-    res.status(200).send(data)
-  })
-
-})
+    res.status(200).send(data);
+  });
+});
 
 // Handle undefined routes
 app.use((req, res) => {
-  res.status(404).send("Route not found");
+  res.status(404).send('Route not found');
 });
 
 module.exports = app;
-

@@ -29,23 +29,22 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const bodyParser = require("body-parser");
-const express = require("express");
-const { post } = require("superagent");
+const bodyParser = require('body-parser');
+const express = require('express');
+const { post } = require('superagent');
 const { v4: uuidv4 } = require('uuid');
 
 const PORT = 3000;
 const app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
-const userList = []
+const userList = [];
 
 app.post('/signup', (req, res) => {
-
   for (i = 0; i < userList.length; i++) {
     if (userList[i].email == req.body.email) {
-      res.status(400).send()
+      res.status(400).send();
     }
   }
 
@@ -54,19 +53,17 @@ app.post('/signup', (req, res) => {
     password: req.body.password,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    id: uuidv4()
-  }
+    id: uuidv4(),
+  };
 
-  userList.push(userObj)
+  userList.push(userObj);
 
-  res.status(201).send('Signup successful')
+  res.status(201).send('Signup successful');
+});
 
-})
-
-app.post('/login', function (req, res) {
-
-  const email = req.body.email
-  const password = req.body.password
+app.post('/login', (req, res) => {
+  const { email } = req.body;
+  const { password } = req.body;
 
   for (i = 0; i < userList.length; i++) {
     if (userList[i].email === email && userList[i].password === password) {
@@ -74,41 +71,35 @@ app.post('/login', function (req, res) {
         email: userList[i].email,
         firstName: userList[i].firstName,
         lastName: userList[i].lastName,
-        id: userList[i].id
-      })
+        id: userList[i].id,
+      });
     }
   }
 
-  res.status(401).send("Unauthorized")
-
-})
+  res.status(401).send('Unauthorized');
+});
 
 app.get('/data', (req, res) => {
-
-  const email = req.headers.email
-  const password = req.headers.password
+  const { email } = req.headers;
+  const { password } = req.headers;
 
   for (i = 0; i < userList.length; i++) {
     if (userList[i].email === email && userList[i].password === password) {
-      usersData = []
+      usersData = [];
       for (i = 0; i < userList.length; i++) {
         usersData.push({
           email: userList[i].email,
           firstName: userList[i].firstName,
           lastName: userList[i].lastName,
 
-        })
+        });
       }
 
-      res.status(200).send({ 'users': usersData })
-
+      res.status(200).send({ users: usersData });
     }
   }
 
-  res.status(401).send("Unauthorized")
-
-})
-
+  res.status(401).send('Unauthorized');
+});
 
 module.exports = app;
-
