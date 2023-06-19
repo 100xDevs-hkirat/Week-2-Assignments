@@ -78,7 +78,7 @@ describe('Todo API', () => {
     http.get(`${baseUrl}/todos/${createdTodoId}`, (res) => {
       expect(res.statusCode).toBe(200);
       let data = '';
-      
+
       res.on('data', (chunk) => {
         data += chunk;
       });

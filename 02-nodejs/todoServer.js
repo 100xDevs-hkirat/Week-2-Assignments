@@ -41,18 +41,38 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
 const app = express();
 
 app.use(bodyParser.json());
-const TODOS = [];
 
-app.get('/todos', (req, res) => {
+const readFile = async (filepath) => {
+  try {
+    const data = await fs.promises.readFile(filepath, 'utf-8')
+    return JSON.parse(data);
+  } catch(err) {
+    console.log(err);
+  }
+  return [];
+}
+
+const writeFile = async (filepath, data) => {
+  try {
+    await fs.promises.writeFile(filepath, JSON.stringify(data))
+  } catch(err) {
+    console.log(err);
+  }
+}
+// const TODOS = [];
+const filePath = 'todoDatabase.txt';
+app.get('/todos', async (req, res) => {
+  const TODOS = await readFile(filePath);
   res.json(TODOS);
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', async (req, res) => {
   const id = Number(req.params.id);
+  const TODOS = await readFile(filePath);
   const todo = TODOS.find((item) => {
     return item.id === id
   })
@@ -62,18 +82,20 @@ app.get('/todos/:id', (req, res) => {
   res.status(200).json(todo);
 });
 
-app.post('/todos', (req, res) => {
+app.post('/todos', async (req, res) => {
   let {title, completed, description} = req.body;
-  // { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-  const id = TODOS.length + 1
+  const TODOS = await readFile(filePath);
+  const id = TODOS.length + 1;
   TODOS.push({id, title, completed, description});
+  await writeFile(filePath, TODOS);
   res.status(201).json({id});
 });
 
-app.put('/todos/:id', (req, res) => {
+app.put('/todos/:id', async (req, res) => {
   const id = Number(req.params.id);
   let {title, completed, description} = req.body;
   let flag = true;
+  const TODOS = await readFile(filePath);
   TODOS.forEach((item) => {
     if (item.id === id) {
       if (title) item.title = title;
@@ -85,11 +107,13 @@ app.put('/todos/:id', (req, res) => {
   if (flag) {
     res.status(404).json({status:'Not Found'});
   }
+  await writeFile(filePath, TODOS);
   res.status(200).json({status:'Updated'});
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', async (req, res) => {
   const id = Number(req.params.id);
+  const TODOS = await readFile(filePath);
   let ind = TODOS.length - 1;
   let flag = true;
   while (ind >= 0) {
@@ -102,6 +126,7 @@ app.delete('/todos/:id', (req, res) => {
   if (flag) {
     res.status(404).json({status:'Not Found'});
   }
+  await writeFile(filePath, TODOS);
   res.status(200).json({status:'Found and Deleted'});
 });
 
