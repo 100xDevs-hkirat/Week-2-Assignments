@@ -33,5 +33,88 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users = [];
+let userId = 0;
+
+app.use(express.json());
+
+
+function dataFunction(req, res){
+  const email = req.headers.email;
+  const password = req.headers.password;
+  var isProtected = false;
+  for(var i=0;i<users.length;i++){
+    if(users[i].email === email && users[i].password === password){
+      isProtected = true;
+      break;
+    }
+  }
+
+  if(isProtected){
+    var arr = [];
+    for(var i=0;i<users.length;i++){
+      arr.push({
+        firstName: users[i].firstName,
+        lastName: users[i].lastName,
+        email: users[i].email
+      })
+    }
+
+    res.status(200).json({users: arr})
+  }
+
+  else{
+    res.status(401).send("Unauthorized");
+  }
+};
+
+
+function signupFunction(req, res){
+  const isPresent = false;
+  var user1 = req.body;
+  users.forEach((user) => {
+    if(user === user1.email){
+      isPresent = true;
+    }
+  });
+
+  if(isPresent){
+    res.status(400).send("User already exists");
+  }
+
+  else{
+    const user1Id = {firstName: user1.firstName, lastName: user1.lastName, email: user1.email, password: user1.password};
+    users.push(user1Id);
+    res.status(201).send("Signup successful");
+  }
+};
+
+
+function loginFunction(req, res){
+  var user = req.body;
+  var isUser = null;
+  for(var i=0;i<users.length;i++){
+    if(users[i].email === user.email && users[i].password === user.password){
+        isUser = users[i];
+        break;
+    }
+  }
+
+  if(isUser){
+    res.status(200).json({
+      firstName: isUser.firstName,
+      lastName: isUser.lastName,
+      email: isUser.email
+  });
+  }
+  else{
+    res.sendStatus(401);
+  }
+}
+
+app.post("/signup", signupFunction);
+app.post("/login", loginFunction);
+app.get("/data", dataFunction);
+
 
 module.exports = app;
