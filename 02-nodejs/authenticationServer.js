@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = []
+
+app.use(express.json());
+
+//************************************SIGNUP*************************************** */
+
+app.post('/signup', signupHandler);
+
+function signupHandler(req, res) {
+  console.log(users);
+  const requestBody = req.body;
+  const userName = requestBody.userName;
+  
+  users.forEach(element => {
+    if(element.userName === userName) {
+      res.status(400).send('Bad request user already exists');
+      return;
+    }
+  });
+
+  const userObject = {
+    "_id": users.length + 1,
+    "userName": userName,
+    "password": requestBody.password,
+    "firstName": requestBody.firstName,
+    "lastName": requestBody.lastName,
+  }
+
+  users.push(userObject);
+  res.status(201).send('Signed up successfully');
+}
+
+
+//************************************LOGIN*************************************** */
+
+app.post('/login', loginHandler);
+
+function loginHandler(req, res) {
+  const requestBody = req.body;
+  const userName = requestBody.userName;
+  const password = requestBody.password;
+  
+  users.forEach((element) => {
+    if(element.email === userName && element.password === password) {
+      res.status(200).json({
+        _id: element._id,
+        userName : element.userName,
+        firstName : element.firstName,
+        lastName : element.lastName
+      })
+      return;
+    } 
+  });
+
+  res.status(401).send('Un-authorized access');
+}
+
+
+//************************************GET DETAILS*************************************** */
+
+
+app.get('/data', (req, res) => {
+  const userName = req.headers['userName'];
+  const password = req.headers['password'];
+
+  users.forEach((element) => {
+    if(element.userName === userName && element.password === password) {    
+      res.status(200).json({users: [element]})
+      return;
+    }
+  })
+
+  res.status(401).send('Un-authorized access');
+})
+
+app.listen(PORT);
 
 module.exports = app;
