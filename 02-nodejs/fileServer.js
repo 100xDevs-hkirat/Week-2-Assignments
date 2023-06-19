@@ -21,5 +21,12 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+function getFiles(req, res){
+  
+}
+
+app.get('/files', getFiles);
+app.get('/file/:fileName', getOneFile);
+
 
 module.exports = app;
