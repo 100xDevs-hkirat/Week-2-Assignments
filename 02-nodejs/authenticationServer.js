@@ -29,9 +29,95 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const bodyParser = require("body-parser");
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+app.use(middleware);
+
+let users = [];
+
+function isValidUrl(url) {
+	return url == "/signup" || url == "/data" || url == "/login";
+}
+
+function middleware(req, res, next) {
+	const url = req.url;
+	if (isValidUrl(url)) {
+		next();
+	} else {
+		res.status(404).send();
+	}
+}
+
+function signUp(newUser) {
+	const validateUser = users.find((user) => user.email == newUser.email);
+	if (validateUser) {
+		return false;
+	}
+	users.push(newUser);
+	return true;
+}
+
+app.post("/signup", (req, res) => {
+	const isValid = signUp(req.body);
+	if (isValid) {
+		res.status(201).send("Signup successful");
+	} else {
+		res.status(400).send("User name already exists");
+	}
+});
+
+function loginUser(credentials) {
+	const user = users.find(
+		(user) =>
+			credentials.email == user.email && credentials.password == user.password
+	);
+	return user;
+}
+
+app.post("/login", (req, res) => {
+	const user = loginUser(req.body);
+	if (user) {
+		res.status(200).send(user);
+	} else {
+		res.status(401).send("Invalid credentials");
+	}
+});
+
+function getData(credentials) {
+	const userDetails = loginUser(credentials);
+	if (userDetails) {
+		const userDetails = users.map((user) => {
+			return {
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+			};
+		});
+		return { users: userDetails };
+	} else {
+		return userDetails;
+	}
+}
+
+app.get("/data", (req, res) => {
+	console.log(req.headers);
+	const data = getData(req.headers);
+	console.log(data);
+	if (data) {
+		res.status(200).send(data);
+	} else {
+		res.status(401).send("Unauthorized");
+	}
+});
+
+// app.listen(PORT, () => {
+// 	console.log("HI");
+// });
 
 module.exports = app;
