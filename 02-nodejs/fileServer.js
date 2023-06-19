@@ -54,6 +54,6 @@ app.use((req, res, next) => {
 
 //Uncomment to start the server
 // app.listen(3000, ()=>{
-//   console.log('ToDo Server started.')
+//   console.log('FileServer started.')
 // })
 module.exports = app;
