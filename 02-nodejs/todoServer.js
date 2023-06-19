@@ -77,9 +77,28 @@ app.post("/todos", (req, res) => {
 
 app.put("/todos/:id", (req, res) => {
   const id = parseInt(req.params.id);
-  todos[id] = 
-})
+  if (id < 0 || id >= todos.length){
+    res.status(404).send();
+  }else {
+    todos[id].title = req.body.title;
+    todos[id].description = req.body.description;
+    todos[id].completed = req.body.completed;
+    res.status(200).send();
+  }
+});
 
+app.delete("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (id < 0 || id >= todos.length){
+    res.status(404).send();
+  }else {
+    todos.splice(id, 1);
+    res.status(200);
+  };
+});
 
+app.use((req, res, next) => {
+  res.status(404).send();
+});
 
 module.exports = app;
