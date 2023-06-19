@@ -10,26 +10,22 @@
     Description: Returns a list of all todo items.
     Response: 200 OK with an array of todo items in JSON format.
     Example: GET http://localhost:3000/todos
-    
   2.GET /todos/:id - Retrieve a specific todo item by ID
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -39,11 +35,69 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todoList = [];
+
+// Returns a list of all todo items
+app.get('/todos', (req, res) => {
+  res.status(200).json(todoList);
+});
+
+// Returns a specific todo item identified by its ID
+app.get('/todos/:id', (req, res) => {
+  const id = req.params.id;
+
+  for (i = 0; i < todoList.length; i++) {
+    if (todoList[i]['id'] == id) {
+      res.status(200).json(todoList[i]);
+    }
+  }
+  res.status(404).send()
+});
+
+// Creates a new todo item.
+app.post('/todos', (req, res) => {
+  const item = req.body;
+  item.id = uuidv4();
+  todoList.push(item);
+  res.status(201).send({ id: item.id });
+});
+
+//Updates an existing todo item identified by its ID.
+
+app.put('/todos/:id', (req, res) => {
+  const id = req.params.id;
+  const item = req.body
+  item.id = id
+
+  for (i = 0; i < todoList.length; i++) {
+    if (todoList[i]['id'] === id) {
+      todoList[i] = item
+      res.status(200).send();
+    }
+  }
+  res.status(404).send();
+});
+
+//Deletes a todo item identified by its ID.
+app.delete('/todos/:id', (req, res) => {
+  const id = req.params.id;
+
+  for (i = 0; i < todoList.length; i++) {
+    if (todoList[i]['id'] === id) {
+      todoList.splice(i, 1)
+      res.status(200).send();
+    }
+  }
+  res.status(404).send();
+});
 
 module.exports = app;
