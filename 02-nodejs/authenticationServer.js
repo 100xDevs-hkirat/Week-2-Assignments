@@ -30,8 +30,62 @@
  */
 
 const express = require("express")
+const { v4: uuidv4, v5: uuidv5 } = require('uuid');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var uniqueId = 0;
+var userDetails = []; // will be indexed via usename
+app.use(express.json());
+app.post('/signup', (req, res) => {
+    // console.log(req.body);
+    var isValid = true;
+    var body = req.body;
+    for (var i = 0; i < userDetails.length; ++i)
+        if (userDetails[i][email] === body.email) isValid = false;
+    if (!isValid) {
+        res.sendStatus(400);
+    } else {
+        body.uniqueId = uniqueId;
+        userDetails.push(body);
+        uniqueId++;
+        res.status(201).send('Signup successful');
+    }
+})
+
+app.post('/login', (req, res) => {
+    var { email, password } = req.body;
+    var isValid = false;
+    var data = {};
+    for (var i = 0; i < userDetails.length; ++i) {
+        if (userDetails[i].email === email && userDetails[i].password === password) {
+            data = { email, firstName: userDetails[i].firstName, lastName: userDetails[i].lastName };
+            isValid = true;
+            break;
+        }
+    }
+    if (!isValid) res.sendStatus(401);
+    else {
+        var authToken = uuidv4();
+        data.authToken = authToken;
+        res.status(200).send(data);
+    }
+})
+
+app.get('/data', (req, res) => {
+    var { email, password } = req.headers;
+    var arr = [];
+    for (var i = 0; i < userDetails.length; ++i) {
+        if (userDetails[i].email === email && userDetails[i].password === password) arr.push({ email, password: userDetails[i].password, firstName: userDetails[i].firstName, lastName: userDetails[i].lastName });
+    }
+    if (arr.length === 0) res.sendStatus(401);
+    else {
+        res.status(200).json({ users: arr });
+    }
+});
+
+app.use((req, res, next) => {
+    res.status(404);
+});
 module.exports = app;
