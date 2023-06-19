@@ -28,13 +28,15 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 const express = require("express")
 const PORT = 3000;
 const app = express();
-const bodyParser = require('body-parser');
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-app.use(bodyParser.json());
+// const bodyParser = require('body-parser');
+// app.use(express.json());
+
+app.use(express.json());
 
 let data = [];
 
