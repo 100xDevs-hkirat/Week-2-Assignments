@@ -21,6 +21,38 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-//for test
+
+function allFiles(req, res){
+  const fullPath = path.join(__dirname, './files')
+
+  fs.readdir(fullPath, (error, files) => {
+    if (error) console.log(error)
+    // files.forEach( file => console.log(file))
+    let x = {files};
+    // res.send(x);
+    res.json(x)
+  })
+}
+app.get('/files', allFiles);
+
+function readFromFile(req, res){
+  let fileName = req.params.file;
+  console.log(fileName);
+  fs.readFile(`./files/${fileName}`, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return "File not found";
+    }
+    console.log(data);
+  });
+  res.send("welcome");
+}
+
+app.get('/files/:file', readFromFile)
+
+app.listen(3001, () => {
+  console.log("app is listening on port 3001");
+})
+// app.listen(3001);
 
 module.exports = app;
