@@ -21,5 +21,39 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const folderPath = './files/';
 
+app.get('/files', (req, res) => {  
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      console.error('Error reading folder:', err);
+      res.status(500).json(err)
+      return;
+    }
+    console.log('Files in folder:', files);
+    res.send(files)
+  });
+})
+
+app.get('/file/:filename', (req, res) => {
+  const filename = req.params.filename;
+  fs.readFile(folderPath + filename, 'utf-8', (err, data) => {
+    if (err) {
+      console.error('Error reading folder:', err);
+      res.status(404).send('File not found')
+    }
+    console.log('content in file:', data);
+    res.send(data)
+  })
+})
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send('Route not found');
+});
+
+//Uncomment to start the server
+// app.listen(3000, ()=>{
+//   console.log('ToDo Server started.')
+// })
 module.exports = app;
