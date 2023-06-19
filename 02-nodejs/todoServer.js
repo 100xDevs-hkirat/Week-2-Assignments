@@ -111,7 +111,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 //Uncomment to start the server
-app.listen(3000, ()=>{
-  console.log('ToDo Server started.')
-})
+// app.listen(3000, ()=>{
+//   console.log('ToDo Server started.')
+// })
 module.exports = app;
