@@ -46,4 +46,69 @@ const app = express();
 
 app.use(bodyParser.json());
 
+app.listen('3000',()=>{
+  console.log('app is running on port 3000');
+
+});
+
+app.set('uniquId',0);
+app.set('todoCollection',[]);
+
+app.get('/todos',(req,res)=>{
+      res.status(200).send(this.todoCollection);
+});
+
+app.get('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  const isPresent = this.todoCollection ? this.todoCollection.some((x)=>x.id===id) : false;
+  if(isPresent){
+    res.status(200).send(this.todoCollection.filter(x=>x.id===id)[0]);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+app.post('/todos',(req,res)=>{
+      const id = getNextId();
+      const todoItem = { "id":id,"title": req.body.title, "completed": req.body.completed, "description": req.body.description };
+      app.get('todoCollection').push(todoItem);
+      res.status(201).send({"id":id});
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  let todoItem = app.get('todoCollection') ? app.get('todoCollection').filter((x)=>x.id===id) : false;
+  console.log(todoItem);
+  if(todoItem){
+    const index = app.get('todoCollection').findIndex(x=>x.id===id);
+    app.get('todoCollection')[index] = req.body;
+    app.set('todoCollection',app.get('todoCollection'));
+    res.sendStatus(200);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  let todoItem = this.todoCollection ? this.todoCollection.filter((x)=>x.id===id) : false;
+  if(todoItem){
+    const index = this.todoCollection.findIndex(x=>x.id===id);
+    this.todoCollection.splice(index,1);
+    this.app.set('todoCollection',this.todoCollection);
+    res.sendStatus(200);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+function getNextId(){
+    const nextId = app.get('uniquId') + 1;
+    app.set('uniquId',nextId);
+    return nextId;
+}
+
 module.exports = app;
