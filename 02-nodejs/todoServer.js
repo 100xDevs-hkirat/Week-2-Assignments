@@ -46,4 +46,67 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let Todos = []
+
+app.get('/todos',(_req,res) => {
+  res.status(200).json(Todos);
+})
+
+app.get('/todos/:id',(req,res) => {
+  const id = parseInt(req.params.id);
+  const send = Todos.find((todo) => todo.id === id)
+  if(!send) res.sendStatus(404);
+  else{
+    res.json(send);
+  }
+})
+
+app.post('/todos', (req,res) => {
+  let details = req.body;
+  let assignId;
+
+  if(Todos.length > 0) assignId = 1 + Todos.at(-1).id;
+  else assignId = 1;
+
+  details['id'] = assignId;
+  
+  Todos.push(details);
+  res.status(201).json(details);
+})
+
+app.put('/todos/:id', (req,res) => {
+  const id = parseInt(req.params.id);
+  const details = req.body;
+
+  const ToUpdate = Todos.findIndex((todo)=>todo.id === id);
+  
+  if(ToUpdate==-1) res.sendStatus(404);
+  else{
+    for (let key in details) {
+      Todos[ToUpdate][key] = details[key];
+    }
+    res.json(Todos[ToUpdate]);
+  }
+})
+
+app.delete('/todos/:id', (req,res) => {
+  const id = parseInt(req.params.id);
+
+  const ToDelete = Todos.findIndex((todo)=>todo.id === id);
+
+  if(ToDelete==-1) res.sendStatus(404);
+  else{
+    Todos = Todos.filter((todo)=>{
+      return todo.id!=id
+    })
+    res.sendStatus(200);
+  }
+})
+
+app.use((_req,res)=>{
+  res.sendStatus(404);
+})
+
+// app.listen(8000);
+
 module.exports = app;
