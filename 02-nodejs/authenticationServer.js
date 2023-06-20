@@ -32,6 +32,79 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+var jwt = require("jsonwebtoken");
+const JWT_SECRET = "secret123";
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const USERS = []
+app.use(express.json())
+
+app.post('/signup',(req,res)=>{
+   const { email, password, firstName, lastName } = req.body
+
+  // Check if the user with the given email already exists
+  const existingUser = USERS.find(user => user.email === email)
+  if (existingUser) {
+    return res.status(400).json({ error: 'User already exists' })
+  }
+
+  // Store the new user in the USERS array
+  const id = Math.floor(Math.random() * 1000000)
+  const newUser = { id, email, password, firstName, lastName }
+  USERS.push(newUser)
+
+  // Return a success response
+  res.status(201).send('Signup successful');
+})
+
+
+app.post("/login", (req, res) => {
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i<USERS.length; i++) {
+    if (USERS[i].email === user.email && USERS[i].password === user.password) {
+        userFound = USERS[i];
+        break;
+    }
+  }
+
+  if (userFound) {
+    res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<USERS.length; i++) {
+    if (USERS[i].email === email && USERS[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+	
+  if (userFound) {
+    let users = [];
+    for (let i = 0; i<USERS.length; i++) {
+        users.push({
+            firstName: USERS[i].firstName,
+            lastName: USERS[i].lastName,
+            email: USERS[i].email
+        });
+    }
+    res.json({
+      users    
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
 
 module.exports = app;
