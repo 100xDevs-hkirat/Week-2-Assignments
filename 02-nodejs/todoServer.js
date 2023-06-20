@@ -10,26 +10,26 @@
     Description: Returns a list of all todo items.
     Response: 200 OK with an array of todo items in JSON format.
     Example: GET http://localhost:3000/todos
-    
+
   2.GET /todos/:id - Retrieve a specific todo item by ID
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
+
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -43,7 +43,57 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+app.use(express.json());
 
-app.use(bodyParser.json());
+let todos=[];
+//console.log(Math.floor(Math.random()*100000))
 
+//setInterval(console.log(todos),1000)
+app.post('/todos',(req,res)=>{
+    console.log(req.body);
+  const newobj={
+        id:parseInt(Math.floor(Math.random()*100000)),
+        title:req.body.title,
+        description:req.body.description
+    };
+    todos.push(newobj);
+    res.status(201).json(newobj);
+})
+app.put("/todos/:id",(req,res)=>{
+
+    let index=todos.findIndex(it => it.id===parseInt(req.params.id))
+    if(index===-1){
+        res.status(404).send()
+    }else{
+        todos[index].title=req.body.title
+        todos[index].description=req.body.description
+        res.status(200).json(todos[index])
+    }
+})
+app.delete('/todos/:id',(req,res)=>{
+
+    let index=todos.findIndex(it => it.id===parseInt(req.params.id))
+    if(index===-1){
+        res.status(404).send()
+    }else{
+        todos.splice(index,1)
+        res.status(200).send()
+    }
+})
+app.get('/todos',(req,res)=>{
+    res.status(200).json(todos)
+})
+app.get('/todos/:id',(req,res)=>{
+    let id=parseInt(req.params.id);
+    // console.log(todos)
+    let index=todos.findIndex(it => it.id===id)
+    if(index===-1){
+        res.status(404).send()
+    }else{
+
+        res.status(200).json(todos[index])
+    }
+
+})
+//app.listen(3000)
 module.exports = app;
