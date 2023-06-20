@@ -66,15 +66,24 @@ app.post("/todos",(req,res)=>{
 // get request to return element by given header id
 app.get("/todos/:id",(req,res)=>{
   const given_id = req.params.id;
-  Object.entries(list).forEach(([key,value])=>{
-    if (key == given_id){
-      const val = value;
-      res.write("Title -> "+val.title)
-      res.write("Describtion -> "+val.describe)
-      res.end()
-    }
-  })
+  if (given_id <= Object.keys(list).length){
+    res.status(200).send(list[given_id])
+  }else{
+    res.status(404).send("No data found")
+  }
+})
+
+// put - editing an existing data
+app.put("/todos/:id",(req,res)=>{
+  const given_id = req.params.id;
+  const update = req.body
+  if (given_id <= Object.keys(list).length){
+    list[given_id] = update
+    res.status(200).send(list)
+  }
   res.status(404).send("No data found")
+
+  // res.send(list)
 })
 
 // delete from given header
@@ -85,6 +94,10 @@ app.delete("/todos/:id",(req,res)=>{
     res.status(200).send(list)
   }
   res.status(404).send("No data found")
+})
+
+app.use((req,res,next)=>{
+  res.status(404).send("Page not found")
 })
 
 app.listen(port,()=>{
