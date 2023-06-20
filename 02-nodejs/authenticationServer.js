@@ -32,6 +32,91 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const { v4: uuidv4 } = require('uuid');
+app.use(express.json());
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let users = [];
+
+const userSignup = (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+
+  const userExists = users.some(user => user.email === email);
+  if (userExists) {
+    return res.sendStatus(400); // User already exists
+  }
+
+  const newUser = {
+    id: uuidv4(),
+    email,
+    password,
+    firstName,
+    lastName,
+  };
+
+  users.push(newUser);
+  res.status(201).send('Signup successful');
+};
+
+
+
+const userLogin = (req, res) => {
+  const {email, password} = req.body;
+  //check whether user exists or not for login
+  const isUser = users.find(user=>{
+    return (user.email === email && user.password === password)
+  })
+  if(isUser != undefined){
+
+    let authToken= uuidv4();
+    const response = {
+      email: isUser.email,
+      firstName: isUser.firstName,
+      lastName: isUser.lastName,
+      authToken,
+    };
+    res.status(200).json(response);
+  }else{
+    res.sendStatus(401);
+  }
+};
+
+const getUsers = (req, res) => {
+  const email= req.headers.email;
+  const password = req.headers.password;
+
+  // check if credentials are correct
+
+  let isUser = users.find(user =>{
+    return user.email === email && user.password === password
+  })
+  //if correct than route will be protected via authentication of email and pass and access to get data will be given
+  if(isUser!= undefined){
+    let userArr = []
+    users.forEach(
+      user=>{
+        userArr.push({
+          email: user.email,
+          firstName:user.firstName,
+          lastName: user.lastName,
+          id:user.id,
+        })
+      }
+    )
+
+    res.status(200).json({users:userArr})
+  }else{
+    res.status(401).send('Unauthorized');
+  }
+
+
+}; 
+
+app.post("/signup",userSignup)
+app.post("/login",userLogin)
+app.get("/data",getUsers)
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;
