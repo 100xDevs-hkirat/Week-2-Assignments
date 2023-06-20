@@ -39,11 +39,103 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
-
+const port = 3000;
 app.use(bodyParser.json());
 
+app.get("/", (req, res) => {
+  res.send("This is Hello Page");
+});
+
+const allTodos = [
+  {
+    title: "Todo1",
+    desc: "desc1",
+    id: 1,
+  },
+  {
+    title: "Todo2",
+    desc: "desc2",
+    id: 2,
+  },
+];
+
+//Get all todos list
+app.get("/todos", (req, res) => {
+  res.json(allTodos);
+});
+
+//Get specific todo by id
+app.get("/todos/:id", (req, res) => {
+  const idParams = req.params.id;
+  console.log(idParams);
+
+  const todo = allTodos.find((item) => {
+    console.log(item);
+    return item.id === Number(idParams);
+  });
+
+  console.log(todo);
+  if (todo) {
+    res.json(todo);
+  } else {
+    res.status(404).send();
+  }
+});
+
+//Create Todo
+app.post("/todos", (req, res) => {
+  const newTodo = {
+    id: Date.now(),
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description,
+  };
+  allTodos.push(newTodo);
+
+  console.log(newTodo);
+  res.status(201).json(newTodo);
+});
+
+//PUT /todos/:id - Update an existing todo item by ID
+app.put("/todos/:id", (req, res) => {
+  const idParams = req.params.id;
+  const todoIndex = allTodos.findIndex(
+    (item) => item.id === parseInt(idParams)
+  );
+
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    (allTodos[todoIndex].title = req.body.title),
+      (allTodos[todoIndex].completed = req.body.completed),
+      (allTodos[todoIndex].description = req.body.description);
+
+    res.json(allTodos[todoIndex]);
+  }
+});
+
+// DELETE /todos/:id - Delete a todo item by ID
+app.delete("/todos/:id", (req, res) => {
+  const idParams = req.params.id;
+  const todoIndex = allTodos.findIndex(
+    (item) => item.id === parseInt(idParams)
+  );
+
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    allTodos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+app.use((req, res, next) => {
+  res.status(404).send("Not Any thing . please back .");
+});
+app.listen(port, (req, res) => {
+  console.log("App is running on port 3000.");
+});
 module.exports = app;
