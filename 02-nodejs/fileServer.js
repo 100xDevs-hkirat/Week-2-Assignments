@@ -20,6 +20,40 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3001;
+
+////////////////////
+//Route Handling
+////////////////////
+
+// GET list of files in './files/' directory
+app.get('/files', (req, res) => {   
+  fs.readdir(path.join(__dirname, '/files/'), (err, files) => { 
+    if (err) { 
+      res.status(500).send('Files not fouind');
+    } else {
+      res.json(files);
+    }
+  })
+})
+
+// GET content of file by name
+app.get('/file/:filename', (req, res) => { 
+  const filepath = path.join(__dirname, '/files/', req.params.filename);
+  fs.readFile(filepath, 'utf-8', (err, data) => { 
+    if (err) {
+      res.status(404).send('File not found');
+    } else {
+      res.send(data);
+    }
+  })  
+})
+
+// 404 Not Found
+app.get('*', (req, res) => res.status(404).send('Route not found'))
+
+// Listen to port
+app.listen(port, () =>  console.log(`Week 2 app listening on port ${port}`))
 
 
 module.exports = app;
