@@ -41,9 +41,78 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const {ulid} = require('ulid');
+
 
 const app = express();
 
 app.use(bodyParser.json());
+
+class Todo {
+    constructor(title, description) {
+        this.id = ulid();
+        this.title = title;
+        this.description = description;
+        this.completed = false;
+    }
+
+    getTodo() {
+        return {
+            id: this.id,
+            title: this.title,
+            description: this.description,
+            completed: this.completed
+        }
+    }
+}
+
+let index = 0;
+let todos = [];
+let todoIndex = {};
+app.get("/todos", (req, res) => {
+    return res.json(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+    const id = req.params.id;
+    if (!(id in todoIndex))
+        return res.status(404).json({error: "Todo not found"});
+    const todo = todos[todoIndex[id]]
+    return res.json(todo)
+});
+
+app.post("/todos", (req, res) => {
+    if (!req.body.title || !req.body.description) {
+        return res.status(400).json({error: "title and description are required fields"})
+    }
+    const todo = new Todo(req.body.title, req.body.description).getTodo();
+    todos.push(todo);
+    todoIndex[todo.id] = index
+    index += 1;
+    return res.status(201).json({id: todo.id})
+});
+
+app.put("/todos/:id", (req, res) => {
+    const validKeys = new Set(['title', 'description', 'completed']);
+    for (const key in req.body)
+        if (!validKeys.has(key))
+            return res.status(400).json({error: `${key} is not a valid body`});
+    const id = req.params.id;
+    if (!(id in todoIndex))
+        return res.status(404).json({error: `Todo ${id} not found`});
+    for (const key in req.body) {
+        todos[todoIndex[id]][key] = req.body[key];
+    }
+    return res.json({success: `Todo ${id} has been updated`})
+});
+
+app.delete("/todos/:id", (req, res) => {
+    const id = req.params.id;
+    if (!(id in todoIndex))
+        return res.status(404).json({error: `Todo ${id} not found`});
+    todos[todoIndex[id]] = {}
+    delete todoIndex[id];
+    return res.json({success: `Todo ${id} has been deleted`});
+});
 
 module.exports = app;
