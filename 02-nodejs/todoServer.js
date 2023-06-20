@@ -39,11 +39,87 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+  
 const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
 app.use(bodyParser.json());
 
+let TODOS = [];
+let todoCount = 0;
+
+//RETRIVE ALL TODOS
+app.get('/todos',(req,res)=>{
+  res.json(TODOS);
+})
+
+//RETRIVE A SPECIFIC TODO
+app.get('/todos/:id',(req,res)=>{
+  const id = parseInt(req.params.id);
+  
+  const todo = TODOS.find((todo)=> todo.id == id);
+
+  if(!todo)
+    res.status(404).send();
+  else
+    res.json(todo)
+  
+})
+
+//CREATING A NEW TODO
+app.post('/todos',(req,res)=>{
+
+  const todo = {title: req.body.title, description : req.body.description, id: todoCount++};
+  
+  TODOS.push(todo);
+
+  res.status(201).json(todo);
+})
+
+//UPDATING A SPECIFIC TODO
+app.put('/todos/:id',(req,res)=>{
+  const id = parseInt(req.params.id);
+  const index = TODOS.findIndex((todo)=> todo.id == id);
+
+  if(index == -1)
+    res.status(404).send();
+
+  const todo = {...req.body, id,}
+  TODOS[index] = todo;
+  res.json(TODOS[index]);
+})
+
+//DELETING A SPECIFIC TODO
+app.delete('/todos/:id',(req,res)=>{
+
+  const id = parseInt(req.params.id);
+
+  const index = TODOS.findIndex((todo)=> todo.id == id);
+
+  if(index == -1)
+    res.status(404).send();
+
+  else{
+    TODOS.splice(index,1);
+    res.status(200).send();
+  }
+  
+
+})
+
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 module.exports = app;
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
