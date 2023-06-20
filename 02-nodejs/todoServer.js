@@ -39,11 +39,39 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todos = [];
+
+app.get("/todos", (req, res) => {
+  if (todos.length > 0) {
+    res.json(todos);
+  }
+});
+app.get("/todos/:id", (req, res) => {
+  if (todos.length > 0) {
+    let selectedTodo = todos.find((todo) => todo.id === req.params.id);
+    if (selectedTodo) {
+      res.json(selectedTodo);
+    } else {
+      res.status(404).send("Todo not found");
+    }
+  } else {
+    res.status(404).send("No todo added");
+  }
+});
+app.put("/todos/:id", (req, res) => {});
+app.delete("/todos/:id", (req, res) => {});
+
+app.post("/todos", (req, res) => {});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
 
 module.exports = app;
