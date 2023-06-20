@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require('express');
+const uuid = require('uuid');
+const bodyParser = require('body-parser');
+
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const USERS = [];
+const TOKEN = 'MySuperSecretAuthToken';
+
+const getUser = (email) => USERS.filter((user) => user.email === email);
+
+const authMiddleware = (req, res, next) => {
+    const { email, password } = req.headers;
+    let users = getUser(email);
+    
+    if (
+        !email ||
+        !password ||
+        users.length === 0 ||
+        users[0].password !== password
+    ) {
+        res.status(401).send('Unauthorized');
+    } else {
+        next();
+    }
+};
+
+app.post('/signup', (req, res) => {
+    const { email, password, firstName, lastName } = req.body;
+
+    if (
+        !email ||
+        !password ||
+        !firstName ||
+        !lastName ||
+        getUser(email).length > 0
+    ) {
+        res.status(400).send('Bad Request');
+    } else {
+        USERS.push({
+            id: uuid.v4(),
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+        });
+
+        res.status(201).send('Signup successful');
+    }
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const users = getUser(email);
+
+    if (!email || !password) {
+        res.status(400).send('Bad Request');
+    } else if (users.length === 0 || users[0].password !== password) {
+        res.status(401).send('Unauthorized');
+    } else {
+        const user = users[0];
+        res.send({
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            authToken: TOKEN,
+        });
+    }
+});
+
+app.get('/data', authMiddleware, (_, res) => {
+    const data = USERS.map((user) => {
+        const { email, firstName, lastName } = user;
+        return { email: email, firstName: firstName, lastName: lastName };
+    });
+
+    res.send({ users: data });
+});
 
 module.exports = app;
