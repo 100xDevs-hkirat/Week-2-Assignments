@@ -44,6 +44,52 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+let todos = [];
+
 app.use(bodyParser.json());
+
+app.get('/todos', (req, res) => {
+  res.send(todos)
+})
+
+app.get("/todos/:id", (req, res) => {
+  const todoId = req.params.id;
+  const todo = todos.find(todo => todo.id === todoId);
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send();
+  }
+})
+
+app.post("/todos", (req, res) => {
+  const todo = req.body;
+  todo.id = Math.random().toString();
+  todos.push(todo);
+  res.status(201).json(todo);
+})
+
+app.put("/todos/:id", (req, res) => {
+  const todoId = req.params.id;
+  const todo = todos.find(todo => todo.id === todoId);
+  if (todo) {
+    todo.title = req.body.title;
+    todo.description = req.body.description;
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send();
+  }
+})
+
+app.delete("/todos/:id", (req, res) => {
+  const todoId = req.params.id;
+  const todo = todos.find(todo => todo.id === todoId);
+  if (todo) {
+    todos = todos.filter(todo => todo.id !== todoId);
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send();
+  }
+})
 
 module.exports = app;
