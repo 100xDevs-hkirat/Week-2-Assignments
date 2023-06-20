@@ -44,7 +44,8 @@ const bodyParser = require("body-parser");
 
 const app = express();
 const port = 3000;
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("This is Hello Page");
