@@ -79,7 +79,6 @@ async function readFromFile(){
         return []
       }
       todosList = JSON.parse(todosList)
-      // console.log(todosList[0].name)
     }else{
       await writeTodos(fileName,"[]")
       todosList=[]}
@@ -105,8 +104,6 @@ app.get("/todos/:id",async (req,res)=>{
         res.sendStatus(404)
       }
       res.send(found)
-  
-  
 })
 
 app.post("/todos",async (req,res)=>{
@@ -118,19 +115,17 @@ app.post("/todos",async (req,res)=>{
     "id": id
   }
   let todosList = await readFromFile()
-  console.log(todosList)
   todosList.push(todo)
   await writeTodos(fileName,todosList)
   res.status(201).send({id})
 })
 
 app.put("/todos/:id",async(req,res)=>{
-
   let todosList = await readFromFile()
   const found = todosList.find((item)=> item.id === req.params.id)
-
   if(!found)
     return res.sendStatus(404)
+    
   found.title = req.body.title ? req.body.title : found.title
   found.description = req.body.title? req.body.title: found.description
   found.completed = req.body.completed ? req.body.completed: found.completed
@@ -153,6 +148,8 @@ app.delete("/todos/:id",async(req,res)=>{
   await writeTodos(fileName,todosList)
   res.sendStatus(200)
 })
+
+
 module.exports = app;
 
 // app.listen("8080")
