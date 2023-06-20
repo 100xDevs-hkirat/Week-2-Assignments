@@ -40,10 +40,121 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+// const {exists} = require('fs')
+const {readFile, access, writeFile} = require("fs/promises")
+const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
 
+const fileName = "todolists.json"
+
+// let todosList=[]
+
+async function existsFile(file){
+  try{
+    await access(file)
+    return true
+  }catch(e){
+    return false
+  }
+}
+
+async function readTodos(file){
+  const content =  await readFile(file,"utf-8")
+  return content
+}
+
+async function writeTodos(file, cnt){
+  await writeFile(file,cnt)
+}
+
+async function readFromFile(){
+  let todosList
+  try{
+    const exists = await existsFile(fileName)
+    if (exists){
+      todosList = await readTodos(fileName)
+      if(todosList.length ==0){
+        return []
+      }
+      todosList = JSON.parse(todosList)
+      // console.log(todosList[0].name)
+    }else{
+      await writeTodos(fileName,"[]")
+      todosList=[]}
+    }
+    catch(e){
+      console.log(e)
+    }
+    return todosList
+}
+
+app.get("/todos",async (req,res)=>{
+  let todosList = await readFromFile()
+  
+  res.send(todosList)
+})
+
+
+app.get("/todos/:id",async (req,res)=>{
+  let todosList = await readFromFile()
+
+  const found = todosList.find((item)=>item.id == req.params.id)
+      if(!found){
+        res.sendStatus(404)
+      }
+      res.send(found)
+  
+  
+})
+
+app.post("/todos",async (req,res)=>{
+  const id = uuidv4()
+  let todo = {
+    "title":  req.body.title,
+    "description":  req.body.description,
+    "completed":  false,
+    "id": id
+  }
+  let todosList = await readFromFile()
+  console.log(todosList)
+  todosList.push(todo)
+  await writeFile(fileName,JSON.stringify(todosList))
+  res.status(201).send({id})
+})
+
+app.put("/todos/:id",async(req,res)=>{
+
+  let todosList = await readFromFile()
+  const found = todosList.find((item)=> item.id === req.params.id)
+
+  if(!found)
+    return res.sendStatus(404)
+  found.title = req.body.title ? req.body.title : found.title
+  found.description = req.body.title? req.body.title: found.description
+  found.completed = req.body.completed ? req.body.completed: found.completed
+
+  const index = todosList.indexOf((item)=>item.id==found.id)
+  todosList[index]=found
+  await writeFile(fileName,todosList)
+  res.sendStatus(200)
+})
+
+app.delete("/todos/:id",async(req,res)=>{
+
+  let todosList = await readFromFile()
+  const found = todosList.find((item)=> item.id === req.params.id)
+
+  if(!found)
+    return res.sendStatus(404)
+
+  todosList = todosList.filter(item=> item.id != req.params.id)
+  await writeFile(fileName,todosList)
+  res.sendStatus(200)
+})
 module.exports = app;
+
+// app.listen("8080")
