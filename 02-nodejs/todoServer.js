@@ -16,8 +16,8 @@
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
     
-  3. POST /todos - Create a new todo item
-    Description: Creates a new todo item.
+  3. POST /todos- Create a new todo item
+    Description:  Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
@@ -41,9 +41,66 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const { RoleSelectMenuBuilder } = require('discord.js');
+const fs = require('fs');
+const { request } = require('http');
 const app = express();
-
 app.use(bodyParser.json());
 
+
+const todo_List = JSON.parse(fs.readFileSync('./files/toDO.txt'))
+
+app.get('/todos',(req,res)=>{
+  res.json(todo_List)
+})
+
+
+app.get('/todos/:id',(req,res)=>{
+	const findID = todo_List.find(t=>t.id === parseInt(req.params.id))
+  if(!findID){
+    res.status(404).send();
+  }
+  else{
+    res.status(200).json(todo_List);
+  }
+})
+
+app.post('/todos',(req,res)=>{
+  const newTodo = {
+    id: Math.floor(Math.random()*10000),
+    title:req.body.title,
+    description:req.body.description
+  }
+  todo_List.push(newTodo);
+  res.status(201).json(newTodo);
+})
+
+
+app.put('/todos/:id',(req,res)=>{
+  const fIndex = todo_List.findIndex(t=>t.id === parseInt(req.params.id));
+  if(fIndex===-1){
+   res.status(404).send("Not Found");
+  }
+  else{
+    todo_List[fIndex].title = req.body.title;
+    todo_List[fIndex].description = req.body.description;
+    res.json(todo_List[fIndex]);
+  }
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const fIndex = todo_List.findIndex(t=>t.id === parseInt(req.params.id));
+  if(fIndex === -1){
+    res.status(404).send("Not Found");
+  }
+  else{
+    const del = todo_List.splice(fIndex,1);
+    res.status(200).send();
+  }
+})
+
+app.all('*',(req,res)=>{
+  res.status(404).sendStatus("Route Not Found");
+})
+app.listen(5002)
 module.exports = app;
