@@ -39,11 +39,56 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
+const express = require("express");
+const bodyParser = require("body-parser")
 const app = express();
+const port = 3001;
 
 app.use(bodyParser.json());
+
+// creating arr to store all todos
+let list = {};
+
+// get request to return all elements in arr
+app.get("/todos",(req,res)=>{
+  res.send(list)
+})
+
+// post request to create new todo
+app.post("/todos",(req,res)=>{
+  let id = Object.keys(list).length + 1
+  const val = req.body
+  list[id] = val
+  res.send(list)
+})
+
+// get request to return element by given header id
+app.get("/todos/:id",(req,res)=>{
+  const given_id = req.params.id;
+  Object.entries(list).forEach(([key,value])=>{
+    if (key == given_id){
+      const val = value;
+      res.write("Title -> "+val.title)
+      res.write("Describtion -> "+val.describe)
+      res.end()
+    }
+  })
+  res.status(404).send("No data found")
+})
+
+// delete from given header
+app.delete("/todos/:id",(req,res)=>{
+  const given_id = req.params.id;
+  if(given_id <= Object.keys(list).length){
+    delete list[given_id]
+    res.status(200).send(list)
+  }
+  res.status(404).send("No data found")
+})
+
+app.listen(port,()=>{
+  console.log("server started in port "+ port + "...")
+});
 
 module.exports = app;
