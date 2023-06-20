@@ -54,16 +54,16 @@ app.get("/todos", (req, res) => {
   }
 });
 app.get("/todos/:id", (req, res) => {
-  if (todos.length > 0) {
-    let selectedTodo = todos.find((todo) => todo.id === req.params.id);
-    if (selectedTodo) {
-      res.json(selectedTodo);
-    } else {
-      res.status(404).send("Todo not found");
-    }
-  } else {
-    res.status(404).send("No todo added");
+  if (todos.length === 0) {
+    return res.status(404).send("No todo added");
   }
+
+  let selectedTodo = todos.find((todo) => todo.id === req.params.id);
+  if (!selectedTodo) {
+    return res.status(404).send("Todo not found");
+  }
+
+  res.json(selectedTodo);
 });
 app.put("/todos/:id", (req, res) => {});
 app.delete("/todos/:id", (req, res) => {});
