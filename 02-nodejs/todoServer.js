@@ -40,7 +40,6 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-// const {exists} = require('fs')
 const {readFile, access, writeFile} = require("fs/promises")
 const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
@@ -51,7 +50,6 @@ app.use(bodyParser.json());
 
 const fileName = "todolists.json"
 
-// let todosList=[]
 
 async function existsFile(file){
   try{
@@ -68,7 +66,7 @@ async function readTodos(file){
 }
 
 async function writeTodos(file, cnt){
-  await writeFile(file,cnt)
+  await writeFile(file,JSON.stringify(cnt))
 }
 
 async function readFromFile(){
@@ -122,7 +120,7 @@ app.post("/todos",async (req,res)=>{
   let todosList = await readFromFile()
   console.log(todosList)
   todosList.push(todo)
-  await writeFile(fileName,JSON.stringify(todosList))
+  await writeTodos(fileName,todosList)
   res.status(201).send({id})
 })
 
@@ -139,7 +137,7 @@ app.put("/todos/:id",async(req,res)=>{
 
   const index = todosList.indexOf((item)=>item.id==found.id)
   todosList[index]=found
-  await writeFile(fileName,todosList)
+  await writeTodos(fileName,todosList)
   res.sendStatus(200)
 })
 
@@ -152,7 +150,7 @@ app.delete("/todos/:id",async(req,res)=>{
     return res.sendStatus(404)
 
   todosList = todosList.filter(item=> item.id != req.params.id)
-  await writeFile(fileName,todosList)
+  await writeTodos(fileName,todosList)
   res.sendStatus(200)
 })
 module.exports = app;
