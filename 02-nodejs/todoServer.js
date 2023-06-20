@@ -46,4 +46,74 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos = new Array;
+let id = 1;
+
+
+app.get('/todos',(req,res)=>{
+  res.status(200).send(todos);
+})
+
+//doubt :- what is differenct bewteen req, request, what is necessary to pass in the function param
+app.get('/todos/:id',(req,res)=>{
+  for ( var i = 0 ; i < todos.length; ++i ){
+    if ( todos.at(i).id == req.params.id ){
+      res.status(200).send(todos.at(i));
+      return;
+    }
+  }
+  res.status(404).send('Todo not found');
+})
+
+app.post('/todos',(req,res)=>{
+  var title = req.body.title;
+  var description = req.body.description;
+
+  var todo = {
+    id : id,
+    title : title,
+    description : description,
+    completed : false
+  }
+  
+  id++;
+  todos.push(todo);
+  res.status(201).send({id:todo.id});
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  for ( var i = 0 ; i < todos.length; ++i ){
+    if ( todos.at(i).id == req.params.id ){
+      todos.splice(i,1);
+      res.status(200).send('Todo deleted');
+      return;
+    }
+  }
+  res.status(404).send('Todo not found');
+})
+
+app.put('/todos/:id',(req,res)=>{
+  for ( var i = 0 ; i < todos.length ; ++i ){
+    if ( todos.at(i).id == req.params.id ){
+      var description = req.body.description;
+      var title = req.body.title;
+      var completed = req.body.completed;
+
+      if ( title != null) todos.at(i).title = title;
+      if ( description != null ) todos.at(i).description = description;
+      if ( completed != null ) todos.at(i).completed = completed;
+      res.status(200).send('Updated the todo');
+      return;   
+    }
+  }
+  res.status(404).send('todo not found');
+})
+
+app.use((req,res)=>{
+  res.status(404).send("invalid route");
+})
+
+//app.listen(3000,()=>(console.log("started listening on 3000")));
+
 module.exports = app;
+
