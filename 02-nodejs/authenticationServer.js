@@ -35,11 +35,13 @@ const app = express();
 
 app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
 let USERS = [];
 
+app.use(express.json());
+
 app.post("/signup", (req, res) => {
-  const userCred = req.body;
+  let userCred = req.body; // This will contain an object of user credentials and it will look like {email, password, firstname, lastname};
+
   let existingUser = false;
   for (let elem of USERS) {
     if (elem.email == userCred.email) {
@@ -48,40 +50,61 @@ app.post("/signup", (req, res) => {
     }
   }
   if (existingUser) {
-    res.status(400).send("User Already Exists!");
+    res.status(400).send("User already exists");
   }
   USERS.push(userCred);
-  res.status(200).send("Account Created Successfully");
+  res.status(200).send("Account has been created successfully!");
 });
 
 app.post("/login", (req, res) => {
-  const userCred = req.body;
-  let user = null;
+  let userCred = req.body;
+  let userFound = null;
+
   for (let elem of USERS) {
     if (elem.email == userCred.email && elem.password == userCred.password) {
-      user = elem;
+      userFound = elem;
       break;
     }
   }
 
-  if (user) {
-    res.status(200).json({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-    });
+  if (userFound != null) {
+    res.status(200).json(userFound);
   } else {
-    res.status(401).send("Invalid Credentials");
+    res.status(401).send("Invalid Credentials!");
   }
 });
 
 app.get("/data", (req, res) => {
-  let usersData = {};
+  let userData = {};
   for (let i = 0; i < USERS.length; i++) {
-    usersData[i] = USERS[i];
+    userData[i] = USERS[i];
   }
 
-  res.json(usersData);
+  let userEmail = req.headers.email;
+  let userPassword = req.headers.password;
+  let userExist = false;
+
+  for (let elem of USERS) {
+    if (elem.email == userEmail && elem.password == userPassword) {
+      userExist = true;
+      break;
+    }
+  }
+
+  if (userExist) {
+    let usersData = {};
+    for (let elem of USERS) {
+      usersData.push({
+        email: elem.email,
+        firstName: elem.firstName,
+        lastName: elem.lastName,
+      });
+    }
+
+    res.json({ usersData });
+  } else {
+    res.status(401);
+  }
 });
 
 module.exports = app;
