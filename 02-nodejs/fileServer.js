@@ -21,5 +21,34 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const obj={};
+const dir='./files'
+fs.readdir(dir,(err,files)=>{
+  if(err) console.log("error in reading directory")
+  else{
+    obj.files=files;
+  }
+})
 
+app.get('/files',(req,res)=>{
+  res.status(200).send(obj);
+
+})
+
+
+app.get('files/:filename',(req,res)=>{
+   const fileName=req.params.filename;
+   obj.files.forEach(file=>{
+    if(file==fileName){
+      const location=path.join(dir,file);
+      fs.readFile(location,'utf-8',(err,data)=>{
+        if(err) console.log("error in reading file");
+        else{
+          res.status(200).send(data);
+        }
+      })
+    }
+   })
+   res.status(404).send("File not found")
+})
 module.exports = app;
