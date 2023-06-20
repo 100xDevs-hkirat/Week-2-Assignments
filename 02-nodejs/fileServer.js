@@ -15,6 +15,8 @@
     - For any other route not defined in the server return 404
 
     Testing the server - run `npm run test-fileServer` command in terminal
+    1. npm i -g jest
+    2. jest tests/<filename>.test.js
  */
 const express = require('express');
 const fs = require('fs');
