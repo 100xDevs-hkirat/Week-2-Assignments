@@ -1,3 +1,61 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+const port = 3000;
+
+app.use(bodyParser.json());
+
+const toDoList = [{id:'1',todo:'eat food'},{id:'2',todo:'complete homework'}]
+
+app.get('/todos',(req,res)=>{
+  res.status(200).send(toDoList);
+})
+
+app.get('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  for (i=0;i<toDoList.length;i++) {
+    if (id === toDoList[i].id) {
+      res.status(200).send(toDoList[i]);
+    }
+  }
+  res.status(404).json({msg:'Task not Found'})
+})
+ 
+app.post('/todos',(req,res)=>{
+  toDoList.push({id:toDoList.length+1,todo:req.body.title})
+  res.status(201).json(toDoList)
+
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  for (i=0;i<toDoList.length;i++) {
+    if (id === toDoList[i].id) {
+      toDoList[i].todo = req.body.title;
+      res.status(200).send(toDoList[i]);
+    }
+  }
+  res.status(404).json({msg:'Task not Found'})
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  for (i=0;i<toDoList.length;i++) {
+    if (id === toDoList[i].id) {
+      toDoList.splice(i,1);
+      res.status(200).send(toDoList);
+    }
+  }
+  res.status(404).json({msg:'Task not Found'})
+})
+
+app.listen(port,()=>{
+  console.log(`App is listening on port ${port}..`)
+})
+
+
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
   - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
@@ -39,11 +97,6 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
-
-app.use(bodyParser.json());
 
 module.exports = app;
