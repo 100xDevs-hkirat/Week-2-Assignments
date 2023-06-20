@@ -39,11 +39,133 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const port = 3000;
+const path = require("path"),
+  filePath = path.join(__dirname, "./files/todo.txt");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+async function readFile() {
+  const data = fs.readFileSync(filePath, "utf-8", (err, data) => {
+    if (err) {
+      console.log("Error occur", err);
+      return;
+    }
+  });
+  return data;
+}
+
+async function writeFile(content) {
+  fs.writeFile(filePath, content, (err) => {
+    if (err) {
+      console.log("Error occur", err);
+      return;
+    }
+    console.log("file wrote successfully.");
+  });
+}
+
+async function getAllTodos(req, res) {
+  readFile().then((data) => {
+    res.send(data);
+  });
+}
+
+async function getSingleTodos(req, res) {
+  const id = req.params.id;
+  readFile().then((data) => {
+    const newData = eval(data);
+    const singleTodos = newData.find((data) => data.id === id);
+    if (singleTodos !== undefined) res.status(200).send(singleTodos);
+    else res.status(404).send("Item not found.");
+  });
+}
+
+async function createTodos(req, res) {
+  const uuid = uuidv4();
+  const obj = req.body;
+  if (Object.keys(obj).length === 0) {
+    res.status(404).send("Item can not be empty.");
+    return;
+  }
+  obj["id"] = uuid;
+  readFile()
+    .then((data) => {
+      const newData = eval(data);
+      newData.push(obj);
+      const newDataToString = JSON.stringify(newData);
+      writeFile(newDataToString);
+    })
+    .then(() => res.status(201).send("Item Created Successfully."));
+}
+
+async function updateTodos(req, res) {
+  const id = req.params.id;
+  const obj = req.body;
+  let updatedFlag = false;
+  if (Object.keys(obj).length === 0) {
+    res.status(404).send("Updated Item can not be empty.");
+    return;
+  }
+  readFile()
+    .then((data) => {
+      const newData = eval(data);
+      const updatedData = newData.map((data) => {
+        if (data.id === id) {
+          updatedFlag = true;
+          return obj;
+        } else {
+          return data;
+        }
+      });
+      const newUpdatedDataToString = JSON.stringify(updatedData);
+      writeFile(newUpdatedDataToString);
+    })
+    .then(() => {
+      if (updatedFlag === true)
+        res.status(200).send("Todo item updated successfully.");
+      else res.status(404).send("Item not found.");
+    });
+}
+
+async function deleteTodos(req, res) {
+  const id = req.params.id;
+  let deleteFlag = false;
+  readFile().then((data) => {
+    const newData = eval(data);
+    const deletedTodos = newData.filter((data) => {
+      if (data.id !== id) return data;
+      else {
+        deleteFlag = true;
+        return;
+      }
+    });
+    const newDeletedTodoToString = JSON.stringify(deletedTodos);
+    writeFile(newDeletedTodoToString);
+    if (deleteFlag === true)
+      res.status(200).send("Todo item was found and deleted successfully.");
+    else res.status(404).send("Item not found.");
+  });
+}
+
+app.get("/todos", getAllTodos);
+
+app.get("/todos/:id", getSingleTodos);
+
+app.post("/todos", createTodos);
+
+app.put("/todos/:id", updateTodos);
+
+app.delete("/todos/:id", deleteTodos);
+
+app.all("*", (req, res) => {
+  res.status(404).send("Error 404 occured");
+});
 
 module.exports = app;
