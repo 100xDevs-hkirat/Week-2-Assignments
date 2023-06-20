@@ -20,7 +20,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const port = 3000;
+// const port = 3000;
 
 app.get('/files', handleGetFilesList);
 app.get('/file/:filename', handleGetFileContent);
@@ -59,9 +59,9 @@ function handleGetFileContent(req, res){
     });
 }
 
-app.listen(port, () => {
-  console.log(`ToDo app listening on port ${port}`)
-})
+// app.listen(port, () => {
+//   console.log(`ToDo app listening on port ${port}`)
+// })
 
 app.use((req, res) => {
   res.status(404).send("Route not found");

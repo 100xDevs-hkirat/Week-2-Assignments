@@ -78,7 +78,7 @@ class ToDo{
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const port = 3000;
+// const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
@@ -91,9 +91,9 @@ app.post('/todos', handleCreateTodo);
 app.put('/todos/:id', handleUpdateTodo);
 app.delete('/todos/:id', handleDeleteTodo);
 
-app.listen(port, () => {
-  console.log(`ToDo app listening on port ${port}`)
-})
+// app.listen(port, () => {
+//   console.log(`ToDo app listening on port ${port}`)
+// })
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
