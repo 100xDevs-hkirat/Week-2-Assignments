@@ -140,4 +140,11 @@ describe('Todo API', () => {
       done();
     });
   });
+
+   test("should be return 404 for a non-existent route ",(done)=>{
+    http.get(`${baseUrl}/undefined`,(res)=>{
+      expect(res.statusCode).toBe(404);
+      done();
+    })
+  });
 });
