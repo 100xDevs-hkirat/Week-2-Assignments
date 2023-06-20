@@ -46,23 +46,24 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.listen('3000',()=>{
-  console.log('app is running on port 3000');
+// app.listen('3000',()=>{
+//   console.log('app is running on port 3000');
 
-});
+// });
 
 app.set('uniquId',0);
 app.set('todoCollection',[]);
 
 app.get('/todos',(req,res)=>{
-      res.status(200).send(this.todoCollection);
+      res.status(200).send(app.get('todoCollection'));
 });
 
 app.get('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  const isPresent = this.todoCollection ? this.todoCollection.some((x)=>x.id===id) : false;
+  const dbArray = app.get('todoCollection');
+  const isPresent = dbArray.some((x)=>x.id==id);
   if(isPresent){
-    res.status(200).send(this.todoCollection.filter(x=>x.id===id)[0]);
+    res.status(200).send(dbArray.filter(x=>x.id==id)[0]);
   }
   else{
     res.sendStatus(404);
@@ -72,18 +73,21 @@ app.get('/todos/:id',(req,res)=>{
 app.post('/todos',(req,res)=>{
       const id = getNextId();
       const todoItem = { "id":id,"title": req.body.title, "completed": req.body.completed, "description": req.body.description };
-      app.get('todoCollection').push(todoItem);
+      const dbArray = app.get('todoCollection');
+      dbArray.push(todoItem);
+      app.set('todoCollection',dbArray);
       res.status(201).send({"id":id});
 })
 
 app.put('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  let todoItem = app.get('todoCollection') ? app.get('todoCollection').filter((x)=>x.id===id) : false;
-  console.log(todoItem);
-  if(todoItem){
-    const index = app.get('todoCollection').findIndex(x=>x.id===id);
-    app.get('todoCollection')[index] = req.body;
-    app.set('todoCollection',app.get('todoCollection'));
+  const dbArray = app.get('todoCollection');
+  const index = dbArray.findIndex(x=>x.id==id);
+  if(index !== -1){
+    const dbitem = dbArray[index];
+    const updatedObj = {...dbitem,...req.body}
+    dbArray[index] = updatedObj;
+    app.set('todoCollection',dbArray);
     res.sendStatus(200);
   }
   else{
@@ -93,11 +97,11 @@ app.put('/todos/:id',(req,res)=>{
 
 app.delete('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  let todoItem = this.todoCollection ? this.todoCollection.filter((x)=>x.id===id) : false;
-  if(todoItem){
-    const index = this.todoCollection.findIndex(x=>x.id===id);
-    this.todoCollection.splice(index,1);
-    this.app.set('todoCollection',this.todoCollection);
+  const dbArray = app.get('todoCollection');
+  const index = dbArray.findIndex(x=>x.id==id);
+  if(index !== -1){
+    dbArray.splice(index,1);
+    app.set('todoCollection',dbArray);
     res.sendStatus(200);
   }
   else{
