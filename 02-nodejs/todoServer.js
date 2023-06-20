@@ -43,7 +43,94 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+let db = require("./db.json");
+const uniqid = require("uniqid");
+const fs = require("fs");
 
 app.use(bodyParser.json());
+// console.log(db);
+// let db = JSON.parse(Db);
+
+// if(db.length>0){
+//   db=JSON.parse(db);
+// }
+app.get("/todos",(req,res)=>{
+  res.json(db)
+});
+
+app.get("/todos/:id",(req,res)=>{
+  let id = req.params.id;
+  
+  let todo = db.find((obj)=>{
+    return obj.id===id;
+  })
+  if(todo){
+    res.json(todo)
+  }else{
+    res.status(404).send();
+  }
+})
+
+app.post("/todos",(req,res)=>{
+  let newTodo = req.body;
+  // console.log((newTodo));
+  newTodo.id = uniqid();
+  db.push(newTodo);
+  // console.log(db.toString());
+  fs.writeFile("./db.json",JSON.stringify(db),(err)=>{
+    if(err!==null)
+    console.log(err);
+  })
+  res.status(201).json(newTodo);
+})
+
+app.put("/todos/:id",(req,res)=>{
+  let id = req.params.id;
+  let todo = db.find((obj)=>{
+    return obj.id===id;
+  })
+  if(todo){
+    let updatedData = req.body;
+    for(let key in updatedData){
+      todo[key] = updatedData[key];
+    }
+    fs.writeFile("./db.json",JSON.stringify(db),(err)=>{
+      if(err!==null)
+      console.log(err);
+    })
+    res.json({
+      updatedTodo:todo
+    })
+  }else{
+    res.status(404).send("todo not found");
+  }
+})
+
+app.delete("/todos/:id",(req,res)=>{
+  let id = req.params.id;
+  let todo = db.find((obj)=>{
+    return obj.id===id;
+  })
+  if(todo){
+    db = db.filter((obj)=>{
+      // console.log(obj,todo);
+      return obj!==todo;
+    })
+    // console.log(db);
+
+    fs.writeFile("./db.json",JSON.stringify(db),(err)=>{
+      if(err!==null)
+      console.log(err);
+    });
+    res.send(todo);
+  }else{
+    res.status(404).send("todo not found");
+  }
+  
+})
+
+app.use((req,res,next)=>{
+  res.status(404).send();
+})
 
 module.exports = app;
