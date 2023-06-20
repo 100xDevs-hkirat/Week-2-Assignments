@@ -16,11 +16,14 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+
+    
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
 
+//PATH LIBRARY IS USED TO CREATE A VALID PATH BETWEEN THE CURRENT DIR AND THE GIVEN PATH
 
 app.get('/files',(req,res)=>{
 
@@ -34,7 +37,6 @@ app.get('/files',(req,res)=>{
 })
 
 
-
 app.get('/file/:fileName',(req,res)=>{
 
   const fileName = req.params.fileName;
@@ -46,7 +48,7 @@ app.get('/file/:fileName',(req,res)=>{
 
     res.send(data);
   })
-  
+
 
 })
 
