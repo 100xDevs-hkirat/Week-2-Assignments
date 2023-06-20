@@ -30,8 +30,17 @@
  */
 
 const express = require("express")
+var bodyParser = require('body-parser')
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+
+app.get('/data',  handleGetData);
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 module.exports = app;

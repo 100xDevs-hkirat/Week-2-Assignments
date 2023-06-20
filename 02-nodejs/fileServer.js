@@ -20,6 +20,51 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
 
+app.get('/files', handleGetFilesList);
+app.get('/file/:filename', handleGetFileContent);
+
+function handleGetFilesList(req, res){
+  const directoryPath = './files';
+  
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      res.status(500).send('Error finding files in specified directory');
+      return;
+    }
+    var fileNames = [];
+    files.forEach((file) => {
+      fileNames.push(file);
+    });
+    res.json(fileNames);
+  });
+  
+}
+
+function handleGetFileContent(req, res){
+    var filename = req.params.filename;
+    const filePath = path.join('./files',filename);
+    fs.readFile(filePath,"utf-8",(err, data) => {
+      if(err){
+        if(err.code === 'ENOENT'){
+          res.status(404).send("File not found");
+        }else{
+          res.status(404).send("Error reading file : "+err);
+        }
+        return;
+      }
+      res.send(data);
+      return;
+    });
+}
+
+app.listen(port, () => {
+  console.log(`ToDo app listening on port ${port}`)
+})
+
+app.use((req, res) => {
+  res.status(404).send("Route not found");
+});
 
 module.exports = app;
