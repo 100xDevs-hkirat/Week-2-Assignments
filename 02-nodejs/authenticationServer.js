@@ -30,8 +30,56 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser")
+const { v4: uuidv4 } = require("uuid")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json())
+
+var accounts = []
+
+app.post("/signup", (req, res) => {
+    if(accounts.some(account => account.email === req.body.email)){
+        res.status(400).send()
+        return
+    }
+
+    let account = req.body
+    account.id = uuidv4()
+    accounts.push(account)
+    res.status(201).send("Signup successful")
+})
+
+app.post("/login", (req, res) => {
+    let index = accounts.findIndex(acc => acc.email === req.body.email && acc.password === req.body.password)
+    if(index == -1){
+        res.status(401).send("Unauthorized")
+        return
+    }
+
+    let account = accounts[index]
+    const { id, email, firstName, lastName } = account
+    res.send({ id, email, firstName, lastName })
+})
+
+app.get("/data", (req, res) => {
+    if(!accounts.some(acc => acc.email === req.headers.email && acc.password === req.headers.password)){
+        res.status(401).send("Unauthorized")
+        return
+    }
+
+    let results  = accounts.map(acc => {
+        const { id, firstName, lastName } = acc
+        return { id, firstName, lastName }
+    })
+
+    res.send({ users: results})
+})
+
+
+// var port = 3000
+// app.listen(port, () => console.log(`Listening on port ${port}`))
 
 module.exports = app;

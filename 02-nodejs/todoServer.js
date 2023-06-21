@@ -41,9 +41,62 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid')
 
 const app = express();
 
 app.use(bodyParser.json());
+
+var todoItems = []
+
+app.get("/todos", (req, res) => {
+    res.send(todoItems)
+})
+
+app.get("/todos/:id", (req, res) => {
+    if(todoItems.some(todo => todo.id == req.params.id)){
+        let item = todoItems.find(todo => todo.id == req.params.id)
+        res.send(item)
+    }
+    
+    res.status(404).send()
+    
+})
+
+app.post("/todos", (req, res) => {
+    let item = req.body
+    item.id =  uuidv4()
+    todoItems.push(item)
+    res.status(201).send({ id: item.id})
+})
+
+app.put("/todos/:id", (req, res) => {
+    if(todoItems.some(todo => todo.id == req.params.id)){
+        updatedItem = req.body
+        updatedItem.id = req.params.id
+        const index = todoItems.findIndex(todo => todo.id == req.params.id)
+        todoItems.splice(index, 1)
+        todoItems.push(updatedItem)
+        
+        res.send(`Item updated with ${JSON.stringify(updatedItem)}`)
+    } 
+
+    res.status(404).send()
+})
+
+app.delete("/todos/:id", (req, res) => {
+    if(todoItems.some(todo => todo.id == req.params.id)){        
+        const index = todoItems.findIndex(todo => todo.id == req.params.id)
+        let deletedItem = todoItems[index]
+        todoItems.splice(index, 1)
+                
+        res.send(`Item deleted ${JSON.stringify(deletedItem)}`)
+    } 
+
+    res.status(404).send()
+})
+
+// var port = 3000
+// app.listen(port, () => console.log(`Listening to port ${port}`))
 
 module.exports = app;
