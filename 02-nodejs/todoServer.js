@@ -100,4 +100,9 @@ app.delete("/todos/:id", (req, res) => {
   }
 })
 
+// for all the other routes, return 404
+app.use((req,res,next) => {
+  res.status(404).send();
+})
+
 module.exports = app;
