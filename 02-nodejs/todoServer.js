@@ -40,6 +40,7 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -54,12 +55,29 @@ app.use(bodyParser.json());
 app.set('uniquId',0);
 app.set('todoCollection',[]);
 
-app.get('/todos',(req,res)=>{
+async function getDatafromFile(){
+   var data = await fs.promises.readFile('./files/a.txt','utf8');
+   if(data){
+    app.set('todoCollection',JSON.parse(data));
+   }
+   else{
+    app.set('todoCollection',[]);
+   }
+   
+}
+
+async function updateDatatoFile(){
+  var data = await fs.promises.writeFile('./files/a.txt',JSON.stringify(app.get('todoCollection')));
+}
+
+app.get('/todos',async (req,res)=>{
+      await getDatafromFile();
       res.status(200).send(app.get('todoCollection'));
 });
 
-app.get('/todos/:id',(req,res)=>{
+app.get('/todos/:id',async (req,res)=>{
   const id = req.params.id;
+  await getDatafromFile();
   const dbArray = app.get('todoCollection');
   const isPresent = dbArray.some((x)=>x.id==id);
   if(isPresent){
@@ -70,17 +88,27 @@ app.get('/todos/:id',(req,res)=>{
   }
 })
 
-app.post('/todos',(req,res)=>{
-      const id = getNextId();
-      const todoItem = { "id":id,"title": req.body.title, "completed": req.body.completed, "description": req.body.description };
+app.post('/todos',async (req,res)=>{
+      await getDatafromFile();
       const dbArray = app.get('todoCollection');
+      let maxId = dbArray.reduce((max,c)=>{
+        if(c.id>max){
+          max = c.id;
+        }
+        return max;
+      },0);
+      console.log(maxId);
+      const id = maxId+1;
+      const todoItem = { "id":id,"title": req.body.title, "completed": req.body.completed, "description": req.body.description };
       dbArray.push(todoItem);
       app.set('todoCollection',dbArray);
+      await updateDatatoFile();
       res.status(201).send({"id":id});
 })
 
-app.put('/todos/:id',(req,res)=>{
+app.put('/todos/:id',async (req,res)=>{
   const id = req.params.id;
+  await getDatafromFile();
   const dbArray = app.get('todoCollection');
   const index = dbArray.findIndex(x=>x.id==id);
   if(index !== -1){
@@ -88,6 +116,7 @@ app.put('/todos/:id',(req,res)=>{
     const updatedObj = {...dbitem,...req.body}
     dbArray[index] = updatedObj;
     app.set('todoCollection',dbArray);
+    await updateDatatoFile();
     res.sendStatus(200);
   }
   else{
@@ -95,13 +124,15 @@ app.put('/todos/:id',(req,res)=>{
   }
 })
 
-app.delete('/todos/:id',(req,res)=>{
+app.delete('/todos/:id',async (req,res)=>{
   const id = req.params.id;
+  await getDatafromFile();
   const dbArray = app.get('todoCollection');
   const index = dbArray.findIndex(x=>x.id==id);
   if(index !== -1){
     dbArray.splice(index,1);
     app.set('todoCollection',dbArray);
+    await updateDatatoFile();
     res.sendStatus(200);
   }
   else{
