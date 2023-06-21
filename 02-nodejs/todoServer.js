@@ -46,32 +46,73 @@ const app = express();
 
 app.use(bodyParser.json());
 
-const todos = [];
+const TODOS = [];
 
 app.get("/todos", (req, res) => {
-  if (todos.length > 0) {
-    res.json(todos);
+  if (TODOS.length > 0) {
+    res.json(TODOS);
   }
 });
 app.get("/todos/:id", (req, res) => {
-  if (todos.length === 0) {
+  if (TODOS.length === 0) {
     return res.status(404).send("No todo added");
   }
 
-  let selectedTodo = todos.find((todo) => todo.id === req.params.id);
+  let selectedTodo = TODOS.find((todo) => todo.id == req.params.id);
+  //console.log(selectedTodo + "======" + req.params.id);
   if (!selectedTodo) {
     return res.status(404).send("Todo not found");
   }
 
   res.json(selectedTodo);
 });
-app.put("/todos/:id", (req, res) => {});
-app.delete("/todos/:id", (req, res) => {});
+app.put("/todos/:id", (req, res) => {
+  let todoid = req.params.id;
+  let { title, completed } = req.body;
+  todoid = TODOS.findIndex((todo) => todo.id == todoid);
+  if (todoid == -1) {
+    return res.sendStatus(404);
+  }
+  TODOS[todoid].title = title;
+  TODOS[todoid].completed = completed;
 
-app.post("/todos", (req, res) => {});
+  return res.json(TODOS[todoid]);
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let todoid = req.params.id;
+  todoid = TODOS.findIndex((todo) => todo.id == todoid);
+  if (todoid == -1) {
+    return res.sendStatus(404);
+  }
+  TODOS.splice(todoid, 1);
+  return res.sendStatus(200);
+});
+
+//{ "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+app.post("/todos", (req, res) => {
+  let { title, completed, description } = req.body;
+  if (!title) {
+    return res.status(400).send("Empty title received! Enter a valid title");
+  }
+  let id = TODOS.length + 1;
+
+  TODOS.push({
+    id: id,
+    title: title,
+    completed: completed,
+    description: description,
+  });
+  return res.status(201).json({ id: id });
+});
 
 app.all("*", (req, res) => {
   res.status(404).send("Route not found");
 });
+
+/* let port = 3003;
+app.listen(3003, function () {
+  console.log(`Demo application is listening on port ${port}`);
+}); */
 
 module.exports = app;
