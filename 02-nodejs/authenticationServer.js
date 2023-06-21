@@ -29,9 +29,98 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
-const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const app = express();
+var users = [];
+app.use(express.json()); // Add this line to parse JSON request bodies
+
+app.post("/signup", (req, res) => {
+  const user = req.body;
+  let userPresent = false;
+  // for(let i = 0; i < users.length; i++) {
+  //   if (users[i].username === user.username) {
+  //     userpresent = true;
+  //     break;
+  //   }
+  // }
+  // or;
+  for (const eachuser of users) {
+    if (eachuser.username === user.username) {
+      userPresent = true;
+      break;
+    }
+  }
+  if (userPresent) {
+    // if user is already present
+    res.sendStatus(400);
+  } else {
+    // user.id = uuidv4();
+    //else add user to the array
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", (req, res) => {
+  const user = req.body;
+  let userFound = null;
+  for (const eachuser of users) {
+    if (
+      eachuser.username === user.username &&
+      eachuser.password === user.password
+    ) {
+      userFound = eachuser; // if user is found, break the loop and store the user in userFound
+      break;
+    }
+  }
+  if (userFound) {
+    // return the user details if user is found
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res) => {
+  const user = req.headers;
+  userPresent = false;
+  for (const eachUser of users) {
+    if (eachUser.email === user.email && eachUser.password === user.password) {
+      userPresent = true;
+      break;
+    }
+  }
+  if (userPresent) {
+    // if user is present, return the user details
+    let userData = []; // create an empty array to store the user details
+    for (const eachUser of users) {
+      // loop through the users array and push the user details to userData array
+      userData.push({
+        firstName: eachUser.firstName,
+        lastName: eachUser.lastName,
+        email: eachUser.email,
+      });
+    }
+    res.status(200).send({ users: userData }); // return the userData array with key users
+
+    //or using map
+    // userData = users.map((eachUser) => {
+    //   return {
+    //     firstName: eachUser.firstName,
+    //     lastName: eachUser.lastName,
+    //     email: eachUser.email,
+    //   };
+    // });
+    // res.status(200).send({users :userData});
+  } else {
+    res.sendStatus(401);
+  }
+});
 
 module.exports = app;
