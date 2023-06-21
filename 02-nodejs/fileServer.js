@@ -17,7 +17,8 @@
     Testing the server - run `npm run test-fileServer` command in terminal
  */
 const express = require('express');
-const {readdir, access, readFile} = require('fs/promises');
+const fs = require('fs')
+const { access} = require('fs/promises');
 const path = require('path');
 const app = express();
 
@@ -32,14 +33,12 @@ async function fileExist(file){
 }
 
 app.get("/files",async(req, res)=>{
-  try{
-  const files = await readdir(path.join(__dirname,"files"))
-  return res.send(files)
-  }
-  catch(e){
-    console.log(e)
-    return res.sendStatus(500)
-  }
+  fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to retrieve files' });
+    }
+    res.json(files);
+  });
   
 })
 
@@ -47,8 +46,6 @@ app.get("/file/:filename",async (req,res)=>{
   const found = await fileExist(req.params.filename)
   if(!found){
     return res.status(404).send("File not found")}
-  const content = await readFile(path.join(__dirname,"files",req.params.filename))
-  console.log(content.toString())
   res.sendFile(path.join(__dirname,"files",req.params.filename))
 })
 
