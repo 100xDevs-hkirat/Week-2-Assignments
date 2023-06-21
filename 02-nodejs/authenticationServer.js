@@ -30,8 +30,143 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const PORT = 6000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const users = [];
+
+// Sign up: 
+app.post("/signup", (req, res) => {
+
+  try{
+    // Fetch all the data: 
+    const { username, password, firstName, lastName } = req.body; 
+
+    // Validate 
+    if(!username || !password || firstName || lastName){
+      return res.status(400).json({
+        message: "Fill in all the fields", 
+        success: false, 
+      }); 
+    }
+
+    // Check if the user is present in the array or not: 
+    let foundUser = null; 
+    for(let i=0 ;i<users.length; ++i ){
+      console.log(`user ${JSON.stringify(users[i])}`);
+      if(users[i].username === username) {
+        foundUser = true;
+        break;
+        }
+      }
+    if(foundUser){
+      return res.status(400).json({
+        message: "User with this email already exists", 
+        success: false, 
+      });
+    }
+
+    // Store the user in the user's array: 
+    users.push({ id : Date.now(), username , password});
+
+    // Return successful response: 
+    return res.status(200).json({
+      success: true, 
+      message: "Signed up successfully", 
+    })
+
+  }catch(err){
+
+    return res.status(400).json({
+      message: "User could not be signed up" , 
+      success: false, 
+    })
+
+  }
+});
+
+// Login 
+app.post("/login", (req, res) => {
+  try{
+    
+    // Fetch all the data: 
+    const { email, password } = req.body; 
+
+    // Validate: 
+    if( !email || !password ){
+      return res.status.json({
+        success: false,
+        message:"Please enter both fields!"
+      })
+    }
+
+    // Check for given user in the users array: 
+    let foundUser = users.find(user => user.email === email);    
+    if(foundUser){
+      // Check the password: 
+      if (foundUser.password === password) {
+        // Password matches, login successful
+        return res.status(200).json({
+          success: true,
+          message: "Login successful!", 
+          firstName: foundUser.firstName, 
+          lastName: foundUser.lastName, 
+        });
+      } else {
+        // Password does not match
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password!"
+        });
+      }
+    } else {
+      // User with the given email does not exist
+      return res.status(404).json({
+        success: false,
+        message: "User not found!"
+      });
+    }
+
+  }catch(err){
+    return res.status.json({
+      success: false, 
+      message: "An error occurred while logging in. Please try again later."
+    })
+  }
+})
+
+// Data: 
+// Directly copied from the solutions: 
+app.get("/data", (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+    }
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+})
 module.exports = app;
