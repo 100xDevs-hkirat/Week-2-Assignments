@@ -41,9 +41,76 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
+// const port = 3000;
 
 app.use(bodyParser.json());
 
+let todoList = [];
+
+const todos = ((req, res) => {
+  res.json(todoList);
+})
+app.get('/todos', todos);
+
+const getTodoId = ((req, res) => {
+  const todoId = parseInt(req.params.id);
+  const checkTodo = todoList.find((todo) => todo.id === todoId);
+  if (!checkTodo) {
+    res.status(404).send("Todo item not found");
+  } else {
+    res.json(checkTodo);
+  }
+})
+app.get('/todos/:id', getTodoId);
+
+const postNewTodo = ((req, res) => {
+  const {
+    title,
+    description
+  } = req.body;
+  const id = Math.floor(Math.random() * 1000000);
+  const newTodo = {
+    id: id,
+    title: title,
+    description: description
+  }
+  todoList.push(newTodo);
+  res.status(201).json(newTodo);
+})
+app.post('/todos', postNewTodo);
+
+const updateTodo = ((req, res) => {
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todoList[todoIndex].title = req.body.title;
+    todoList[todoIndex].description = req.body.description;
+    res.json(todoList[todoIndex]);
+  }
+})
+app.put('/todos/:id', updateTodo);
+
+app.delete('/todos/:id', (req, res) => {
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todoList.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+
+// const started = (() => {
+//   console.log(`Example app listening on port ${port}`)
+// })
+
+// app.listen(port, started)
 module.exports = app;
