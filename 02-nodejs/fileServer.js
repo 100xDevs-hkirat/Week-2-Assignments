@@ -22,4 +22,71 @@ const path = require('path');
 const app = express();
 
 
+function getFilesPromise(){
+  return new Promise((resolve,reject)=>{
+    fs.readdir('./files',(error,files) => {
+      if (error) {
+        reject('Error reading directory:', error);
+      }
+      resolve(JSON.stringify(files));
+    })
+  })
+}
+
+function getContentsofFilePromise(filename){
+  let path = './files/' + filename;
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject("File not found");
+      }
+      resolve(data);
+    });
+  })
+}
+
+
+//Using then and catch to learn...
+
+// app.get('/files',(req,res)=>{
+//   getFilesPromise()
+//   .then((value)=>{
+//     res.status(200).send(value);
+//   })
+//   .catch((error)=>{
+//     res.status(404).send(error);
+//   })
+// })
+
+
+// Using async await...
+async function getFiles(req,res){
+  try{
+    let ans = await getFilesPromise();
+    res.status(200).send(ans);
+  }
+  catch(error){
+    res.status(500).send(error);
+  }
+}
+
+
+app.get('/files',getFiles);
+
+app.get('/file/:filename',(req,res)=>{
+  let filename = req.params.filename;
+  getContentsofFilePromise(filename)
+  .then((data)=>{
+    res.status(200).send(data);
+  })
+  .catch((err)=>{
+    res.status(404).send(err);
+  })
+});
+
+app.use((req,res)=>{
+  res.status(404).send("Route not found");
+})
+
+//app.listen(3000,()=>{console.log("start server")});
 module.exports = app;
