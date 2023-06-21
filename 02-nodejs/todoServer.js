@@ -78,7 +78,9 @@ class ToDo{
 
 const express = require('express');
 const bodyParser = require('body-parser');
-// const port = 3000;
+const fs = require('fs');
+const path = require('path');
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
@@ -91,9 +93,17 @@ app.post('/todos', handleCreateTodo);
 app.put('/todos/:id', handleUpdateTodo);
 app.delete('/todos/:id', handleDeleteTodo);
 
-// app.listen(port, () => {
-//   console.log(`ToDo app listening on port ${port}`)
-// })
+const server = app.listen(port, () => {
+      console.log(`ToDo app listening on port ${port}`);
+      readToDosFromFile();
+  });
+
+process.on('SIGINT', () => {
+  console.log('Server is shutting down');
+  server.close(() => {
+    writeToFile(toDoList);
+  });
+});
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -151,6 +161,35 @@ function handleDeleteTodo(req, res){
     }
   }
   res.status(404).send("TODO with id "+id+" not found !");
+}
+
+function writeToFile(toDoList){  
+  const todos = JSON.stringify(toDoList);
+  fs.writeFile(path.join(__dirname, './files/', 'ToDo.txt'),todos, (err) => {
+    if(err){
+      console.log("Error writing to file : ", err);
+    }else{
+      console.log(`ToDos saved in ToDo.txt file`);
+    }
+  });
+}
+
+function readToDosFromFile(){
+  fs.readFile(path.join(__dirname, './files/', 'ToDo.txt'),"utf-8",(err, data) => {
+    if(err){
+      if(err.code === 'ENOENT'){
+        console.log("File not found");
+      }else{
+        console.log("Error reading file : "+err);
+      }
+      return;
+    }
+    if(data != ''){
+      toDoList = JSON.parse(data);
+    }
+      
+  });
+  
 }
 
 module.exports = app;
