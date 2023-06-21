@@ -43,6 +43,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {v4: uuidv4} = require('uuid')
+const fs = require('fs');
 
 const app = express();
 
@@ -55,12 +56,24 @@ const constructTodo = (todo) => {
     ...todo,
   };
 }
+
+const todoDBPath = './db/todoDB.json';
+
+const writeTodosToFile = (todos) => {
+  fs.writeFileSync(todoDBPath, JSON.stringify({todos}));
+}
+
+const readTodosFromFile = () => {
+  const data = fs.readFileSync(todoDBPath, 'utf8');
+  const todos = JSON.parse(data).todos;
+  return todos;
+}
 /** utils end */
 
 /** TodoList class start */
 class TodoList {
   constructor() {
-    this.todos = [];
+    this.todos = readTodosFromFile();
   }
 
   getTodos() {
@@ -74,6 +87,7 @@ class TodoList {
   createNewTodo(todo) {
     const newTodo = constructTodo(todo);
     this.todos.push(newTodo);
+    writeTodosToFile(this.todos);
     return newTodo;
   }
 
@@ -86,6 +100,7 @@ class TodoList {
       ...this.todos[index],
       ...todo,
     };
+    writeTodosToFile(this.todos);
     return this.todos[index];
   }
 
@@ -94,6 +109,7 @@ class TodoList {
     if (index === -1) {
       return null;
     }
+    writeTodosToFile(this.todos);
     return this.todos.splice(index, 1)[0];
   }
 }
