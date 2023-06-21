@@ -64,6 +64,7 @@ app.get("/todos/:id", (req, res) => {
       return res.status(200).send(todolist[i][1]);          
     }
   }
+  res.status(200).send("404 Not Found")
 })
 
 app.post("/todos", (req, res) => {
@@ -73,11 +74,15 @@ app.post("/todos", (req, res) => {
 })
 
 app.put("/todos/:id", (req, res) => {
-  todolist[req.params.id][1].title= req.body.title!==undefined?req.body.title:todolist[req.params.id][1].title
-  todolist[req.params.id][1].description= req.body.description!==undefined?req.body.description:todolist[req.params.id][1].description
-  todolist[req.params.id][1].completed= req.body.completed!==undefined?req.body.completed:todolist[req.params.id][1].completed
-  res.status(200).send("Task has been successfully updated")
-  console.log(todolist[req.params.id])
+  for(var i=0; i<todolist.length; i++){
+    if(req.params.id==todolist[i][0]){
+      todolist[i][1].title= req.body.title!==undefined?req.body.title:todolist[i][1].title
+      todolist[i][1].description= req.body.description!==undefined?req.body.description:todolist[i][1].description
+      todolist[i][1].completed= req.body.completed!==undefined?req.body.completed:todolist[i][1].completed
+      return res.status(200).send("Task has been successfully updated")
+    }
+  }
+  res.status(200).send("404 Not Found")
 })
 
 app.delete('/todos/:id', (req,res) => {
@@ -88,6 +93,7 @@ app.delete('/todos/:id', (req,res) => {
       return res.status(200).send("Task has been found & Deleted");
     }
   }
+  res.status(200).send("404 Not Found")
 })
 
 module.exports = app;
