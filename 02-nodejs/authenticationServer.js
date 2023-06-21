@@ -29,9 +29,75 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const express = require("express");
 const app = express();
+const PORT = 3000;
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const {v4: uuidv4} = require('uuid');
+let user_db = [];
+const secretKey = 'Test@12345';
+app.use(bodyParser.json());
+
+const route_checker = (req, res, next) =>{
+  if(['/data', '/login', '/signup'].includes(req.url))
+    next();
+    else{
+      res.status(404).send('Not Found');
+    }
+}
+app.use(route_checker);
+const createUser = (req, res) =>{
+  let found=false;
+  user_db.forEach((item)=>{
+    if(item.username === req.body.username){
+      found = true;
+      res.status(400).send('Username already exists');
+    }
+  })
+  if(!found){
+    const token = jwt.sign(req.body, secretKey, {algorithm: 'HS256'});
+    req.body.authToken = token;
+    req.body.id = uuidv4();
+    user_db.push(req.body);
+    res.status(201).send('Signup successful');
+  }
+}
+const login = (req, res) =>{
+  let valid=false;
+  user_db.forEach((item)=>{
+    if(((req.body.username && item.username === req.body.username) 
+        ||(req.body.email && item.email === req.body.email))
+      && item.password === req.body.password){
+      valid = true;
+      res.status(200).send(item);
+    }
+  })
+  if(!valid){
+    res.status(401).send('Unauthorized');
+  }
+}
+const proctectedData = (req, res) => {
+  let valid=false;
+  user_db.forEach((item)=>{
+    if(((req.headers.username && item.username === req.headers.username) 
+         ||(req.headers.email && item.email === req.headers.email))
+         && item.password === req.headers.password){
+      valid = true;
+      res.status(200).send({users: user_db});
+    }
+  })
+  if(!valid){
+    res.status(401).send('Unauthorized');
+  }
+}
+
+app.post('/signup', createUser);
+app.post('/login', login);
+app.get('/data', proctectedData);
+
+//app.listen(3010, console.log(`server is running on 3010`));
 
 module.exports = app;
