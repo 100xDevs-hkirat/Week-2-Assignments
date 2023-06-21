@@ -21,5 +21,19 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get("/files", (req, res) => {
+  const pth = path.join(__dirname, './files');
+  fs.readdir(pth, (err, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Internal Server Error');
+    }
 
+    res.status(200).json(files);
+  });
+})
+
+app.listen(3000, () => {
+  console.log("Sever started on 3000 port")
+})
 module.exports = app;
