@@ -16,10 +16,31 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
+const port = 3000;
 
+app.get("/files", (req, res) => {
+  const directoryPath = path.dirname("../02-nodejs/files/text/");
+
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      res.send("Internal Server Error !");
+    }
+
+    const fileNames = files.map((file, index) => `${index + 1} . ${file}`);
+    console.log(fileNames);
+    res.json({
+      fileName: fileNames,
+      noOfFiles: files.length,
+    });
+  });
+});
+
+app.listen(port, () => {
+  console.log(`App is running on port ${port}`);
+});
 
 module.exports = app;
