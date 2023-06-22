@@ -19,7 +19,46 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const app = express();
+const bodyParser = require('body-parser');
 
+const port = 3000;
+const app = express();
+app.use(bodyParser.json());
+
+const getFilesDetails = (req, res) => {
+  fs.readdir(path.join(__dirname, './files'), (err, files) => {
+    if(err) res.status(500).send("Internal server error.");
+
+    res.status(200).send(files);
+  })
+}
+
+const sendFileData = (req, res) => {
+  let file = req.params.filename;
+
+  fs.readdir(path.join(__dirname, './files'), (err, files) => {
+    if(err) res.status(500).send("Internal server error.");
+
+    if(files.includes(file)) {
+      fs.readFile(path.join(__dirname, "./files", `./${file}`), "utf-8", (err, data) => {
+        if(err) console.log(err);
+        res.status(200).send(data);
+      });
+    } else {
+      res.status(404).send("File not found")
+    }
+  })
+}
+
+
+app.get('/files', getFilesDetails);
+app.get('/file/:filename', sendFileData);
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+})
+
+
+app.listen(port, () => console.log(`server running on port ${port}`));
 
 module.exports = app;
