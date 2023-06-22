@@ -41,9 +41,162 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
+
+const PORT = 3000;
+
+let data = [];
 
 const app = express();
+const PATH = "./files/todo.txt";
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+function WriteDate(data) {
+  data = JSON.stringify(data);
+  fs.writeFile(PATH, data, { flag: "a" }, (err) => {
+    if (err) throw err;
+    console.log("successfully writed a data on file");
+  });
+}
+
+function findById(id) {
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].id == id) {
+      return data[i];
+    }
+  }
+
+  return new Error("Id is not correct");
+}
+
+function findIndex(title) {
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].title == title) return i;
+  }
+  return -1;
+}
+
+const GetAll = (req, res) => {
+  res.status(200).json({
+    message: "Successfully fetched",
+    description: "Returns a list of all todo items",
+    success: true,
+    data: data,
+  });
+};
+
+const GetById = (req, res) => {
+  try {
+    let data = findById(req.params.id);
+    return res.status(200).json({
+      message: "Successfully fetched ",
+      description: "Returns a specific todo item identified by its ID.",
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      err: error,
+      data: {},
+    });
+  }
+};
+
+const CreateTodo = (req, res) => {
+  try {
+    if (!req.body.title || !req.body.description)
+      return new Error("Missing some attributes");
+    let body = req.body;
+    let NewBody = { id: uuidv4(), ...body };
+    data.push(NewBody);
+    WriteDate(NewBody);
+    return res.status(201).json({
+      message: "Successfully created a todo",
+      description: "Creates a new todo item",
+      err: {},
+      data: NewBody,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: true,
+      data: {},
+      err: error,
+    });
+  }
+};
+
+const Update = (req, res) => {
+  try {
+    let response = findById(req.params.id);
+    if (!response) {
+      return res.status(500).json({
+        message: "Invalid Todo Id",
+        success: false,
+        data: {},
+        err: error,
+      });
+    }
+    let update = req.body;
+    for (var item of Object.keys(update)) {
+      response[item] = update[item];
+    }
+
+    return res.status(201).json({
+      message: "Successfully updated a todo",
+      description: "Updates an existing todo item identified by its ID",
+      err: {},
+      data: response,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+      data: {},
+      err: error,
+    });
+  }
+};
+
+const Delete = (req, res) => {
+  let response = findIndex(req.params.id);
+  if (response == -1) {
+    return res.status(500).json({
+      message: "please send correct id",
+      success: false,
+      data: {},
+      err: new Error("send correct id"),
+    });
+  }
+  let data = arr.splice(response, 1);
+  return res.status(200).json({
+    message: "Successfully updated a todo",
+    description: "Deletes a todo item identified by its ID",
+    err: {},
+    data: data,
+  });
+};
+app.get("/", (req, res) => {
+  res.send("Welcome to Todo");
+});
+app.get("/todos", GetAll);
+app.get("/todos/:id", GetById);
+app.post("/todos", CreateTodo);
+app.put("/todos/:id", Update);
+app.delete("/todos/:id", Delete);
+
+const ServerSetUp = () => {
+  app.listen(PORT, () => {
+    console.log(`Server started at port ${PORT}`);
+  });
+};
+
+ServerSetUp();
+
 
 module.exports = app;
