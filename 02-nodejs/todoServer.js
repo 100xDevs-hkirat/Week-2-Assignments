@@ -1,3 +1,4 @@
+
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
   - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
@@ -39,11 +40,167 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express');  // require express librarry
+const bodyParser = require('body-parser'); // middleware
+port = 5000;
+const app = express();    // call the expresss function and assign to a constant variable called app
 
-const app = express();
+function started(){
+  console.log("the server is active on ",+port);
+}
 
-app.use(bodyParser.json());
+app.use(bodyParser.json()); // use the exp func and call its use method to use body parser
+app.listen(port,started);
 
+// function to get the list of all todos
+
+var todos = [
+
+];
+
+
+// get all to itmes
+function all_todo(req,res){
+  res.status(200).json(todos);
+}
+
+// get to do by ID
+function get_todos(req,res){
+  // const todoid=parseInt(req.params.id);
+  // let foundtodo= null;
+  // for ( let i = 0 ; i < todos.length ; i++){
+  //   if(todoid==todos[i].id){
+  //     foundtodo=todos[i];
+  //     break;
+  //   }
+  // }
+  // if(foundtodo){
+  //   res.json(foundtodo);
+  // }
+  // else{
+  //   res.status(404).send();
+  // }
+  const todoid=todos.find(t=>t.id===parseInt(req.params.id));
+  if(!todos){
+    res.status(404).send("not found");
+  }  
+  else{
+    res.status(200).send(todoid);
+  }
+}
+
+
+// get the data in a POST request and send it in the array
+
+function create_todo(req,res){
+  const newtodo={
+    "id":req.body.id,
+    "title": req.body.title,
+    "description": req.body.description
+
+  };
+  console.log(newtodo);
+  todos.push(newtodo);
+  res.status(201).json(newtodo);
+};
+
+// update an existing todo
+
+app.put('/todo/:id',(req,res)=>{
+  const todoindex=req.body.id;
+  for ( let i = 0 ; i < todos.length ; i++){
+    if(todoindex==todos[i]){
+      todos[i].title=req.body.title;
+      todos[i].description=req.body.description;
+    }
+  }
+
+});
+
+app.delete('/todo/:id',(req,res)=>{
+  let done=false;
+  const index=parseInt(req.body.id);
+  for ( let i = 0 ; i <todos.length ; i++){
+    if( index==todos[i].id){
+      delete todos[i].id;
+      delete todos[i].title;
+      delete todos[i].description;
+      done=true;
+      return todos;
+    }
+    if(done){
+      res.status(201).send("done");
+    }
+    else{
+      res.status(400).send();
+    }
+  }
+
+})
+
+
+
+// update the to do by id
+
+function update_todo(req,res){
+  const id = parseInt(req.body.id);
+  const updatetitle=req.body.title;
+  const updatedesc=req.body.description;
+  let foundtodo=false;
+  // console.log(id);
+  // console.log(updatetitle);
+  // console.log(updatedesc);
+  for ( let i = 0 ; i < todos.length ; i++){
+    if (todos[i].id===id){
+      todos[i].title=updatetitle;
+      todos[i].description=updatedesc;
+      foundtodo=true;
+      break;
+    }
+
+  
+}
+  if (foundtodo){
+    res.status(200).json(todos);
+  }
+  else{
+    res.status(404).send("todo not found");
+  }
+}
+
+// delete the matching ids
+function delete_todo(req,res){
+  let delete_todo=false;
+  const deleteid=req.body.id;
+  for ( let i = 0 ; i < todos.length ; i++){
+    if(deleteid==todos[i].id){
+      todos[i].title.pop;
+      todos[i].description.pop;
+      delete_todo=true;
+    }
+  }
+  if(delete_todo){
+  res.status(400).send("can't do");
+  }
+  else
+  {
+    res.status(201).send();
+  }
+}
+
+//get all todos
+app.get('/todos',all_todo);
+
+// get to do by id
+app.get('/todo/:id',get_todos);
+
+// post a new id
+app.post('/todo',create_todo);
+
+// update
+app.put('/todoupdate',update_todo);
+
+// delete
+app.delete('/deletetodo',delete_todo);
 module.exports = app;
+
