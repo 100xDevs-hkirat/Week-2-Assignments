@@ -20,6 +20,50 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const PORT=3000;
+const bodyParser=require('body-parser');
+
+//middleware
+app.use(bodyParser.json());
+
+function getFileNames(req,res){
+  const folderPath=path.join(__dirname,'./files/');
+  fs.readdir(folderPath,(err,files)=>{
+    if(err){
+      return res.status(500).send({error: 'File not found'});
+    }
+    else{
+      res.status(200).json(files);
+    }
+  })
+}
+
+
+function getFileByName(req,res){
+  const Path=path.join(__dirname,'./files/',req.params.filename);
+  fs.readFile(Path,"utf8",(err,data)=>{
+    if(err){
+      return res.status(404).send('File not found');
+    }
+    else{
+      res.status(200).send(data);
+    }
+  });
+}
+
+
+app.get('/files',getFileNames);
+app.get('/file/:filename', getFileByName);
+app.all('*',(req,res)=>{
+  res.status(404).send("Route not found");
+})
+
+
+
+//exclude this while running the test file.
+// app.listen(PORT,()=>{
+//   console.log(`listening to ${PORT}`);
+// })
 
 
 module.exports = app;
