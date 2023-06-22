@@ -29,9 +29,80 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+
+app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let USERS = [];
+
+app.post("/signup", (req, res) => {
+  let userCred = req.body; // This will contain an object of user credentials and it will look like {email, password, firstname, lastname};
+
+  let existingUser = false;
+  for (let elem of USERS) {
+    if (elem.email == userCred.email) {
+      existingUser = true;
+      break;
+    }
+  }
+  if (existingUser) {
+    res.status(400).send("User already exists");
+  }
+  USERS.push(userCred);
+  res.status(200).send("Account has been created successfully!");
+});
+
+app.post("/login", (req, res) => {
+  let userCred = req.body;
+  let userFound = null;
+
+  for (let elem of USERS) {
+    if (elem.email == userCred.email && elem.password == userCred.password) {
+      userFound = elem;
+      break;
+    }
+  }
+
+  if (userFound != null) {
+    res.status(200).json(userFound);
+  } else {
+    res.status(401).send("Invalid Credentials!");
+  }
+});
+
+app.get("/data", (req, res) => {
+  let userData = {};
+  for (let i = 0; i < USERS.length; i++) {
+    userData[i] = USERS[i];
+  }
+
+  let userEmail = req.headers.email;
+  let userPassword = req.headers.password;
+  let userExist = false;
+
+  for (let elem of USERS) {
+    if (elem.email == userEmail && elem.password == userPassword) {
+      userExist = true;
+      break;
+    }
+  }
+
+  if (userExist) {
+    let usersData = {};
+    for (let elem of USERS) {
+      usersData.push({
+        email: elem.email,
+        firstName: elem.firstName,
+        lastName: elem.lastName,
+      });
+    }
+
+    res.json({ usersData });
+  } else {
+    res.status(401);
+  }
+});
 
 module.exports = app;
