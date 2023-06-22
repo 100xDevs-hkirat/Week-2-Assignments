@@ -29,111 +29,97 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3001;
-const app = express();
-const { v4: uuidv4 } = require("uuid");
-
-
-const bodyParser = require("body-parser");
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-let USER = [];
-
-
-app.post("/signup", (req, res) => {
- const {email,password,firstName,lastName} = req.body
-
- console.log(req.body);
- console.log(req.body.email);
- console.log(req.body.password);
-
-
- let existingUser = USER.find(user => user.email);
-
-  if (existingUser) {
-    console.log(email);
-    res.status(400).send("user already exist")
-    return;
-  } 
-  if(!email || !password || !firstName || !lastName){
-    res.status(401).send("everything in the field required")
-    return;
-  }
-const id = uuidv4();
-    USER.push({email,password,firstName,lastName,id});
-    console.log(USER)
-    res.status(201).send("Signup successful");
+  const express = require("express");
+  const app = express();
+  const { v4: uuidv4 } = require("uuid");
   
-})
-
-
-
-app.post("/login", (req, res) => {
-  const {email,password} = req.body
- 
-  console.log(req.body);
-  console.log(req.body.email);
-  console.log(req.body.password);
- 
-  if(!email || !password){
-    res.status(401).send("unauthorized")
-    return;
-  }
-
-  const existingUser = USER.find(
-    user => user.email === email && user.password === password
-  );
-
-  if (existingUser) {
-    res.status(200).json({
-      id: existingUser.id,
-      firstName: existingUser.firstName,
-      lastName: existingUser.lastName
-    });
-  } else {
-    res.status(401).send("Invalid credentials");
-  }
-})
-
-app.get("/data", (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    res.status(401).send("Unauthorized");
-    return;
-  }
-
-  const existingUser = USER.find(
-    (user) => user.email === email && user.password === password
-  );
-
-  if (existingUser) {
-    const users = USER.map(({ id, firstName, lastName }) => ({
-      id,
-      firstName,
-      lastName,
-    }));
-
-    res.status(200).json({ users });
-  } else {
-    res.status(401).send("Invalid credentials");
-  }
-});
-
-app.use((req, res) => {
-  res.status(404).send("404 Not Found");
-});
-
- 
- 
-
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-})
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const bodyParser = require("body-parser");
+  
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
+  
+  let USER = [];
+  
+  app.post("/signup", (req, res) => {
+    const { email, password, firstName, lastName } = req.body;
+  
+    let existingUser = USER.find((user) => user.email);
+  
+    if (existingUser) {
+      console.log(email);
+      res.status(400).send("user already exist");
+      return email;
+    }
+    if (!email || !password || !firstName || !lastName) {
+      res.status(401).send("everything in the field required");
+      return;
+    }
+    const id = uuidv4();
+    USER.push({ email, password, firstName, lastName, id });
+    console.log(USER);
+    res.status(201).send("Signup successful");
+  });
+  
+  app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+  
+    if (email.length === 0 || password.length === 0) {
+      res.status(401).send("Unauthorized");
+    }
+  
+    const existingUser = USER.find((user) => user.email === email);
+    if (existingUser && existingUser.password === password) {
+      // Authentication successful
+      const { email, firstName, lastName, id } = existingUser;
+      // Replace with your token generation logic
+      const authToken = Math.random().toString(36);
+  
+      console.log(authToken);
+      res.status(200).json({
+        firstName,
+        lastName,
+        email,
+        id,
+        authToken,
+      });
+      return;
+    } else {
+      // Authentication failed
+      res.status(401).send("Invalid credentials");
+    }
+  });
+  
+  app.get("/data", (req, res) => {
+    const { email, password } = req.headers;
+    console.log(email, password);
+  
+    if (!email || !password) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+  
+    const existingUser = USER.find(
+      (user) => user.email === email && user.password === password
+    );
+  
+    if (existingUser) {
+      const users = USER.map(({ firstName, lastName, email }) => ({
+        firstName,
+        lastName,
+        email,
+      }));
+  
+      res.status(200).json({ users });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  });
+  
+  app.use((req, res) => {
+    res.status(404).send("404 Not Found");
+  });
+  
+  // app.listen(3001);
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  
+  module.exports = app;
