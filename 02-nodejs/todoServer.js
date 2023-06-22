@@ -37,13 +37,93 @@
 
     - For any other route not defined in the server return 404
 
-  Testing the server - run `npm run test-todoServer` command in terminal
+  Testing the server - run `cd` command in terminal
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const uuid = require('uuid');
+const fs = require('fs');
 
 const app = express();
+const port = 3001;
 
 app.use(bodyParser.json());
+
+let todos;
+
+// reading file synchronously because the persisted todos should be read before it starts taking requests
+const data = fs.readFileSync("./files/todoServer.txt", "utf8");
+const mapAsArray = (data === undefined || data === '') ? [] : JSON.parse(data);
+todos = new Map(mapAsArray);
+
+app.listen(port, () => {
+  console.log(`todoServer is listening on port ${port}!`);
+});
+
+app.get('/todos', (req, res) => {
+  console.log("/todos (get) invoked ***********");
+  res.send(JSON.stringify(Array.from(todos.values())));
+});
+
+app.get('/todos/:id', (req, res) => {
+  console.log("/todos/:id (get) invoked ***********");
+  const id = req.params['id'];
+  if(todos.has(id)){
+    res.send(todos.get(id));
+  }else{
+    res.status(404).send(`Todo with id : ${id} not found!`);
+  }
+});
+
+app.post('/todos', (req,res) => {
+  console.log("/todos (post) invoked ***********");
+  const newId = uuid.v4();
+  const newTodo = {
+    id:newId,
+    title:req.body.title,
+    completed:req.body.completed,
+    description:req.body.description
+  }
+  todos.set(newId, newTodo);
+  persistTodos();
+  console.log("added new todo "+JSON.stringify(todos));
+  res.status(201).send(newTodo);
+});
+
+app.put('/todos/:id', (req, res) => {
+  console.log("/todos/:id (put) invoked ***********");
+  const id = req.params['id'];
+  if(todos.has(id)){
+    const todo = todos.get(id);
+    if(req.body.title !== undefined) todo.title = req.body.title;
+    if(req.body.description !== undefined) todo.description = req.body.description;
+    if(req.body.completed !== undefined) todo.completed = req.body.completed;
+    persistTodos();
+    res.send(`Todo with id : ${id} has been updated!`);
+  }else{
+    res.status(404).send(`Todo with id : ${id} not found!`);
+  }
+});
+
+app.delete('/todos/:id', (req, res) => {
+  console.log("/todos/:id (delete) invoked ***********");
+  const id = req.params['id'];
+  if(todos.has(id)){
+    todos.delete(id);
+    persistTodos();
+    res.send(`Todo with id : ${id} has been deleted!`);
+  }else{
+    res.status(404).send(`Todo with id : ${id} not found!`);
+  }
+});
+
+// persist todos array to the todoServer.txt
+function persistTodos(){
+  const mapAsArray = Array.from(todos);
+  fs.writeFile('./files/todoServer.txt', JSON.stringify(mapAsArray), (err) => {
+    if (err) throw err;
+    console.log('todos saved to file!');
+  });
+}
 
 module.exports = app;
