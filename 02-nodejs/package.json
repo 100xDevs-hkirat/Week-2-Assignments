@@ -5,6 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+
+    "test-fileServer": "jest ./tests/fileServer.test.js",
+    "test-todoServer": "jest ./tests/todoServer.test.js",
+    "test-authenticationServer": "jest ./tests/authenticationServer.test.js",
+
+    "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
+    "test-todoServer": "jest ./tests/todoServer.test.js",
+    "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
+
+
     "test-fileServer": "jest ./tests/fileServer.test.js",
     "test-todoServer": "jest ./tests/todoServer.test.js",
     "test-authenticationServer": "jest ./tests/authenticationServer.test.js",
