@@ -21,5 +21,35 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files',(req,res)=>{
+  const directory = './files';
+  fs.readdir(directory,(err,files)=>{
+    if(err){
+      res.status(500).send('Internal Server Error');
+    }
+    else{
+      res.status(200).send(files);
+    }
+  })
+})
+
+app.get('/files/:filename',(req,res)=>{
+  const filename = req.params.filename;
+  const requestedFile = `./files/${filename}`;
+  fs.readFile(requestedFile,(err,data)=>{
+    if (err) {
+      res.status(500).send("Internal Server Error");
+    }
+    else{
+      res.status(200).send(data);
+    }
+  })
+
+})
+
+app.listen(3000,()=>{
+  console.log(`App is listening on port 3000`);
+})
+
 
 module.exports = app;
