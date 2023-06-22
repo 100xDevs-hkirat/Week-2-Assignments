@@ -10,9 +10,9 @@ const lastName = "kirat"
 describe('API Tests', () => {
   let globalServer;
   beforeAll((done) => {
-      if (globalServer) {
-        globalServer.close();
-      }
+    if (globalServer) {
+      globalServer.close();
+    }
     globalServer = server.listen(3000);
     done()
   });
@@ -103,26 +103,26 @@ describe('API Tests', () => {
 function sendRequest(options, requestBody) {
   return new Promise((resolve, reject) => {
     const req = http.request(
-      {
-        ...options,
-        host: 'localhost',
-        port: 3000,
-      },
-      (res) => {
-        let body = '';
+        {
+          ...options,
+          host: 'localhost',
+          port: 3000,
+        },
+        (res) => {
+          let body = '';
 
-        res.on('data', (chunk) => {
-          body += chunk;
-        });
-
-        res.on('end', () => {
-          resolve({
-            statusCode: res.statusCode,
-            headers: res.headers,
-            body,
+          res.on('data', (chunk) => {
+            body += chunk;
           });
-        });
-      }
+
+          res.on('end', () => {
+            resolve({
+              statusCode: res.statusCode,
+              headers: res.headers,
+              body,
+            });
+          });
+        }
     );
 
     req.on('error', (err) => {
