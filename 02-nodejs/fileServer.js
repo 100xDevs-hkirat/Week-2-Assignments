@@ -22,6 +22,7 @@ const path = require("path");
 const app = express();
 const port = 3000;
 
+//Number of files and files name
 app.get("/files", (req, res) => {
   const directoryPath = path.dirname("../02-nodejs/files/text/");
 
@@ -39,6 +40,33 @@ app.get("/files", (req, res) => {
   });
 });
 
+//Read file and send them
+
+app.get("/files/:fileName", (req, res) => {
+  const fileNameParams = req.params.fileName;
+
+  const directoryPathFile = `../02-nodejs/files/${fileNameParams}`;
+  fs.readFile(directoryPathFile, "utf8", (err, data) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        res.status(404).send("File Not Found");
+      } else {
+        console.log("Error Reading File :", err);
+        res.status(500).send("INTERNAL SERVER ERROR");
+      }
+    } else {
+      if (!data.length) {
+        res.send("File is empty.");
+      } else {
+        res.send(data);
+      }
+    }
+  });
+});
+
+app.use((req, res) => {
+  res.send("404 NOT FOUND!");
+});
 app.listen(port, () => {
   console.log(`App is running on port ${port}`);
 });
