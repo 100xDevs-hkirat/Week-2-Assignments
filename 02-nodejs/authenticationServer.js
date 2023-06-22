@@ -29,9 +29,63 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  const express = require("express")
+  const bodyParser = require('body-parser')
+  const { v4: uuidv4 } = require('uuid');
+  const app = express();
+  const users= []
+  
+  //user schema = {id:"random id", firstName: "Random Name",}
+  
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  
+  
+  function signUpHandler(req,res){
+    const requestBody = req.body;
+    const isUserAlreadyExist = users.some(user =>  user.email === requestBody.email)
+    if(!isUserAlreadyExist){
+      const id = uuidv4();
+      users.push({id,email:requestBody.email,password:requestBody.password, firstName:requestBody.firstName , lastName:requestBody.lastName})
+      res.status(201).send("Signup successful")
+    }else{
+      res.sendStatus(400)
+    }
+  }
+  
+  function loginHandler(req,res){
+    const requestBody = req.body;
+    const isUserAlreadyExistAndAuthenticated = users.filter(user =>  user.email === requestBody.email && user.password === requestBody.password)
+    if(isUserAlreadyExistAndAuthenticated[0]){
+      res.status(200).send(isUserAlreadyExistAndAuthenticated[0])
+    }else{
+      res.sendStatus(401)
+    }
+  }
+  
+  function getUserData(req,res){
+    const userEmail = req.headers.email;
+    const userPassword = req.headers.password;
+    if(userEmail && userPassword){
+    const isUserAlreadyExistAndAuthenticated = users.some(user =>  user.email === userEmail && user.password === userPassword)
+      if(isUserAlreadyExistAndAuthenticated){
+        console.log(users)
+        res.status(200).send({users})
+      }else{
+        res.sendStatus(401)
+      }
+    }else{
+      res.sendStatus(401)
+    }
+  }
+  
+  const notFoundHanlder = (req,res) => {
+    res.sendStatus(404)
+  }
+  
+  app.use(bodyParser.json());
+  app.post("/signup", signUpHandler)
+  app.post("/login", loginHandler)
+  app.get("/data", getUserData)
+  app.get("*", notFoundHanlder)
 
 module.exports = app;
