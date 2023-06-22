@@ -72,8 +72,12 @@ app.get("/file/:fileName", (req, res) => {
   });
 });
 
-app.use((req, res) => {
-  res.send("404 NOT FOUND!");
+// app.use((req, res) => {
+//   res.send("404 NOT FOUND!");
+// });
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
 });
 app.listen(port, () => {
   console.log(`App is running on port ${port}`);
