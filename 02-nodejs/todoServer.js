@@ -46,4 +46,64 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos=[];
+
+//TASK 1
+function getAllTodos(req,res){
+  if(todos.length===0) res.status(200).json({message:"Todo list empty"});
+  else{
+    res.status(200).json(todos);
+  }
+}
+
+//TASK 2
+function getTodoById(req,res){
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id===req.params.id) res.status(200).json({title:todos[i].title,description:todos[i].description,id:todos[i].id,completed:todos[i].completed});
+  }
+  res.status(404).send("Not found");
+}
+
+//TASK 3
+function createANewTodoItem(req,res){
+  let newTodo={
+    id:Date.now().toString(16)+Math.random().toString(16).slice(2),
+    title:req.body.title,
+    completed:req.body.completed,
+    description:req.body.description,
+  }
+  todos.push(newTodo);
+  res.status(201).json({id:newTodo.id});
+}
+
+//TASK 4
+function updateTodoById(req,res){
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id===req.params.id){
+      todos[i].title=req.body.title;
+      todos[i].completed=req.body.completed;
+      res.status(200).send("OK");
+    }
+  }
+  res.status(404).send("Not found");
+}
+
+//TASK 5
+function deleteTodoById(req,res){
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id===req.params.id){
+      todos.splice(i,1);
+      res.status(200).send("OK");
+      
+    }
+  }
+  return res.status(404).send("Not found");
+}
+
+app.get('/todos',getAllTodos);
+app.get('/todos/:id',getTodoById);
+app.post('/todos',createANewTodoItem);
+app.put('/todos/:id',updateTodoById);
+app.delete('/todos/:id',deleteTodoById);
+
 module.exports = app;
