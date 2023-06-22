@@ -39,11 +39,157 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+class ToDo{
+  static counterId = 1;
+  constructor(title, description){
+    this.id = ToDo.counterId;
+    this.title = title;
+    this.description = description;
+    this.completed = false;
+    ToDo.counterId+=1;
+  }
+  getId(){
+    return this.id;
+  }
+  getTitle(){
+    return this.title;
+  }
+  setTitle(title){
+    this.title = title;
+  }
+  getDescription(description){
+    return this.description;
+  }
+  setDescription(description){
+    this.description = description;
+  }
+  getCompleted(completed){
+    return this.completed;
+  }
+  setcompleted(completed){
+    this.completed = completed;
+  }
+  static getCurrentCounterId(){
+    return ToDo.counterId;
+  }
+
+}
+
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
+const path = require('path');
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+var toDoList = [];
+
+app.get('/todos', handleGetTodo);
+app.get('/todos/:id', handleGetTodoById);
+app.post('/todos', handleCreateTodo);
+app.put('/todos/:id', handleUpdateTodo);
+app.delete('/todos/:id', handleDeleteTodo);
+
+const server = app.listen(port, () => {
+      console.log(`ToDo app listening on port ${port}`);
+      readToDosFromFile();
+  });
+
+process.on('SIGINT', () => {
+  console.log('Server is shutting down');
+  server.close(() => {
+    writeToFile(toDoList);
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+function handleGetTodo(req, res){
+    res.json(toDoList);
+}
+
+function handleGetTodoById(req, res){
+  var id = parseInt(req.params.id);
+  for(let i = 0; i < toDoList.length; i++){
+    if(toDoList[i].getId() === id){
+      res.json(toDoList[i]);
+      return;
+    }
+  }
+  res.status(404).send("TODO item with id "+id+" not found!");
+}
+
+function handleCreateTodo(req, res){
+    var title =  req.body.title;
+    var description =  req.body.description;
+
+    const toDoObj = new ToDo(title,description);
+    toDoList.push(toDoObj);
+    res.status(201).json({id : toDoObj.getId()});
+}
+
+function handleUpdateTodo(req, res){
+  var id =  parseInt(req.params.id);
+  var title =  req.body.title;
+  var description =  req.body.description;
+  var completed =  req.body.completed;
+
+  for(let i = 0; i < toDoList.length; i++){
+    if(toDoList[i].getId() === id){
+      toDoList[i].setTitle(title);
+      toDoList[i].setDescription(description);
+      toDoList[i].setcompleted(completed);
+      res.send("TODO item with ID "+id+" updated !");
+      return;
+    }
+  }
+  res.status(404).send("TODO with id "+id+" not found !");
+}
+
+function handleDeleteTodo(req, res){
+  var id = parseInt(req.params.id);
+  for(let i = 0; i < toDoList.length; i++){
+    if(toDoList[i].getId() === id){
+      toDoList.splice(i,1);
+      res.status(200).send("TODO with id "+id+" deleted !");
+      return;
+    }
+  }
+  res.status(404).send("TODO with id "+id+" not found !");
+}
+
+function writeToFile(toDoList){  
+  const todos = JSON.stringify(toDoList);
+  fs.writeFile(path.join(__dirname, './files/', 'ToDo.txt'),todos, (err) => {
+    if(err){
+      console.log("Error writing to file : ", err);
+    }else{
+      console.log(`ToDos saved in ToDo.txt file`);
+    }
+  });
+}
+
+function readToDosFromFile(){
+  fs.readFile(path.join(__dirname, './files/', 'ToDo.txt'),"utf-8",(err, data) => {
+    if(err){
+      if(err.code === 'ENOENT'){
+        console.log("File not found");
+      }else{
+        console.log("Error reading file : "+err);
+      }
+      return;
+    }
+    if(data != ''){
+      toDoList = JSON.parse(data);
+    }
+      
+  });
+  
+}
 
 module.exports = app;
