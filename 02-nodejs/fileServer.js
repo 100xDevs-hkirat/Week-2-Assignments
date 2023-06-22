@@ -24,19 +24,23 @@ const port = 3000;
 
 //Number of files and files name
 app.get("/files", (req, res) => {
-  const directoryPath = path.dirname("../02-nodejs/files/text/");
+  const directoryPath = path.join(__dirname, "./files");
 
   fs.readdir(directoryPath, (err, files) => {
     if (err) {
-      res.send("Internal Server Error !");
+      // res.send("Internal Server Error !");
+
+      return res.status(500).json({ error: "Failed to retrive files" });
     }
 
-    const fileNames = files.map((file, index) => `${index + 1} . ${file}`);
-    console.log(fileNames);
-    res.json({
-      fileName: fileNames,
-      noOfFiles: files.length,
-    });
+    res.json({ fileNames: files, noOfFiles: files.length });
+
+    // const fileNames = files.map((file, index) => `${index + 1} . ${file}`);
+    // console.log(fileNames);
+    // res.json({
+    //   fileName: fileNames,
+    //   noOfFiles: files.length,
+    // });
   });
 });
 
