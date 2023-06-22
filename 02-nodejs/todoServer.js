@@ -19,7 +19,8 @@
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
-    Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+    Response: 201 Created with the ID of the created todo item in 
+    JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
     
@@ -39,11 +40,135 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  const e = require('express');
+  
+  const app = express();
+  
+  app.use(bodyParser.json());
+  
+  //memory
+  let todo = []
+  let uid  = 1
+  //routes
+  app.get('/todos' , (req , res)=>{
+    res.json(todo)
+  })
+  
+  app.get('/todos/:id' , (req,res)=>{
+  
+    id = Number(req.params.id)
+  
+    answer = 1
+    for(let i = 0  ;i<todo.length; i++)
+    {
+      // console.log(typeof(id), typeof(todo[i].id))
+      if(id===todo[i].id)
+      answer = todo[i]
+    }
+  
+    if(answer===1)
+    {
+      res.status(404).send('Error')
+    }
+  
+    else
+    res.status(200).json(answer)
+  })
+  
+  // app.get('/todos/:id', (req, res) => {
+  //   const id = Number(req.params.id)
+  
+  //   const todoItem = todo.find(item => item.id === id);
+  
+  //   if (!todoItem) {
+  //     res.status(404).send('Error: Todo item not found');
+  //   } else {
+  //     res.status(200).json({id});
+  //   }
+  // });
 
-const app = express();
 
-app.use(bodyParser.json());
+  app.post('/todos', (req , res)=>{
+  
+    id = uid
+    uid++
+    title = req.body.title
+    completed = req.body.completed
+    description = req.body.description
+  
+    todo.push({id:id, title : title , completed : completed , 
+      description : description})
+  
+      res.status(201).json({id})
+  } )
+  
+  
+  app.put('/todos/:id', (req , res)=>{
+  
+    id = Number(req.params.id)
+  
+    answer = -1
+    for(let i = 0  ;i<todo.length; i++)
+    {
+      // console.log(typeof(id), typeof(todo[i].id))
+      if(id===todo[i].id)
+      answer = i
+    }
+  
+    if(answer===-1)
+    {
+      res.status(404).send()
+    }
+  
+    else
+    {
+      todo[answer].title = req.body.title
+      todo[answer].completed = req.body.completed
+      res.json(todo)
+    }
+  })
+  
+  app.delete('/todos/:id' , (req , res) =>{
+  
+    id = Number(req.params.id)
+  
+    answer = -1
+    for(let i = 0  ;i<todo.length; i++)
+    {
+      // console.log(typeof(id), typeof(todo[i].id))
+      if(id===todo[i].id)
+      answer = todo[i]
+    }
+  
+    // console.log(answer)
+    if(answer===-1)
+    {
+      res.status(404).send('Error')
+    }
+  
+    else
+    {
+      todo = todo.filter((x)=>{
+        return x!==answer
+      })
+  
+      res.json(todo)
+    }
+  })
+  
 
-module.exports = app;
+
+
+
+
+
+
+  // app.listen(3000 , ()=>{
+  //   console.log('listening on port 3000')
+  // })
+  
+  
+  module.exports = app;
+  

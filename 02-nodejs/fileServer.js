@@ -16,10 +16,73 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const app = express();
-
-
-module.exports = app;
+    const express = require('express');
+    const fs = require('fs');
+    const path = require('path');
+    const app = express();
+    
+    app.get('/files' , (req,  res)=>{
+    
+      fs.readdir(path.join(__dirname, 'files'), (err ,data)=>{
+        
+        if(err)
+        {
+          res.status(500).send('Internal Server Error')
+        }
+        res.json(data)
+     })
+    })
+    
+    
+    // app.get('/file/:filename', (req, res) => {
+    //   const filepath = path.join(__dirname, './files/', req.params.filename);
+    
+    //   fs.readFile(filepath, 'utf8', (err, data) => {
+    //     if (err) {
+    //       return res.status(404).send('File not found');
+    //     }
+    //     res.send(data);
+    //   });
+    // });
+    
+    
+    
+    app.get('/file/:filename' , (req,  res)=>{
+    
+      filename  = req.params.filename
+    
+    
+      console.log(path.join(__dirname,'files', filename))
+      fs.readFile(path.join(__dirname,'files', filename),'utf8' , (err , data) =>{
+    
+        if(err)
+        {
+    
+          res.status(404).send('File not found')
+    
+        }
+    
+        else
+        {
+          console.log(data)
+          // res.setHeader('Content-Type', 'text/html')
+          res.send(data)
+        }
+    
+      })
+    })
+    
+    app.use((req ,res ,next) =>{
+      res.status(404).send('Route not found')
+    })
+    // app.listen(3000 , ()=>{
+    //   console.log('server running on 3000')
+    // })
+    
+    
+    // app.all('*', (req, res) => {
+    //   res.status(404).send('Route not found');
+    // });
+    
+    module.exports = app;
+    
