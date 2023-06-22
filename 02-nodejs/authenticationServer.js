@@ -32,6 +32,83 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+//app.listen(PORT, () => console.log("Server Started"))
+
+let users = []
+let counter = 2
+
+app.use(bodyParser.json())
+
+
+
+app.get('/data', (req, res) => {
+  let email = req.headers.email
+  let password = req.headers.password
+  if (!email && !password) {
+    res.status(401).send("Unauthorized")
+  }
+  let checkUser = users.find((user) => user.email === email)
+  if (checkUser && checkUser.password === password) {
+    res.status(200).json({
+      users: users
+    })
+  }
+  else {
+    res.status(401).send("Unauthorized")
+  }
+})
+
+
+app.post('/login', (req, res) => {
+  let email = req.body.email
+  let password = req.body.password
+  if (!email && !password) {
+    res.status(400).send("Unauthorized")
+  }
+  let checkUser = users.find((user) => user.email == email)
+  if (checkUser && checkUser.password == password) {
+    res.status(200).send({
+      email: checkUser.email,
+      firstName: checkUser.firstName,
+      lastName: checkUser.lastName
+    })
+  }
+  else {
+    res.status(401).send("unauthorised")
+  }
+})
+
+app.post('/signup', (req, res) => {
+  let email = req.body.email
+  let password = req.body.password
+  let firstName = req.body.firstName
+  let lastName = req.body.lastName
+  if (!email && !password) {
+    res.status(400).send("Empty parameters")
+  }
+
+  let checkemail = users.find((user) => user.email == email)
+  if (checkemail) {
+    res.status(400).send("email already exists")
+  }
+  else {
+    let userObj = {
+      id: counter,
+      email: email,
+      password: password,
+      firstName: firstName,
+      lastName: lastName
+    }
+    counter = counter + 1
+    users.push(userObj)
+    res.status(201).send("Signup successful")
+  }
+})
+// for all other routes, return 404
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 module.exports = app;
