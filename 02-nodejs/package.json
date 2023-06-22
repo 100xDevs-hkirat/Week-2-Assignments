@@ -8,7 +8,7 @@
     "test-fileServer": "jest ./tests/fileServer.test.js",
     "test-todoServer": "jest ./tests/todoServer.test.js",
     "test-authenticationServer": "jest ./tests/authenticationServer.test.js",
-    "test-all": "./node_modules/jest/bin/jest.js ./tests/"
+    "test-all": "jest ./tests/"
   },
   "keywords": [],
   "author": "",
