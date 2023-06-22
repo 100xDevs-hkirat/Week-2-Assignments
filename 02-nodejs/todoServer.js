@@ -41,9 +41,90 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const port = 3000;
 
 const app = express();
 
 app.use(bodyParser.json());
+
+//in memory todos
+const todos = fs.existsSync('./files/todo.txt') ? JSON.parse(fs.readFileSync('./saves/todo.txt', 'utf-8')) : [];
+
+app.get('/todos', function (req, res) {
+  res.json(todos);
+})
+
+//Read
+app.get('/todos/:id', (req, res) => {
+  const [todo] = todos.filter(curr => curr.id === parseInt(req.params.id));
+
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.json(todo);
+  }
+
+});
+
+//Create
+app.post('/todos', (req, res) => {
+  //create a new
+  const newTodo = {
+    id: Math.floor(Math.random() * 1000000), // unique random id
+    title: req.body.title,
+    description: req.body.description
+  };
+
+  todos.push(newTodo);
+
+  //save file
+  fs.writeFileSync('./saves/todos.txt', JSON.stringify(todos));
+
+  res.status(201).json(newTodo);
+});
+
+
+//Update
+app.put('/todos/:id', (req, res) => {
+  const currIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+
+  if (currIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos[currIndex].title = req.body.title;
+    todos[currIndex].description = req.body.description;
+    res.json(todos[currIndex]);
+  }
+
+  //save file
+  fs.writeFileSync('./saves/todos.txt', JSON.stringify(todos));
+
+});
+
+//Delete
+app.delete('/todos/:id', (req, res) => {
+  const currIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+
+  if (currIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(currIndex, 1);
+    res.status(200).send('File has been deleted');
+  }
+
+  //save file
+  fs.writeFileSync('./saves/todos.txt', JSON.stringify(todos));
+});
+
+//custom middleware
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+// app.listen(port, () => {
+//   console.log(`App listening on port ${port}`)
+// })
+
 
 module.exports = app;
