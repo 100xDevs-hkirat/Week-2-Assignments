@@ -41,9 +41,86 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+//const fs = require("fs/promises")
 
 const app = express();
+const port = 3000
+
+const todos = []
+let uid_counter = 1
 
 app.use(bodyParser.json());
+
+//app.listen(port, () => console.log("Server started"))
+
+app.get("/todos", getTodos)
+app.post("/todos", createTodo)
+app.get("/todos/:id", getTodo)
+app.put("/todos/:id", updateTodo)
+app.delete("/todos/:id", deleteTodo)
+
+function updateTodo(req, res) {
+  let todoIndex = todos.findIndex((todo) => todo.id == req.params.id)
+  if (todoIndex == -1) {
+    res.status(404).send("Not Found")
+  }
+  else {
+    todos[todoIndex].title = req.body.title
+    todos[todoIndex].description = req.body.description
+    res.status(200).send(todos[todoIndex])
+  }
+}
+
+function deleteTodo(req, res) {
+  let todoIndex = todos.findIndex((todo) => todo.id == req.params.id)
+  if (todoIndex == -1) {
+    res.status(404).send("Not Found")
+  }
+  else {
+    todos.splice(todoIndex, 1)
+    res.status(200).send("Deleted")
+  }
+}
+
+function getTodo(req, res) {
+  let todo = todos.find((todo) => todo.id == req.params.id)
+  if (todo != null) {
+    res.status(200).send(todo)
+  }
+  else {
+    res.status(404).send("Not Found")
+  }
+}
+
+function createTodo(req, res) {
+  let todo = {
+    title: req.body.title,
+    description: req.body.description,
+    id: uid_counter
+  }
+  uid_counter = uid_counter + 1
+  todos.push(todo)
+  res.status(201).json(todo)
+  //fs.writeFile("UID_counter.txt", uid_counter.toString(), 'utf8')
+}
+
+function getTodos(req, res) {
+  res.status(200).send(todos)
+}
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+// function startServerWithInitialValues(result) {
+//   uid_counter = parseInt(result)
+//   app.listen(port, () => console.log("Server started"))
+// }
+
+// fs.readFile("UID_counter.txt", "utf8").then(
+//   startServerWithInitialValues
+// )
+
 
 module.exports = app;
