@@ -32,6 +32,66 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const USERS = [];
+
+app.post('/signup',(req,res)=>{
+  const newUser = req.body;
+  const email = req.body.email;
+  const loggedUser = USERS.find(user=>user.email === email)
+  if (loggedUser) {
+    res.status(400).send('User already exists')
+  }
+  else{
+    USERS.push(newUser);
+    res.status(201).send('Signup successful');
+  }
+  
+})
+
+app.post('/login',(req,res)=>{
+  const {email, password} = req.body;
+  const loggedUser = USERS.find(user=>user.email === email);
+  const token = generateToken();
+  if(loggedUser&&loggedUser.password === password){
+    res.status(200).json({email:email,firstName:loggedUser.firstName,lastName:loggedUser.lastName,token:token})
+  }
+  else{
+    res.status(401).send('Unauthorized');
+  }
+
+  function generateToken(){
+    const tokenString = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const tokenLength = 20;
+    let token = '';
+    for (let i = 0; i < tokenLength; i++) {
+      const index = Math.floor(Math.random() * tokenString.length);
+      token += tokenString[index];
+      
+    }
+    return token;
+  }
+})
+
+app.get('/data', (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  const loggedUser = USERS.find(user => user.email === email && user.password === password);
+
+  if (loggedUser) {
+    const usersData = USERS.map(user => ({ email: user.email, firstname: user.firstname, lastname: user.lastname, id: user.id }));
+    res.status(200).json({ users: usersData });
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+});
+
+
+
+app.listen(PORT,()=>{
+  console.log(`App is listening on port ${PORT}`);
+})
 
 module.exports = app;

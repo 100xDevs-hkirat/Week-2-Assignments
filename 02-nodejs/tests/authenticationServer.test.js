@@ -13,7 +13,7 @@ describe('API Tests', () => {
       if (globalServer) {
         globalServer.close();
       }
-    globalServer = server.listen(3000);
+    globalServer = server.listen(3001);
     done()
   });
 

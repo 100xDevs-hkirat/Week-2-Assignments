@@ -15,12 +15,13 @@ app.get('/todos',(req,res)=>{
 
 app.get('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  for (i=0;i<toDoList.length;i++) {
-    if (id === toDoList[i].id) {
-      res.status(200).send(toDoList[i]);
-    }
+  const task = toDoList.find(task=>task.id === id);
+  if(task){
+    res.status(200).send(toDoList[i]);
   }
-  res.status(404).json({msg:'Task not Found'})
+  else{
+    res.status(404).json({msg:'Task not Found'})
+  }
 })
  
 app.post('/todos',(req,res)=>{
@@ -31,22 +32,22 @@ app.post('/todos',(req,res)=>{
 
 app.put('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  for (i=0;i<toDoList.length;i++) {
-    if (id === toDoList[i].id) {
-      toDoList[i].todo = req.body.title;
-      res.status(200).send(toDoList[i]);
-    }
+  const task = toDoList.find(task=>task.id === id);
+  if (task) {
+    toDoList[i].todo = req.body.title;
+    res.status(200).send(toDoList[i]);
   }
-  res.status(404).json({msg:'Task not Found'})
+  else{
+    res.status(404).json({msg:'Task not Found'})
+  }
 })
 
 app.delete('/todos/:id',(req,res)=>{
   const id = req.params.id;
-  for (i=0;i<toDoList.length;i++) {
-    if (id === toDoList[i].id) {
-      toDoList.splice(i,1);
-      res.status(200).send(toDoList);
-    }
+  const task = toDoList.find(task=>task.id === id);
+  if (task) {
+    toDoList.splice(i,1);
+    res.status(200).send(toDoList);
   }
   res.status(404).json({msg:'Task not Found'})
 })
