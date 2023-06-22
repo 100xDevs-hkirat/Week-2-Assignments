@@ -5,15 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-<<<<<<< HEAD
     "test-fileServer": "jest ./tests/fileServer.test.js",
     "test-todoServer": "jest ./tests/todoServer.test.js",
     "test-authenticationServer": "jest ./tests/authenticationServer.test.js",
-=======
+
     "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
     "test-todoServer": "jest ./tests/todoServer.test.js",
     "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
->>>>>>> 87034ab (assignment files)
+
     "test-all": "./node_modules/jest/bin/jest.js ./tests/"
   },
   "keywords": [],

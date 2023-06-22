@@ -20,7 +20,6 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-<<<<<<< HEAD
 const port= 3000;
 
 app.listen(port,()=>{
@@ -60,8 +59,6 @@ app.get('/files/:name', (req, res) => {
 app.get('*',(req,res)=>{
   res.status(404).send('not found');
 })
-=======
 
->>>>>>> 87034ab (assignment files)
 
 module.exports = app;

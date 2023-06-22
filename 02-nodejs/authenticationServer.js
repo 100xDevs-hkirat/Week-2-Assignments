@@ -29,7 +29,7 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-<<<<<<< HEAD
+
 const express = require("express");
 const app = express();
 const bodyparser=require('body-parser');
@@ -105,11 +105,8 @@ else{
   res.sendStatus(401);
 }  
 });
-=======
-const express = require("express")
-const PORT = 3000;
-const app = express();
+
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
->>>>>>> 87034ab (assignment files)
 module.exports = app;
