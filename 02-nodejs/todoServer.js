@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3080;
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let todos = [];
+
+const getAllTodos = (req, res) => {
+  res.json(todos);
+}
+
+const getTodo = (req, res) => {
+  let todoId = req.params.id;
+  let todoIndex = todos.findIndex((el) => el.id == todoId);
+
+  if(todoIndex >= 0) {
+    res.status(200).json(todos[todoIndex]);
+  } else {
+    res.status(404).send("Not Found");
+  }
+}
+
+const addTodo = (req, res) => {
+  let todo = req.body;
+
+  let uId = Math.floor((Math.random())*100000 + 1);
+
+  todos.push({...todo, id: uId});
+
+  res.status(201).json({id: uId});
+
+}
+
+const updateTodo = (req, res) => {
+  let todoId = req.params.id;
+  let updatedBody = req.body;
+
+  let todoIndex = todos.findIndex((el) => el.id == todoId);
+
+  if(todoIndex >= 0) {
+    todos[todoIndex] = {...todos[todoIndex], ...updatedBody};
+    res.status(200).send("Item was found and updated");
+  } else {
+    res.status(404).send("Not Found");
+  }
+
+}
+
+const deleteTodo = (req, res) => {
+  let todoId = req.params.id;
+
+  let todoIndex = todos.findIndex((el) => el.id == todoId);
+
+  if(todoIndex >= 0) {
+    todos.splice(todoIndex, 1);
+    res.status(200).send("Item was found and deleted");
+  } else {
+    res.status(404).send("Not Found");
+  }
+
+}
+
+
+
+app.get('/todos', getAllTodos);
+app.get('/todos/:id', getTodo);
+app.post('/todos', addTodo);
+app.put('/todos/:id', updateTodo);
+app.delete('/todos/:id', deleteTodo);
+
+app.use((req, res, next) => {
+  res.status(404).send();
+})
+
+app.listen(port, () => console.log(`server running on port ${port}`));
 
 module.exports = app;
