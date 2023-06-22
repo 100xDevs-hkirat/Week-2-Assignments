@@ -43,7 +43,30 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+const port = 3000;
 app.use(bodyParser.json());
 
 module.exports = app;
+
+// DATABASE OF ALL THE TODOS
+var db = [
+  {
+    "title": "hair cut",
+    "completed": "false",
+    "description": "I need to cut my hair",
+  }
+];
+
+//1. GET /todos - Retrieve all todo items
+app.get("/todos",function (req,res){
+  var result = db;
+  res.send(result);
+});
+
+
+
+
+function working(){
+  console.log("The app is working...");
+}
+app.listen(port,working);
