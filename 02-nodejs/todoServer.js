@@ -39,6 +39,7 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+const Todo = require('../../Week-1-assignment-with-tests/01-js/hard/todo-list')
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -46,4 +47,18 @@ const app = express();
 
 app.use(bodyParser.json());
 
+
+
+function retrieveAllToDos(req, res) {
+    let todoRetrieve = new Todo();
+    let todos = todoRetrieve.getAll();
+    console.log(todos);
+    res.send(`Sum of first 100 numbers = ${calculatedSum}`);
+}
+
+app.get('/todos', retrieveAllToDos)
+
+
+
+test2.getAll();
 module.exports = app;
