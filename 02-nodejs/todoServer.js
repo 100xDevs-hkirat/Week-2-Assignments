@@ -39,11 +39,61 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
+const app =  require('express')();
+const bodyParser = require('body-parser');
+const { v4 : uuidv4 } = require("uuid");
 
 app.use(bodyParser.json());
+
+const todos = [];
+
+app.get("/todos",(req,res)=>{
+  res.json(todos);
+})
+
+app.get("/todos/:id",(req,res)=>{
+  var index = todos.map(todo => todo.id).findIndex(id => id === req.params.id);
+  if(index >= 0)
+    res.json(todos[index]);
+  else
+    res.status(404).send({msg : "ToDo Not Found"});
+})
+
+app.post("/todos",(req,res)=>{
+  const id = uuidv4();
+
+  const todo = {
+    id,
+    ...req.body
+  }
+  todos.push(todo);
+
+  res.status(201).json({id});
+})
+
+app.put("/todos/:id",(req,res)=>{
+  var index = todos.map(todo => todo.id).findIndex(id => id === req.params.id);
+
+  if(index === -1){
+    res.status(404).send({msg : "ToDo not found"});
+  }else{
+    todos[index] = {
+      ...todos[index],
+      ...req.body
+    }
+    res.status(200).send({msg : "Updated ToDo"});
+  }
+})
+
+app.delete("/todos/:id",(req,res)=>{
+  var index = todos.map(todo => todo.id).findIndex(id => id === req.params.id);
+  if(index >= 0){
+    todos.splice(index,1);
+    res.status(200).send({msg:"Deleted the todo"});
+  }else{
+    res.status(404).send({msg: "ToDo not found"});
+  }
+})
 
 module.exports = app;
