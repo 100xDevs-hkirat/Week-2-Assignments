@@ -50,8 +50,8 @@ app.use((req, res) => {
   res.status(404).send("404 Not Found");
 });
 
-app.listen(port, () => {
-  console.log("running on port: " + port);
-});
+// app.listen(port, () => {
+//   console.log("running on port: " + port);
+// });
 
 module.exports = app;

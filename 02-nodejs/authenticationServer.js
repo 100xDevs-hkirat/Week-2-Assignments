@@ -29,9 +29,64 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(express.urlencoded({ extended: true }));
+
+const accounts = [];
+
+app.post("/signup", (req, res) => {
+  const { username, password, firstName, lastName, email } = req.body;
+  const accAlreadyExists = accounts.find(
+    (account) => account.username === username
+  );
+  if (accAlreadyExists) res.status(400).send("Account already exists");
+  else {
+    accounts.push({ username, password, firstName, lastName, email });
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const found = accounts.find(
+    (account) => account.username === username && account.password === password
+  );
+  if (found) {
+    const token = uuidv4();
+    res.json({
+      firstName: found.firstName,
+      lastName: found.lastName,
+      email: found.email,
+    });
+  } else res.status(401).send("Unauthorized");
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+  const found = accounts.find(
+    (account) => account.email === email && account.password === password
+  );
+  if (found) {
+    const users = [];
+    for (let account of accounts) {
+      users.push({
+        firstName: account.firstName,
+        lastName: account.lastName,
+        email: account.email,
+      });
+    }
+    res.json({
+      users,
+    });
+  } else res.status(401).send("Unauthorized");
+});
+
+// app.listen(3000, () => {
+//   console.log("Running on 3000");
+// });
 
 module.exports = app;
