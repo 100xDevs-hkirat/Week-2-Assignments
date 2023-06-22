@@ -18,8 +18,38 @@
  */
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 const app = express();
 
+function getFilesHandler(req, res){
+  fs.readdir("./files", (err, data) => {
+    if (err){
+      return res.sendStatus(500);
+    }
+    res.json(data);
+  })
+}
+
+app.get("/files", getFilesHandler)
+
+
+function readFileHandler(req, res){
+  const filename = req.params.filename;
+
+  fs.readFile(`./files/${filename}`, "utf-8", (err, data) => {
+    if (err){
+      return res.status(404).send("File not found");
+    }
+    res.send(data);
+  })
+}
+
+app.get("/file/:filename", readFileHandler);
+
+
+function catchAllRoute(req, res, next){
+  res.status(404).send("Route not found");
+}
+
+app.use(catchAllRoute);
 
 module.exports = app;
