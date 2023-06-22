@@ -44,6 +44,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = 3000;
+const fs = require("fs");
 
 app.use(bodyParser.json());
 
@@ -104,5 +105,10 @@ app.delete("/todos/:id", (req, res) => {
 app.use((req,res,next) => {
   res.status(404).send();
 })
+
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 
 module.exports = app;
