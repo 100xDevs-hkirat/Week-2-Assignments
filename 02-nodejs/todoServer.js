@@ -41,9 +41,99 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const uuid = require('uuid');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let TODOLIST = [];
+
+const filterTodoList = (id) => TODOLIST.filter((todo) => todo.id === id);
+
+app.post('/todos', (req, res) => {
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        res.status(400).send('Bad Request');
+    } else {
+        const todo = {
+            id: uuid.v4(),
+            title: title,
+            description: description,
+        };
+        TODOLIST.push(todo);
+        res.status(201).send(todo);
+    }
+});
+
+app.get('/todos', (req, res) => {
+    res.send(TODOLIST);
+});
+
+app.get('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const filteredList = filterTodoList(id);
+
+    if (filteredList.length > 0) {
+        res.send(filteredList[0]);
+    } else {
+        res.status(404).send('Not Found');
+    }
+});
+
+app.put('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        res.status(400).send('Bad Request');
+    } else {
+        const updatedTodo = {
+            id: id,
+            title: title,
+            description: description,
+        };
+
+        let todoFound = false;
+
+        const updatedList = TODOLIST.reduce((acc, curr) => {
+            if (curr.id === id) {
+                todoFound = true;
+            } else {
+                acc.push(curr);
+            }
+            return acc;
+        }, []);
+
+        if (todoFound) {
+            TODOLIST = [...updatedList, updatedTodo];
+            res.status(200).send('OK');
+        } else {
+            res.status(404).send('Not Found');
+        }
+    }
+});
+
+app.delete('/todos/:id', (req, res) => {
+    const { id } = req.params;
+
+    let todoFound = false;
+
+    TODOLIST = TODOLIST.reduce((acc, curr) => {
+        if (curr.id === id) {
+            todoFound = true;
+        } else {
+            acc.push(curr);
+        }
+        return acc;
+    }, []);
+
+    if (todoFound) {
+        res.status(200).send('OK');
+    } else {
+        res.status(404).send('Not Found');
+    }
+});
 
 module.exports = app;
