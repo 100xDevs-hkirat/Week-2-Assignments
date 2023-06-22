@@ -29,9 +29,78 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+app.use(express.json());
+let userArray = [];
+
+app.post("/signup", (req, res) => {
+  let user = req.body;
+  let check = false;
+
+  userArray.forEach((element) => {
+    if (element.email === user.email) {
+      check = true;
+    }
+  });
+
+  if (check) {
+    res.sendStatus(400);
+  } else {
+    userArray.push(user);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", (req, res) => {
+  let user = req.body;
+  let found = false;
+  let i = 0;
+  for (i = 0; i < userArray.length; i++) {
+    if (
+      userArray[i].email === user.email &&
+      userArray[i].password === user.password
+    ) {
+      res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email,
+      });
+    }
+  }
+  if (i == userArray.length) res.sendStatus(401);
+});
+
+app.get("/data", (req, res) => {
+  const username = req.headers["username"];
+  const password = req.headers["password"];
+
+  const existingUser = userArray.find(
+    (element) => element.username === username && element.password === password
+  );
+
+  if (!existingUser) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const users = userArray.map((user) => ({
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+  }));
+
+  res.status(200).json({ users });
+});
+
+app.use((req, res) => {
+  res.sendStatus(404);
+});
+
 module.exports = app;
+
+// app.listen(PORT, () => {
+//   console.log("server is live");
+// });
