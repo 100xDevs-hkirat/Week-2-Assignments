@@ -41,10 +41,21 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+<<<<<<< HEAD
+const port=3000;
+const app = express();
+
+app.use(bodyParser.json());
+function started(){
+  console.log("the server is running",+port);
+}
+app.listen(port,started)
+=======
 
 const app = express();
 
 app.use(bodyParser.json());
+>>>>>>> 87034ab (assignment files)
 
 let todos = [];
 

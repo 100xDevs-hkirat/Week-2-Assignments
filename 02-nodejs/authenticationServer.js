@@ -29,9 +29,87 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
+<<<<<<< HEAD
+const express = require("express");
+const app = express();
+const bodyparser=require('body-parser');
+
+app.use(bodyparser.json());
+
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var userbase=[];
+app.post('/signup',(req,res)=>{
+  let userexists=false;
+  const userbase1={
+    "username":req.body.username,
+    "password":req.body.password,
+    "firstname":req.body.firstname,
+    "lastname":req.body.lastname
+  }
+  
+ 
+  for ( let i = 0 ; i < userbase.length ; i++){
+    if(userbase[i].username===userbase1.username){
+      userexists=true;
+      break;
+    }
+  }
+  userbase.push(userbase1);
+  
+  if(userexists){
+    console.log("user already exist");
+    return res.status(400).send("User already exits");
+  }
+  res.status(201).send("user created");
+  console.log(userbase);
+});
+
+app.post('/login',(req,res)=>{
+  let user_cred=req.body;
+   for ( let i = 0 ; i < userbase.length ; i++){
+    if(user_cred.username==userbase[i].username && user_cred.password==userbase[i].password){
+      console.log("matched")
+      res.status(200).send("Login successfull");
+    }
+   
+   else{
+   res.status(401).send("Bad login credentials");
+   }
+   }
+});
+
+app.get('/data',(req,res)=>{
+  let usertoreturn=[];
+
+  let userfound=false;
+
+  let user_cred=req.body;
+
+  for ( let i =0 ; i < userbase.length ; i++){
+    if(user_cred.username==userbase[i].username && user_cred.password==userbase[i].password){
+      userfound=true;
+      break;
+    }
+  }
+  if(userfound=true){
+  for ( let i=0 ; i < userbase.length ; i++){
+    usertoreturn.push({
+      username:userbase[i].username,
+      firstname:userbase[i].firstname,
+      lastname:userbase[i].lastname
+    });
+  }
+  res.json({usertoreturn});
+}
+else{
+  res.sendStatus(401);
+}  
+});
+=======
 const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+>>>>>>> 87034ab (assignment files)
 module.exports = app;
