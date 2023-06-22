@@ -28,53 +28,25 @@ app.get("/files", (req, res) => {
 
   fs.readdir(directoryPath, (err, files) => {
     if (err) {
-      // res.send("Internal Server Error !");
-
       return res.status(500).json({ error: "Failed to retrive files" });
     }
 
     res.json({ fileNames: files, noOfFiles: files.length });
-
-    // const fileNames = files.map((file, index) => `${index + 1} . ${file}`);
-    // console.log(fileNames);
-    // res.json({
-    //   fileName: fileNames,
-    //   noOfFiles: files.length,
-    // });
   });
 });
 
 //Read file and send them
 
 app.get("/file/:fileName", (req, res) => {
-  // const fileNameParams = req.params.fileName;
   const filePath = path.join(__dirname, "./files/", req.params.fileName);
-  // const directoryPathFile = `../02-nodejs/files/${fileNameParams}`;
+
   fs.readFile(directoryPathFile, "utf8", (err, data) => {
-    // if (err) {
-    //   if (err.code === "ENOENT") {
-    //     res.status(404).send("File Not Found");
-    //   } else {
-    //     console.log("Error Reading File :", err);
-    //     res.status(500).send("INTERNAL SERVER ERROR");
-    //   }
-    // } else {
-    //   if (!data.length) {
-    //     res.send("File is empty.");
-    //   } else {
-    //     res.send(data);
-    //   }
-    // }
     if (err) {
       return res.status(404).send("File not found");
     }
     res.send(data);
   });
 });
-
-// app.use((req, res) => {
-//   res.send("404 NOT FOUND!");
-// });
 
 app.all("*", (req, res) => {
   res.status(404).send("Route not found");
