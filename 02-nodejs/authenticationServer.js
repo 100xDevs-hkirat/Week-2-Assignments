@@ -37,8 +37,6 @@ app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 let USERS = [];
 
-app.use(express.json());
-
 app.post("/signup", (req, res) => {
   let userCred = req.body; // This will contain an object of user credentials and it will look like {email, password, firstname, lastname};
 
