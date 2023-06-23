@@ -1,0 +1,24 @@
+GET http://localhost:3000/todos
+
+###
+GET http://localhost:3000/todos/b98c3501-9130-40b6-88e3-72e48e83f73a
+
+###
+POST http://localhost:3000/todos
+Content-Type: application/json
+
+{ 
+    "title": "Buy groceries", 
+    "completed": false, 
+    "description": "I should buy groceries"
+}
+
+###
+# Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+PUT http://localhost:3000/todos/3
+Content-Type: application/json
+
+{ "title": "Buy ps", "completed": true }
+
+###
+DELETE http://localhost:3000/todos/1
