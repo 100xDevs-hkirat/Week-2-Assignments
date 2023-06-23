@@ -43,9 +43,9 @@ app.get('/file/:filename', (req, res) => {
 });
 
 
-function hostAll(req,res){
-  res.send(404).send('Route was not found')
-}
-app.all('*',hostAll)
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
 
 module.exports = app;
