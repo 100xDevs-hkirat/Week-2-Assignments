@@ -39,11 +39,118 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
-
+const port = 3000;
 app.use(bodyParser.json());
+
+let listOfTodos = [];
+
+//Seed In-memory database of Todos.
+// let listOfTodos = [
+//   { id: 1, title: "grocery", descrpition: "buy milk" },
+//   { id: 2, title: "study", descrpition: "javascript lesson 2" },
+// ];
+
+function retrieveAllTodos(req, res) {
+  try {
+    let serializedTodos = JSON.stringify(listOfTodos);
+    let obj = JSON.parse(serializedTodos);
+    res.send(obj);
+  } catch (err) {
+    res.status(500).send("JSON conversion failed in server. Try again.");
+  }
+}
+
+function retrieveATodo(req, res) {
+  let id = parseInt(req.param("id"));
+  let matchedTodo = {};
+  if (!listOfTodos.length) {
+    res.status(404).json("ToDo List is empty.");
+  }
+
+  listOfTodos.forEach((todo) => {
+    if (todo.id === id) {
+      matchedTodo = todo;
+    }
+  });
+
+  if (Object.hasOwn(matchedTodo, "title")) {
+    res.json(matchedTodo);
+  } else {
+    res.status(404).json(`Todo ID: ${id} not found.`);
+  }
+}
+
+function createTodo(req, res) {
+  todoObjectToCreate = req.body;
+  if (
+    Object.hasOwn(todoObjectToCreate, "title") &&
+    Object.hasOwn(todoObjectToCreate, "description") &&
+    Object.hasOwn(todoObjectToCreate, "completed")
+  ) {
+    todoObjectToCreate.id = Date.now();
+    listOfTodos.push(todoObjectToCreate);
+    res.status(201).json(`{id:${todoObjectToCreate.id}}`);
+  } else {
+    console.log(typeof todoObjectToCreate);
+    res
+      .status(404)
+      .send(
+        `Could NOT create todo ${JSON.stringify(
+          req.body
+        )}. Does it have title, description & completed properties as required?`
+      );
+  }
+}
+
+function updateATodo(req, res) {
+  let id = parseInt(req.param("id"));
+  if (isNaN(id)) {
+    res.status(404).send("Invalid ID: It is a number.");
+  }
+  let todoToBeUpdated = null;
+  let indexofMatchFound = -1;
+  listOfTodos.forEach((todo, index) => {
+    if (todo.id === id) {
+      todoToBeUpdated = todo;
+      indexofMatchFound = index;
+    }
+  });
+
+  if (!todoToBeUpdated) {
+    res.status(404).send(`Given Todo ID '${id}' NOT found.`);
+  }
+
+  if (
+    Object.hasOwn(req.body, "title") ||
+    Object.hasOwn(req.body, "description") ||
+    Object.hasOwn(req.body, "completed")
+  ) {
+    propertiesToUpdate = Object.keys(req.body);
+    propertiesToUpdate.forEach((updateProperty) => {
+      todoToBeUpdated[updateProperty] = req.body[updateProperty];
+    });
+    listOfTodos[indexofMatchFound] = todoToBeUpdated;
+    res.status(200).send("Todo updated.");
+  } else {
+    res
+      .status(400)
+      .send(
+        "Bad request: Only title, description or completed property can be updated."
+      );
+  }
+}
+
+app.get("/todos", retrieveAllTodos);
+app.get("/todos/:id", retrieveATodo);
+app.post("/todos", createTodo);
+app.put("/todos/:id", updateATodo);
+
+app.listen(port, () => {
+  console.log(`Server @ ${port}`);
+});
 
 module.exports = app;
