@@ -22,4 +22,33 @@ const path = require('path');
 const app = express();
 
 
+
+
+
+
+
+
+
+
+// 1. GET /files - Returns a list of files present in `./files/` directory
+// Response: 200 OK with an array of file names in JSON format.
+// Example: GET http://localhost:3000/files
+
+
+app.get("/files",()=>{
+
+});
+
+
+
+
+
+
+
+
+
+
+app.listen(3001,()=>{
+  console.log("Server running on port 3001...");
+})
 module.exports = app;
