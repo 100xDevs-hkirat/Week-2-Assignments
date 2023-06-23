@@ -29,9 +29,76 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+app.use(express.json());
+const users = [];
+
+//signup
+app.post("/signup", (req, res) => {
+  const newUser = {
+    id: Math.floor(Math.random() * 100),
+    username: req.body.username,
+    password: req.body.password,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+  };
+
+  const isUserPresent = users.find(
+    (user) => user.username === newUser.username
+  );
+  if (isUserPresent) {
+    res.status(400).send("Username already exists.");
+  } else {
+    users.push(newUser);
+
+    res.status(201).json(newUser);
+  }
+});
+
+//login
+
+app.post("/login", (req, res) => {
+  const signupUser = {
+    username: req.body.username,
+    password: req.body.password,
+  };
+
+  const loginUserIndex = users.findIndex(
+    (user) => user.username === signupUser.username
+  );
+
+  if (loginUserIndex !== -1) {
+    if (users[loginUserIndex].password === signupUser.password)
+      return res.status(200).send(users[loginUserIndex]);
+
+    res.status(401).send();
+  } else {
+    res.status(404).send();
+  }
+});
+
+//Fetched All Data
+
+app.get("/data", (req, res) => {
+  const { username, password } = req.headers;
+  if (username === "abcd" && password === "abcd") {
+    res.status(200).json({
+      users: users,
+    });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.all("*", (req, res) => {
+  res.send("NO ROUTE FOUND.");
+});
+
+app.listen(PORT, (req, res) => {
+  console.log(`App is listening on PORT ${PORT}`);
+});
 module.exports = app;
