@@ -43,7 +43,108 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
 app.use(bodyParser.json());
 
+
+
+// DATABASE OF ALL THE TODOS
+var db = [];
+
+
+//1. GET /todos - Retrieve all todo items
+app.get("/todos",function (req,res){
+  var result = db;
+  res.send(result);
+});
+
+//2. GET /todos/:id - Retrieve a specific todo item by ID
+
+function retriveById(req,res){
+  const todo = db.find(t => t.id === parseInt(req.params.id));
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.send(todo);
+  }
+  
+}
+app.get("/todos/:id",retriveById);
+
+
+
+//3. POST /todos - Create a new todo item
+// Description: Creates a new todo item.
+// Request Body: JSON object representing the todo item.
+// Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+// Example: POST http://localhost:3000/todos
+// Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+
+function newItem(req,res){
+  var newId = Math.floor(Math.random() * 1000);
+  const obj = {
+    id: newId,
+    title: req.body.title,
+    description: req.body.description
+  };
+  db.push(obj);
+  res.status(201).json({id:newId});
+
+}
+
+app.post("/todos",newItem);
+
+
+
+//4. PUT /todos/:id - Update an existing todo item by ID
+//     Description: Updates an existing todo item identified by its ID.
+//     Request Body: JSON object representing the updated todo item.
+//     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+//     Example: PUT http://localhost:3000/todos/123
+//     Request Body: { "title": "Buy groceries", "completed": true }
+
+function updateTodo(req,res){
+  const todoId = db.findIndex(t => t.id === parseInt(req.params.id));
+  
+  if(todoId===-1){
+    res.status(404).send("Not Found");
+  }
+  else {
+    db[todoId].title = req.body.title;
+    db[todoId].description = req.body.description;
+    res.send(db[todoId]);
+  }
+}
+app.put("/todos/:id",updateTodo);
+
+
+
+// 5. DELETE /todos/:id - Delete a todo item by ID
+//     Description: Deletes a todo item identified by its ID.
+//     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+//     Example: DELETE http://localhost:3000/todos/123
+
+function deleteItem(req,res){
+  const todoId = db.findIndex(t => t.id === parseInt(req.params.id));
+  if(todoId===-1){
+    res.status(404).send("Not Found");
+  }
+  else{
+    db.splice(todoId, 1);
+    res.status(200).send();
+  }
+  
+}
+app.delete("/todos/:id",deleteItem);
+
+
+app.listen(3001, () => {
+  console.log('Server is running on port 3000');
+});
+
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 module.exports = app;
+
