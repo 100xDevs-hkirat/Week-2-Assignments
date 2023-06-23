@@ -23,11 +23,11 @@ const PORT = 3000;
 const app = express();
 
 function getFiles(req, res) {
-  fs.readdir(path.join(__dirname, "./files/"), function (err, data) {
+  fs.readdir(path.join(__dirname, "./files/"), function (err, files) {
     if (err) {
       res.status(500).json({ error: "Failed to retrieve files" });
     }
-    res.status(200).send(data);
+    res.status(200).json(files);
   });
 }
 app.get("/files", getFiles);
