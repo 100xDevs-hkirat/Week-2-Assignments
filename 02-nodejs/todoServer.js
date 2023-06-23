@@ -41,9 +41,80 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const PORT = 3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+var alltodos=[ 
+  // { id: 1, title: 'Buy groceries', completed: false, description: 'I should buy groceries' },
+  // { id: 2, title: 'Walk the dog', completed: false, description: 'I should walk the dog' },
+  // { id: 3, title: 'Clean the house', completed: false, description: 'I should clean the house' }
+ ]
+
+app.get('/todos', (req,res)=>{
+  res.status(200).json(alltodos);
+})
+
+app.get('/todos/:id' , (req,res)=>{
+  const id=parseInt(req.params.id);
+  const todoid = alltodos.find(todo=>todo.id === id);
+  if(todoid){
+    return res.status(200).json(todoid);
+  }
+  res.status(400);
+})
+
+app.post('/todos',(req,res)=>{
+  // const newTodo = {
+  //   id: alltodos.length+1,
+  //   title: req.body.title,
+  //   description: req.body.description
+  // };
+  // alltodos.push(newTodo);
+  // res.status(201).json(newTodo);
+  const {id , title , completed , description} = req.body;
+  const newtodo ={id:alltodos.length+1 , title , completed :Boolean(completed), description}
+  alltodos.push(newtodo);
+  res.status(201).json({id :newtodo.id})
+})
+
+
+app.put('/todos/:id' ,(req,res)=>{
+  const newID= parseInt(req.params.id);
+  const {title , completed} = req.body;
+
+  const todoItem = alltodos.find(todo=> todo.id === newID)
+  if(todoItem){
+    todoItem.title = title  || todoItem.title;
+    todoItem.completed= completed || todoItem.completed;
+    res.status(200).json(todoItem);
+  }else{
+    res.status(404).send("Todo item not found");
+  }
+})
+
+app.delete('/todos/:id' , (req, res)=>{
+  const delID = parseInt(req.params.id);
+
+  const todoItem = alltodos.find(todo=> todo.id === delID)
+  if(todoItem !== -1){
+    alltodos.splice(todoItem ,1);
+    res.status(200).send("deleted item");
+  }else{
+    res.status(404).send('Todo item not found');
+  }
+})
+
+
+// app.listen(PORT , ()=>{
+//   console.log(`Server Runnning on port ${PORT}`)
+// })
+
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 
 module.exports = app;
