@@ -44,6 +44,89 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+const PORT = 3001;
+
+var globalTodoStore = {};
+
+var autoId = 1;
+//  
+
 app.use(bodyParser.json());
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(Object.values(globalTodoStore));
+})
+
+app.get('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let resBody = globalTodoStore[id];
+  if (!resBody)
+    res.status(404).json({ error_message: "Todo not found" });
+  else
+    res.status(200).json(resBody);
+})
+
+app.post('/todos', (req, res) => {
+  let currentId = autoId++;
+  let title = req.body.title;
+  let description = req.body.description;
+  // let completed = req.body.completed;
+  if (validateRequestBody(title, description)) {
+    globalTodoStore[currentId] = {
+      "id": currentId ,"title": title, "description": description
+    }
+    res.status(201).json({ id: currentId });
+
+  }
+  else
+    res.status(400).json({ error_message: "Mandatory fields are missing" });
+
+})
+
+app.put('/todos/:id', (req, res) => {
+  let currentId = req.params.id;
+  if (globalTodoStore[currentId]) {
+    let title = req.body.title;
+    let description = req.body.description;
+    if (validateRequestBody(title, description)) {
+      globalTodoStore[currentId] = {
+        "id" : currentId, "title": title, "description": description
+      }
+      res.status(200).json({ id: currentId });
+
+    }
+    else
+      res.status(400).json({ error_message: "Mandatory fields are missing" });
+  }
+  else{
+    res.status(404).json({ error_message: "Todo not found" });
+  }
+})
+
+app.delete("/todos/:id",(req,res)=>{
+  let id = req.params.id;
+  console.log("feowjiofjweoj",id);
+  let resBody = globalTodoStore[id];
+  if (!resBody)
+    res.status(404).json({ error_message: "Todo not found" });
+  else{
+    delete globalTodoStore[id];
+    res.status(200).json(resBody);
+  }
+})
+
+function validateRequestBody(title, description) {
+  if (typeof (title) === "string" && typeof (description) === "string")
+    return true;
+  return false;
+}
+
+
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`)
+})
+
+
 
 module.exports = app;
