@@ -29,7 +29,7 @@
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -94,3 +94,56 @@ app.delete("/todos/:id", (req, res) => {
 });
 
 module.exports = app;
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const app = express();
+// app.use(bodyParser.json());
+// const todos = [];
+// app.get("/todos", (req, res) => {
+//   res.json(todos);
+// });
+// app.get("/todos/:id", (req, res) => {
+//   const item = todos.find((t) => t.id === parseInt(req.params.id));
+//   if (item) {
+//     res.json(item); //chnage to res.status(200).send(json)
+//   } else {
+//     res.send(404).send();
+//   }
+// });
+// app.post("/todos", (req, res) => {
+//   const pushing = {
+//     // id:Math.random(),try
+//     id: Math.floor(Math.random() * 1000000),
+//     title: req.body.title,
+//     description: req.body.description,
+//   }; //
+//   todos.push(pushing);
+//   res.status(201).json(pushing);
+// });
+// app.put("/todos/:id", (req, res) => {
+//   const updateid = todos.findIndex((t) => t.id === parseInt(req.params.id));
+
+//   if (updateid === -1) {
+//     res.status(404).send("Not found");
+//   } else {
+//     todos[updateid].title = req.body.title;
+//     todos[updateid].description = req.body.description;
+//     todos[updateid].completed = req.body.completed;
+//     res.status(200).send(todos[updateid]);
+//   }
+// });
+// app.delete("/todos/:id", (req, res) => {
+//   const index = todos.findIndex((t) => t.id === parseInt(req.params.id));
+//   if (index === -1) {
+//     res.status(404).send();
+//   } else {
+//     todos.splice(index, 1);
+//     res.status(200).send();
+//   }
+// });
+// app.use((req, res, next) => {
+//   res.status(404).send();
+// });
+
+// module.exports = app;
