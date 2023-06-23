@@ -30,8 +30,74 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const port = 3000;
 const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+
+
+// 1st signup server...!!
+const users=[];
+app.post('/signup',(req,res)=>{
+   // var details=req.body;
+     var findinguser=req.body;
+     var isexit=users.find(user=> user.email===findinguser.email);
+     if(isexit){
+      res.status(400).send("The username already exits...!");
+     }
+     else{
+      const dels={email:findinguser.email,password:findinguser.password,firstName:findinguser.firstName,lastName:findinguser.lastName};
+      users.push(dels);//how to generate the unique id?
+      res.status(201).send("Signup successful");
+     }
+})
+
+// 2nd login server
+
+app.post('/login',(req,res)=>{
+      
+      var formuser=req.body;
+      var isexit=null;
+      for(let i=0;i<users.length;i++){
+        if( users[i].email===formuser.email && users[i].password===formuser.password){
+          isexit=users[i];break;
+        }
+      }
+      if(isexit){
+       res.json({email:isexit.email,firstName:isexit.firstName,lastName:isexit.lastName});
+      }
+      else{
+        res.status(401).send("user not found");
+      }
+    
+})
+
+// 3rd getting /data
+app.get('/data',(req,res)=>{
+     var usermail=req.headers.email;
+     var userpass=req.headers.password;
+     var detail=[];
+     var validing=false;
+     for(let i=0;i<users.length;i++){
+         if(users[i].email===usermail && users[i].password===userpass){
+          validing=true;
+         }
+         detail.push({
+           firstName:users[i].firstName,
+           lastName:users[i].lastName,
+           email:users[i].email
+         });
+     }
+     if(validing){
+      res.status(200).json({users});
+     }
+     else{
+      res.status(401).send("Unauthorized");
+     }
+})
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
 module.exports = app;
