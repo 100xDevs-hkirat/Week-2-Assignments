@@ -16,10 +16,55 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+const filesDirectory = path.join(__dirname, "files");
+
+// Endpoint to get a list of files
+app.get("/files", (req, res) => {
+  fs.readdir(filesDirectory, (err, files) => {
+    if (err) {
+      console.error("Error reading files directory:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    res.status(200).json(files);
+  });
+});
+
+// Endpoint to get the content of a specific file
+app.get("/file/:filename", (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(filesDirectory, filename);
+
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        res.status(404).send("File not found");
+      } else {
+        console.error("Error reading file:", err);
+        res.status(500).send("Internal Server Error");
+      }
+      return;
+    }
+
+    res.status(200).send(data);
+  });
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+});
+
+// Start the server
+// const port = 3000;
+// app.listen(port, () => {
+//   console.log(`Server is listening on http://localhost:${port}`);
+// });
 
 module.exports = app;
