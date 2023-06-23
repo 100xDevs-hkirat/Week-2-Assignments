@@ -43,7 +43,7 @@ app.get('/files',(req,res)=>{
     if(err){
       return res.status(500).send('Mocked Internal Server Error')
     }
-    res.json(data)
+    res.send(data)
   })
 })
 
