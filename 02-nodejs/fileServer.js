@@ -21,5 +21,45 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+//For Windows the "\" has to be replaced with "/""
+//var target_dir="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read"
+
+//var fullPath = path.join(__dirname, target_dir)
+//console.log(__dirname);
+//console.log(target_dir);
+
+app.listen(3001, () => {
+  console.log("Application has Started.")
+})
+
+
+app.get('/files', (req,res) => {
+  var target_dir="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read"
+  fs.readdir(target_dir, (files, error) => {
+    if(error) {
+      console.log(error);
+      return res.status(200).send(error);    
+  }  
+
+    console.log(files)
+    res.status(200).send(files);
+  })
+})
+
+
+
+app.get("/files/:filename", (req, res) => {
+  const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read/"+req.params.filename;
+  fs.readFile(file_name, 'utf-8', (err, data) => {
+    if(err){
+      console.log(err);
+      return res.status(200).send("404 Not Found");
+    }
+  
+    console.log(data);
+    return res.status(200).send(data);
+})
+})
+
 
 module.exports = app;
