@@ -41,9 +41,35 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = process.env.PORT || '3000'
 
 const app = express();
 
+const todo = []
+
+app.get('/todos',(req,res)=>{
+  res.json(todo)
+})
+
+//Second 
+app.get(('/todos/:id'),(req,res)=>{
+  const idPresent = todos.find(t => t.id === parseInt(req.params.id));
+    if(idPresent){
+      res.json(idPresent)
+    }else{
+      res.status(404).send()
+    }
+})
+// 3. POST /todos
+
+app.post(('/todos'),(req,res)=>{
+
+})
+
 app.use(bodyParser.json());
+
+app.listen((port),()=>{
+  console.log(`Listneing at http://localhost:${[port]}`)
+})
 
 module.exports = app;
