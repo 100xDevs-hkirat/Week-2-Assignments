@@ -20,6 +20,51 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
+/*
+ GET /files - Returns a list of files present in `./files/` directory
+    Response: 200 OK with an array of file names in JSON format.
+    Example: GET http://localhost:3000/files
+*/
 
+app.get('/files',function(req,res){
+  fs.readdir('./files',(error,files)=>{
+
+    if(error){
+      res.send(500)
+    }else{
+      res.json(files)
+    }
+  })
+})
+/*
+GET /file/:filename - Returns content of given file by name
+     Description: Use the filename from the request path parameter to read the file from `./files/` directory
+     Response: 200 OK with the file content as the response body if found, or 404 Not Found if not found. Should return `File not found` as text if file is not found
+     Example: GET http://localhost:3000/file/example.txt
+*/
+
+app.get('/file/:filename',function(req,res){
+    const filename = req.params.filename
+   
+    fs.readFile(`./files/${filename}`,'utf8',function (err,data){
+      
+      if(err){
+        res.status(404).send('File not found')
+      }else{
+        res.send(data)
+      }
+
+    })
+
+})
+
+app.use((req, res, next) => {
+  res.status(404).send('Route not found');
+});
+
+// app.listen(port, () => {
+//      console.log(`Example app listening on port ${port}`)
+//  })
 
 module.exports = app;
