@@ -32,6 +32,74 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+// app.listen('3000',()=>{
+//   console.log('app is running on port 3000')
+// })
+
+app.use(bodyParser.json());
+
+app.set('user',[]);
+
+app.post('/signup',(req,res)=>{
+      const {password,firstName,lastName,email} = req.body;
+      const user = app.get('user');
+      console.log(user);
+      const isUserExists = user.some((x)=>x.email==email);
+      if(isUserExists){
+        res.sendStatus(400);
+      }
+      else{
+        const data = {
+          id:getNextId(),
+          password:password,
+          firstName:firstName,
+          lastName:lastName,
+          email:email
+        };
+        user.push(data);
+        app.set('user',user);
+       res.status(201).send("Signup successful");
+      }
+});
+
+app.post('/login',(req,res)=>{
+    const data = app.get('user');
+    console.log('logindata',data);
+    const {email,password} = req.body;
+    const isUserExists = data.some((x)=>x.email==email && x.password==password);
+    if(isUserExists){
+      const index = data.findIndex((x)=>x.email==email && x.password==password);
+      
+      const returndata = data[index];
+      res.status(200).send(returndata);
+    }
+    else{
+      res.sendStatus(401);
+    }
+})
+
+app.get('/data',(req,res)=>{
+  const {email,password} = req.headers;
+  const data = app.get('user');
+  const isUserExists = data.some((x)=>x.email==email && x.password == password);
+  if(isUserExists){   
+    const resData = {users:data} 
+    res.status(200).send(resData);
+  }
+  else{
+    res.sendStatus(401);
+  }
+})
+
+
+app.all('*',(req,res)=>{
+  res.sendStatus(404);
+})
+function getNextId(){
+  return app.get('user').reduce((max,c)=> c>max?max=c:max,0);
+}
 
 module.exports = app;

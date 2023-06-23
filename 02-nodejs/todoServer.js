@@ -40,10 +40,110 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+// app.listen('3000',()=>{
+//   console.log('app is running on port 3000');
+
+// });
+
+app.set('uniquId',0);
+app.set('todoCollection',[]);
+
+async function getDatafromFile(){
+   var data = await fs.promises.readFile('./files/a.txt','utf8');
+   if(data){
+    app.set('todoCollection',JSON.parse(data));
+   }
+   else{
+    app.set('todoCollection',[]);
+   }
+   
+}
+
+async function updateDatatoFile(){
+  var data = await fs.promises.writeFile('./files/a.txt',JSON.stringify(app.get('todoCollection')));
+}
+
+app.get('/todos',async (req,res)=>{
+      await getDatafromFile();
+      res.status(200).send(app.get('todoCollection'));
+});
+
+app.get('/todos/:id',async (req,res)=>{
+  const id = req.params.id;
+  await getDatafromFile();
+  const dbArray = app.get('todoCollection');
+  const isPresent = dbArray.some((x)=>x.id==id);
+  if(isPresent){
+    res.status(200).send(dbArray.filter(x=>x.id==id)[0]);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+app.post('/todos',async (req,res)=>{
+      await getDatafromFile();
+      const dbArray = app.get('todoCollection');
+      let maxId = dbArray.reduce((max,c)=>{
+        if(c.id>max){
+          max = c.id;
+        }
+        return max;
+      },0);
+      console.log(maxId);
+      const id = maxId+1;
+      const todoItem = { "id":id,"title": req.body.title, "completed": req.body.completed, "description": req.body.description };
+      dbArray.push(todoItem);
+      app.set('todoCollection',dbArray);
+      await updateDatatoFile();
+      res.status(201).send({"id":id});
+})
+
+app.put('/todos/:id',async (req,res)=>{
+  const id = req.params.id;
+  await getDatafromFile();
+  const dbArray = app.get('todoCollection');
+  const index = dbArray.findIndex(x=>x.id==id);
+  if(index !== -1){
+    const dbitem = dbArray[index];
+    const updatedObj = {...dbitem,...req.body}
+    dbArray[index] = updatedObj;
+    app.set('todoCollection',dbArray);
+    await updateDatatoFile();
+    res.sendStatus(200);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+app.delete('/todos/:id',async (req,res)=>{
+  const id = req.params.id;
+  await getDatafromFile();
+  const dbArray = app.get('todoCollection');
+  const index = dbArray.findIndex(x=>x.id==id);
+  if(index !== -1){
+    dbArray.splice(index,1);
+    app.set('todoCollection',dbArray);
+    await updateDatatoFile();
+    res.sendStatus(200);
+  }
+  else{
+    res.sendStatus(404);
+  }
+})
+
+function getNextId(){
+    const nextId = app.get('uniquId') + 1;
+    app.set('uniquId',nextId);
+    return nextId;
+}
 
 module.exports = app;
