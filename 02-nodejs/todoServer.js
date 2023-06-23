@@ -21,7 +21,7 @@
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
-    Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+    Request Body: { "title": "Buy groceries", "completed": false, "description": "I should buy groceries" }
     
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
@@ -43,7 +43,67 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+const port = 3000;
 app.use(bodyParser.json());
 
+let todoLists = [];
+
+function filterTodoByID(id){
+  return todoLists.findIndex(todo=>todo.id === parseInt(id));
+}
+
+function getAllTodo(req, res){
+  return res.status(200).send(todoLists);
+}
+
+app.get('/todos', getAllTodo);
+
+function getTodoById(req, res){
+  var reqTodoId = req.params.id;
+  var reqTodoIdx = filterTodoByID(reqTodoId)
+  if(reqTodoIdx == -1){
+    return res.status(404).send("please give a valid todo id "+ requiredTodoId);
+  }
+
+  return res.status(200).send(todoLists[reqTodoIdx]);
+}
+app.get('/todos/:id', getTodoById);
+
+function createTodoList(req, res){
+   const body = req.body;
+   body["id"] = todoLists.length+1;
+   todoLists.push(body);
+   return res.status(201).json({"id":body.id});
+}
+app.post('/todos', createTodoList);
+
+function updateTodoList(req, res){
+  var requiredTodoId = req.params.id;
+  const reqBody = req.body;
+  const requiredTodoIdx = filterTodoByID(requiredTodoId);
+  if(requiredTodoIdx == -1){
+    return res.status(404).send("please give a valid todo id "+ requiredTodoId);
+  }
+  todoLists[requiredTodoIdx]["title"] = reqBody.title;
+  todoLists[requiredTodoIdx]["completed"] = reqBody.completed;
+  return res.status(200).send("success!");
+}
+app.put('/todos/:id', updateTodoList);
+
+function deleteTodoItem(req, res){
+  var requiredTodoIdx = filterTodoByID(req.params.id);
+  if(requiredTodoIdx == -1){
+    return res.status(404).send("NOT FOUND");
+  }
+  todoLists.splice(requiredTodoIdx, 1);
+  res.status(200).send("successfully deleted")
+}
+app.delete('/todos/:id', deleteTodoItem);
+
+app.get('/',(req, res) =>{
+  res.status(200).send("welcome to todo app");
+})
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
 module.exports = app;
