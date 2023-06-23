@@ -30,8 +30,86 @@
  */
 
 const express = require("express")
+const { v4: uuidv4 } = require('uuid');
+var bodyParser = require('body-parser')
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const users = [];
+app.use(bodyParser.json())
+
+function usernameExists(username, arr) {
+  return arr.some(user => user.email === username);
+}
+
+app.post('/signup', (req, res) => {
+  const {email, password, firstName, lastName} = req.body;
+
+  if(usernameExists(email, users)) {
+    return res.status(400).json({message: 'Username is not available!'})
+  }
+
+  users.push({
+    email,
+    password,
+    firstName,
+    lastName,
+    id: uuidv4()
+  });
+
+  res.status(201).send('Signup successful');
+});
+
+app.post('/login', (req, res) => {
+  const {email, password} = req.body;
+  
+  let userExists = usernameExists(email, users);
+
+  if(userExists) {
+    let userFromStore = users.filter(user => user.email === email);
+
+    if (userFromStore.password === password) {
+      return res.status(200).json({
+        email: userFromStore.email,
+        firstName: userFromStore.firstName,
+        lastName: userFromStore.lastName,
+        authToken: uuidv4()
+      })
+    }
+  } else {
+    return res.status(401);
+  }
+
+})
+
+app.get('/data', (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+    }
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+})
+
 
 module.exports = app;
