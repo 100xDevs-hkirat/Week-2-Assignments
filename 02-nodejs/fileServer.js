@@ -28,23 +28,46 @@ app.get('/files' , (req, res)=>{
 
   fs.readdir(newPath, (err , files)=>{
     if(err){
-      res.status(400).json({error : "error occured while running "})
-    }else{
+      res.status(500).json({ error: 'An error occurred while reading the directory.' });
+    }
+    
+    else{
       res.status(200).json({files})
     }
   })
 
 })
 
-app.get('/files/:filename' ,(req,res)=>{
+
+
+app.get('/file/:filename', (req, res) => {
   const filename = req.params.filename;
-  const newPath = path.join(__dirname , )
+  const filePath = path.join(__dirname, 'files', filename); 
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+      
+        res.status(404).send('File not found');
+      } else {
+        // Other error occurred while reading the file
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred while reading the file.' });
+      }
+    } else {
+      // File found, send the content as the response body
+      res.status(200).send(data);
+    }
+  });
+});
 
-})
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 
 
-app.listen(PORT,()=>{
-  console.log("Running on port 3000!!")
-})
+// app.listen(PORT,()=>{
+//   console.log("Running on port 3000!!")
+// })
 
 module.exports = app;
