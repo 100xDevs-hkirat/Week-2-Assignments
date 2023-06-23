@@ -21,5 +21,8 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+let filesDirectory = path.join(__dirname, '/files');
 
+app.get('/files',(req, res));
+app.get('/file/:filename',(req, res));
 module.exports = app;

@@ -29,9 +29,144 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const Jwt = require("jsonwebtoken");
+
+const path = require("path");
+
+const dotenvAbsolutePath = path.join(__dirname, '.env');
+
+const dotenv = require('dotenv').config({ path: dotenvAbsolutePath});
+
+const validation = require('./validation');
+const validate = require('./validationMiddleware');
+const auth = require("./auth");
+
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+require('dotenv').config();
 
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const users = [];
+app.use(bodyParser.json());
+
+app.post('/signup', (req, res) => {
+
+  const {
+    error
+  } = validation.validate(req.body);
+  if (error) {
+    res.status(422)
+      .send(error.details[0].message);
+  } else {
+
+    let user = req.body;
+    let userAlreadyExists = false;
+
+    for (let i = 0; i < users.length; i++) {
+      if (users[i].email === user.email) {
+        userAlreadyExists = true;
+        break;
+      }
+    }
+    if (userAlreadyExists) {
+      res.status(400).send(`Bad request user: ${user.email} already exists!!!`);
+    }
+
+    user['id'] = uuidv4();
+    users.push(user);
+    console.log(user);
+    res.status(201).send('Signup successful');
+  }
+});
+app.post('/login', (req, res) => {
+    let user = req.body;
+    let userFound = null;
+
+  for(let i =0; i< users.length; i++){
+    if(users[i].email === user.email && users[i].passsword === user.passsword){
+      userFound = users[i];
+      break;
+    }
+  }
+
+  if(userFound){
+   
+    let jwtSecretKey = process.env.JWT_SECRET_KEY;
+ 
+    let data = {user_id: userFound.id, email: userFound.email};
+    const token = Jwt.sign(data, jwtSecretKey);
+
+    res.status(200).json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email,
+      authToken: token
+    });
+    
+  }
+  else{
+    res.status(401).send("Unauthorized invalid credentials");
+  }
+
+});
+
+app.get('/data',(req, res) =>{
+
+  let email = req.headers.email;
+  let password = req.headers.password;
+
+  let userFound = null;
+
+  for(let i=0; i<users.length; i++){
+    if(users[i].email === email && users[i].password === password ){
+      userFound = users[i];
+      break;
+    }
+  }
+    let usersData = [];
+    if(userFound){
+      for(let i=0; i<users.length;i++){
+        usersData.push({
+          firstName: users[i].firstName,
+          lastName: users[i].lastName,
+          id: users[i].id
+
+        })
+      }
+      res.status(200).json({users: usersData});
+    }
+    else{
+      res.status(401).send("Unauthorized")
+    }
+  
+
+});
+
+app.get('/datawithtoken', auth,(req, res) =>{
+
+    let usersData = [];
+    if(req.user){
+      for(let i=0; i<users.length;i++){
+        usersData.push({
+          firstName: users[i].firstName,
+          lastName: users[i].lastName,
+          id: users[i].id
+
+        })
+      }
+      res.status(200).json({users: usersData});
+    }
+    else{
+      res.status(401).send("Unauthorized!!")
+    }
+
+});
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`);
+}
+//app.listen(PORT, started);
 module.exports = app;
