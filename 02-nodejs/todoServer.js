@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const { v4: uuidv4 } = require('uuid');
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
+
+let uuid=uuidv4();
+
+const getnerateNewID = (req, res, next) =>{
+  let id = uuidv4();
+  uuid =id;
+  next();
+}
+
+app.use(getnerateNewID);
+
+let todos = [];
+
+
+const port = process.env.PORT || 3000;
+
+
+app.get('/todos', (req, res) => {
+  res.send(todos);
+});
+
+app.get('/todos/:id', (req, res) => {
+  for (const todo of todos) {
+    if (todo.id === req.params.id) {
+      res.send(todo);
+      return;
+    }
+  }
+  res.status(404).send();
+})
+
+app.post('/todos', (req, res) => {
+  let todo = {
+    id: uuid,
+  }
+  todo={...todo,...req.body}
+  todos.push(todo);
+  res.status(201).send({id:todo.id});
+})
+
+app.put('/todos/:id', (req, res) => {
+  for(let todo of todos){
+    if(req.params.id === todo.id){
+      todo = {...todo,...req.body}
+      res.status(200).send();
+      return
+    }
+  }
+  res.status(404).send();
+})
+
+app.delete('/todos/:id', (req, res) =>{
+  for(let todo of todos){
+    if(req.params.id === todo.id){
+      todos.splice(todos.indexOf(todo), 1);
+      res.status(200).send();
+      return;
+    }
+  }
+  res.status(404).send();
+})
+
+app.all("*",(req,res)=>{
+  res.status(404).send();
+})
+
+// app.listen(port, (err) => {
+//   if (err) {
+//     return console.log('something bad happened', err);
+//   }
+//   console.log(`server is listening on ${port}`);
+// })
 
 module.exports = app;
