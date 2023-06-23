@@ -20,9 +20,34 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-
+const port = 3000;
 let filesDirectory = path.join(__dirname, '/files');
 
-app.get('/files',(req, res));
-app.get('/file/:filename',(req, res));
+app.get('/files', (req, res)=>{
+  fs.readdir(path.resolve(__dirname,'./files'), (err, files)=>{
+    if(err){
+      res.status(500).send("failed to retrieve the files");
+    }
+    res.status(200).json(files);
+  });
+});
+app.get('/file/:filename',(req, res)=>{
+    const filepath = path.resolve(__dirname,'../files/', req.params.filename);
+
+    fs.readFile(filepath,'utf-8', (err, data)=>{
+      if(err){
+        res.status(404).send('File not found');
+      }
+      res.status(200).send(data);
+    });
+});
+
+app.all('*', (req, res)=>{
+  res.status(404).send('Route not found');
+})
+function start(){
+  console.log(`started on port: ${port}`);
+}
+
+//app.listen(port,start);
 module.exports = app;
