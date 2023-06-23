@@ -19,7 +19,8 @@
     Example: POST http://localhost:3000/login
 
   3. GET /data - Fetch all user's names and ids from the server (Protected route)
-    Description: Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
+    Description: Gets details of all users like firstname, lastname and id in an array format. 
+    Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
     The users username and password should be fetched from the headers and checked before the array is returned
     Response: 200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
     Example: GET http://localhost:3000/data
@@ -29,9 +30,71 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
-module.exports = app;
+  // Server Boilerplate
+  const express = require("express")
+  const app = express();
+  // const PORT = 3000;
+  // app.listen(PORT, () => {
+  //   console.log(`Example app listening on port ${PORT}`)
+  // })
+
+  app.use(express.json())
+    
+  // Global
+  let users = [];
+  let uniqueId = 1;
+
+  // POST : signup
+  function userSignup(req, res){
+    const newUser = req.body;
+    newUser.id = uniqueId++;
+    let newEmail = newUser.email;
+    const exists = users.findIndex( user => user.email === newEmail)
+    if(exists === -1) {
+      users.push(newUser)
+      res.status(201).send("Signup successful")
+    } else {
+      res.status(400).send("Already Exists")
+    }
+  }
+
+  app.post('/signup', userSignup)
+
+  // POST : login
+  function userLogin(req, res){
+    const userCredentials = req.body;
+    let loginEmail= userCredentials.email;
+    let loginPassword = userCredentials.password;
+    const exists = users.findIndex( user => ((user.email === loginEmail ) && (user.password === loginPassword)) )
+    if(exists == -1){
+      res.status(400).send("Wrong Credentials")
+    } else {
+      let detailsToSend = {...users[exists]}
+      delete detailsToSend.password
+      delete detailsToSend.id
+      res.json(detailsToSend)
+    }
+  }
+
+  app.post('/login', userLogin)
+
+  // GET : users
+  function sendUsers(req, res){
+    let loginEmail = req.headers.email;
+    let loginPassword = req.headers.password;
+    let exists = users.findIndex(user => ((user.email === loginEmail) && (user.password === loginPassword)) )
+    if(exists == -1){
+      res.status(401).send("Unauthorized")
+    } else {
+      const usersToSend = users.map(({ password, id, ...rest }) => rest);
+      res.json({users});
+    }
+  }
+
+  app.get('/data', sendUsers)
+
+
+  module.exports = app;
+  
