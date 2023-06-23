@@ -37,7 +37,7 @@
 
     - For any other route not defined in the server return 404
 
-  Testing the server - run `npm run test-todoServer` command in terminal
+  Testing the server - run `npx jest ./tests/todoServer.test.js` instead of  `npm run test-todoServer` command in terminal
  */
 const express = require('express');
 const bodyParser = require('body-parser');
