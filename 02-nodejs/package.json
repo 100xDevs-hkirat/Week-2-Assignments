@@ -8,7 +8,7 @@
     "test-fileServer": "npx jest ./tests/fileServer.test.js",
     "test-todoServer": "npx jest ./tests/todoServer.test.js",
     "test-authenticationServer": "npx jest tests/authenticationServer.test.js",
-    "test-all": "./node_modules/jest/bin/jest.js ./tests/"
+    "test-all": "npx jest ./tests/ --maxWorkers=1"
   },
   "keywords": [],
   "author": "",
