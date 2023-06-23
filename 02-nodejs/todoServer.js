@@ -43,7 +43,162 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const port = 3000;
+
 
 app.use(bodyParser.json());
+
+var todos = [];
+
+
+app.get('/todos', (req, res) => {       //get-todos
+  console.log("in get todo");
+  // var arr_len = todos.length;
+  // console.log(arr_len);
+  // if(arr_len === 0){
+  //   res.status(200).send("ToDo list empty !!!!!")
+  // }
+  // else{
+  //   // var todos_json_format = [];
+  //   // for(var i=0;i<todos.length;i++){
+
+  //   //   var title = todos[i].title;
+  //   //   var description = todos[i].description;
+  //   //   var data = {
+  //   //     "id" : i+1,
+  //   //     "title" : title,
+  //   //     "description" : description,
+  //   //     "completed": todos[i].completed
+  //   //   }
+  //   //   todos_json_format.push(data);
+
+  //     res.status(200).json(todos);
+  //   }
+
+  res.status(200).json(todos);
+});
+ 
+app.get('/todos/:id',(request, response)=>{             //get-todo/:id
+  console.log("in get todo/ id");
+  const id = parseInt(request.params.id);
+  console.log(id);
+
+  if(id === NaN) response.status(404).send();
+  var arr_len = todos.length;
+  if(id>arr_len || id<=0){
+    response.status(404).json({ error: "todo id not found" });
+  }
+  else{
+    response.status(200).json(todos[id-1]);
+  }
+  
+});
+
+app.get('/todos/:id',(request, response)=>{             //get-todo/:id
+  console.log("in get todo/ id");
+  const id = parseInt(request.params.id);
+  console.log(id);
+
+  if(id === NaN) response.status(404).send();
+  var arr_len = todos.length;
+
+  if(id>arr_len || id<=0){
+    response.status(404).json({ error: "todo id not found" });
+  }
+  else{
+    // var title = todos[id-1].title;
+    //   var description = todos[id-1].description;
+    //   var data = {
+    //     "id" : id,
+    //     "title" : title,
+    //     "completed" : todos[id-1].completed,
+    //     "description" : description
+    //   }
+    // response.status(200).send(data)
+    response.status(200).json(todos[id-1]);
+
+  }
+  
+});
+
+
+app.post('/todos',(request, response)=>{                //post-todo/ to add new todo
+  console.log("in post todo");
+  var data = request.body;
+
+  var new_ob = {
+    id : todos.length+1,
+    title: data.title,
+    description: data.description
+  };
+  console.log(new_ob);
+  todos.push(new_ob);
+  response.status(201).json(new_ob);
+});
+
+
+app.get('/todos/:id',(request, response)=>{             //get-todo/:id
+    console.log("in get todo/ id");
+    const id = parseInt(request.params.id);
+    console.log(id);
+
+    if(id === NaN) response.status(404).send();
+    var arr_len = todos.length;
+    if(id>arr_len || id<=0){
+      response.status(404).json({ error: "todo id not found" });
+    }
+    else{
+      response.status(200).json(todos[id-1]);
+    }
+    
+  });
+
+app.put('/todos/:id',(request, response)=>{             //put-todo/ to update/
+  console.log("in put todo/ id");
+  const id = request.params.id;
+
+  var arr_len = todos.length;
+  var data = request.body;
+
+  if(id>arr_len || id<=0){
+    response.status(404).json({ error: "todo id not found" });
+  }
+  else{
+    todos[id-1].title = data.title;
+    todos[id-1].completed = data.completed;
+
+    response.status(200).json(todos[id-1]);
+  }
+  
+
+})
+
+app.delete('/todos/:id',(request, response)=>{          //delete/todo/ to update/
+  console.log("in delete todo/ id");
+  const id = request.params.id;
+  var arr_len = todos.length;
+  if(id>arr_len || id<=0){
+    response.status(404).json({ error: "todo id not found" });
+  }
+  else{
+    todos.splice(id-1,1);
+    response.status(200).send("todo deleted");
+  }
+  
+
+})
+
+
+
+
+app.use('*',(request, response) => {              // to all other paths
+  console.log("in something");
+  response.status(404).json({ error: "todo id not found" });
+});
+
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
+
 
 module.exports = app;
