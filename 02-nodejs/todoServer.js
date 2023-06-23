@@ -41,9 +41,114 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const {v4:uuidv4} = require('uuid');
 
+const validation = require('./todovalidation');
+const todo = require('./todovalidation');
+
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
 
+let todos =[];
+
+app.post('/todos',(req, res)=>{
+  let todo = req.body;
+  const {
+    error
+  } = validation.validate(req.body);
+  if (error) {
+    res.status(422)
+      .send(error.details[0].message);
+  } else {
+  
+    todo.id = uuidv4();
+    todos.push(todo);
+    res.status(201).json({id :todo.id});
+  }
+});
+
+app.get('/todos',(req, res)=>{
+  
+  if(todos.length ===0){
+    res.send('no todos, pls add some todos');
+  }
+  res.status(200).json(todos);
+
+});
+
+app.get('/todos/:id',(req, res)=>{
+
+  let id = req.params.id;
+  let todoFound = null;
+  if(id.length === 0){
+    res.status(400).send('Bad Request');
+  }
+  for(let i=0; i<todos.length; i++){
+    if(todos[i].id=== id){
+      todoFound = todos[i];
+      break;
+    }
+  }
+  if(todoFound) res.status(200).json(todoFound);
+  else res.status(404).send('Not found');
+
+});
+
+app.put('/todos/:id', (req, res)=>{
+
+  let id= req.params.id;
+  let todoFound = null;
+  let updatedTodo = req.body;
+  if(id.length ===0){
+    res.status(400).send("Bad request");
+  }
+  for(let i=0; i<todos.length; i++){
+    if(todos[i].id === id){
+      todoFound = todos[i];
+      break;
+    }
+  }
+  if(todoFound){
+    const keys = Object.keys(updatedTodo);
+
+    for(let key of keys){
+      todoFound[key] = updatedTodo[key];
+    }
+    res.status(200).send('todo item was found and updated');
+  }
+  res.status(404).send("Not Found");
+});
+
+app.delete('/todos/:id',(req,res)=>{
+  let id = req.params.id;
+  let todoFound = null;
+  if(id.length ===0){
+    res.status(400).send("Bad request");
+  }
+  for(let i=0; i<todos.length; i++){
+    if(todos[i].id === id){
+      todoFound = todos[i];
+      break;
+    }
+  }
+  if(todoFound){
+    todos = todos.filter( (todo) => todo.id !== id)
+    let todo = todos.find((todo)=> todo.id === id);
+    if(todo === undefined){
+      res.status(200).send('item was found and deleted');
+    }
+    else{
+      res.status(500).send("Internal server error");
+    }
+  }
+  res.status(404).send('Not Found');
+
+});
+
+function start(){
+  console.log(`started on the port: ${port}`);
+}
+//app.listen(port,start);
 module.exports = app;
