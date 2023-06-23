@@ -41,9 +41,93 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let TODOS = [];
+
+fs.readFile('todos.json','utf-8',(err, data) => {
+  if (err)
+  {
+    console.log(err);
+    return;
+  }
+  TODOS = JSON.parse(data);
+})
+
+const saveTodosToFile = () => {
+  fs.writeFile('todos.json',JSON.stringify(TODOS),(err) => {
+    if (err)
+    console.log(err);
+  })
+}
+
+app.get('/todos', (req, res) => {
+   res.status(200).json(TODOS);
+})  
+
+const doesTodoExist = (req, res, next) => {
+  const id = parseInt(req.params.id);
+  const todo = TODOS.find( todo => todo.id === id);
+  if (todo)
+  {
+    next();
+  }
+  else
+  res.status(404).send("Not found");
+}
+
+
+app.get('/todos/:id', doesTodoExist, (req, res) => {
+    const id = parseInt(req.params.id);
+    const todo = TODOS.find( todo => todo.id === id);
+    res.status(200).json(todo);
+})
+
+app.post('/todos', (req, res) => {
+  const {title, description} = req.body;
+  if (!title || !description)
+  {
+    res.status(409).send("Provide required data");
+    return;
+  }
+  const id = TODOS.length + 1;
+  const todo = {id, title, description};
+  TODOS.push(todo);
+  saveTodosToFile();
+  res.status(201).json({id});
+})
+
+app.put('/todos/:id', doesTodoExist, (req, res) => {
+  const id = parseInt(req.params.id);
+  const {title, description} = req.body;
+  TODOS = TODOS.map(todo => {
+     if (todo.id === id)
+        return {id, title, description};
+     return todo;
+  })
+  saveTodosToFile();
+  res.sendStatus(200);
+})
+
+app.delete('/todos/:id', doesTodoExist, (req, res) => {
+  const id = parseInt(req.params.id);
+  TODOS = TODOS.filter(todo => todo.id !== id);
+  saveTodosToFile();
+  res.sendStatus(200);
+  
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
+// app.listen(3000, () => {
+//   console.log(`App is listening on port ${3000}`);
+// })
+
 
 module.exports = app;
