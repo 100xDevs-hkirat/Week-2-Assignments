@@ -44,7 +44,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-const PORT = 3001;
+const PORT = 3000;
 
 var globalTodoStore = {};
 
@@ -123,9 +123,9 @@ function validateRequestBody(title, description) {
 
 
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
-})
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`)
+// })
 
 
 
