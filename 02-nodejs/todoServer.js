@@ -39,91 +39,69 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-const port=3000;
-let todos=[]
-const app = express();
 
-app.use(bodyParser.json());
-// function todobyid(todo){
-//   return todo.id === id;
-// }
-//first task -- sending the todo array
-function firsttask(req,res) 
-{
-    res.json(todos)
+  const express = require("express");
+  const bodyParser = require("body-parser");
   
-}
-//task-2 grabing the id if the todo
-function secondtask(req,res){
- const id=req.params.id;
- const todo=todos.find((todo)=>todo.id === id);
- if(todo){
-  res.json(todos);
- }else{
-  res.status(404).send('Todo not found');
- }
-}
-//task-3 sending the json object from the body
-function thirdtask(req,res) {
-  const id = Date.now().toString();
-  var obj={
-
-      id,
-    "title": req.body.title,
-    //"completed": req.body.completed,
-    "description":req.body.description
-  };
-  console.log(obj);
-  todos.push(obj);
-  res.status(210).json({id});
-
-}
-// function fourthtask(req,res) {
-//   const id=parseInt(req.params.id);
-//   const todo=todos.findIndex((todo)=>todo.id===id);
-//   if(todo=== -1){
-//     res.status(404).send("Item not found");
-//   }
-//   else{
-//     var obj={
-//       id,
-//       "todos[todo].title":req.body.title,
-//       //"completed": req.body.completed,
-//        " todos[todo].description":req.body.description,/// particular postion in array of objects
-//     }
-//     res.status(200).json(todos[todo]);
-//   }
-// }
-app.put('/todos/:id', (req, res) => {
-  const todoIndex = todos.findIndex(t => t.id === (req.params.id));
-  if (todoIndex === -1) {
-    res.status(404).send();
-  } else {
-    todos[todoIndex].title = req.body.title;
-    todos[todoIndex].description = req.body.description;
-    res.json(todos[todoIndex]);
+  let todos = [];
+  const app = express();
+  
+  app.use(bodyParser.json());
+  // function todobyid(todo){
+  //   return todo.id === id;
+  // }
+  //first task -- sending the todo array
+  function firsttask(req, res) {
+    res.json(todos);
   }
-});
-function fifthtask(req,res) {
-  const id=req.params.id;
-  const index =todos.find(t=>t.id===id);
-  if(index===-1){
-    res.status(404).send();
+  //task-2 grabing the id if the todo
+  function secondtask(req, res) {
+    const reqid = req.params.id;
+    const todo = todos.find((t) => t.id === reqid);
+    if (todo) {
+      res.json(todo);
+    } else {
+      res.status(404).send();
+    }
   }
-  else{
-    todos.splice(index,1);
-    res.status(200).send(`${id} is deleted`);
+  //task-3 sending the json object from the body
+  function thirdtask(req, res) {
+    const id = Date.now().toString();
+    var obj = {
+      id: id,
+      title: req.body.title,
+      //"completed": req.body.completed,
+      description: req.body.description,
+    };
+    console.log(obj);
+    todos.push(obj);
+    res.status(201).json(obj);
   }
-}
-function started(req,res) {
-  console.log(`Listnening to port ${port}`);
-}
-app.get("/todos",firsttask);
-app.get("/todos/:id",secondtask);
-app.post("/todos",thirdtask);
-//app.put("todos/:id",fourthtask)
-app.delete("/todos/:id",fifthtask)
-app.listen(port,started);
-module.exports = app;
+  
+  app.put("/todos/:id", (req, res) => {
+    const todoIndex = todos.findIndex((t) => t.id === req.params.id);
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos[todoIndex].title = req.body.title;
+      todos[todoIndex].description = req.body.description;
+      res.json(todos[todoIndex]);
+    }
+  });
+  function fifthtask(req, res) {
+    const id = parseInt(req.params.id);
+    const index = todos.find((t) => t.id === id);
+    if (index === -1) {
+      res.status(404).send();
+    } else {
+      todos.splice(index, 1);
+      res.status(200).send();
+    }
+  }
+  
+  app.get("/todos", firsttask);
+  app.get("/todos/:id", secondtask);
+  app.post("/todos", thirdtask);
+  app.delete("/todos/:id", fifthtask);
+  
+  module.exports = app;
