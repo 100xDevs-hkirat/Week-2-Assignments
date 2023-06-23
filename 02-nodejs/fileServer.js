@@ -21,4 +21,37 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/file/:filename',(req,res)=>{
+  let fileName = req.params.filename
+  let data1 = fs.readdirSync('./files/')
+  let exist = false
+  data1.forEach(ele => { if(fileName === ele) exist = true});
+
+  if(exist) {
+    let data = fs.readFileSync(`./files/${fileName}`)
+    data = data.toString()
+    console.log(typeof data);
+    res.status(200).send(data);
+  }else{
+    res.status(404).send('File not found')
+  }
+})
+
+app.get('/files',(req,res)=>{
+  console.log(req.path);
+  fs.readdir(`.${req.path}/`,(err,data)=>{
+    if(err){
+      return res.status(500).send('Mocked Internal Server Error')
+    }
+    res.json(data)
+  })
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found')
+})
+// app.listen(3000,()=>{
+//   console.log('listening');
+// })
+
 module.exports = app;
