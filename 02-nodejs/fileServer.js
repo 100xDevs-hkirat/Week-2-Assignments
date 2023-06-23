@@ -57,8 +57,13 @@ app.get("/files/:filename", (req, res) => {
     }
   
     console.log(data);
-    return res.status(200).send(data);
+    res.status(200).send(data);
 })
+})
+
+
+app.get('/*', (req,res) => {
+  res.status(200).send("404 Not Found");
 })
 
 
