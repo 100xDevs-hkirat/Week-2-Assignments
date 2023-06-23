@@ -29,9 +29,79 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  const express = require("express")
+  const PORT = 3000;
+  const app = express();
+  const bodyParser = require('body-parser')
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  app.use(bodyParser.json())
+  let arr = []
 
-module.exports = app;
+  app.get("/data", (req, res) => {
+    var email = req.headers.email;
+    var password = req.headers.password;
+    let userFound = false;
+    for (var i = 0; i<arr.length; i++) {
+      if (arr[i].email === email && arr[i].password === password) {
+          userFound = true;
+          break;
+      }
+    }
+  
+    if (userFound) {
+      let usersToReturn = [];
+      for (let i = 0; i<arr.length; i++) {
+          usersToReturn.push({
+              firstName: arr[i].firstName,
+              lastName: arr[i].lastName,
+              email: arr[i].email
+          });
+      }
+      res.json({
+        arr
+      });
+    } else {
+      res.sendStatus(401);
+    }
+  });
+
+  app.post('/login',(req,res)=>{
+    arr.forEach(ele => {
+      if(req.body.email === ele.email && req.body.password === ele.password){
+        return res.status(200).json({
+          firstName: ele.firstName,
+          lastName: ele.lastName,
+          email: ele.email
+      })
+      }else{
+        return res.status(401).send('unauthorize')
+      }
+    });
+  })
+
+  app.post('/signup',(req,res)=>{
+    let max = 0
+    let exist = false
+    console.log((req.body));
+    arr.forEach(element => {
+      if(element.id>max){
+        max = element.id
+        if(req.body.username === element.username) exist=true
+      }
+    });
+    if(exist){
+      return res.status(400).send('bad request')
+    }
+    let obj = {
+      id:max+1,
+      ...req.body
+    }
+    arr.push(obj)
+    res.status(201).send('Signup successful')
+  })
+  
+  // app.listen(PORT,()=>{
+  //   console.log('listining');
+  // })
+  module.exports = app;
+  
