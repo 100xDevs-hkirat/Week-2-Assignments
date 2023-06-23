@@ -33,5 +33,76 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(express.json());
+const users = [];
+
+function handleSignup(req, res) {
+  const data = req.body;
+  let userFound = false;
+
+  users.forEach((user) => {
+    if (user.username === data.username) {
+      userFound = true;
+      res.sendStatus(400);
+    }
+  });
+
+  if (!userFound) {
+    data["id"] = users.length;
+    users.push(data);
+    res.status(201).send("Signup successful");
+  }
+}
+
+function handleLogin(req, res) {
+  const data = req.body;
+  let userFound = false;
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    if (user.email === data.email && user.password == data.password) {
+      userFound = true;
+      res.send(user);
+      break;
+    }
+  }
+
+  if (!userFound) {
+    res.status(401).send("Unauthorized");
+  }
+}
+
+function getUsersData(req, res) {
+  const data = req.headers;
+  let userFound = false;
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    if (user.email === data.email && user.password == data.password) {
+      userFound = true;
+      break;
+    }
+  }
+
+  if (userFound) {
+    const usersData = [];
+    users.forEach((user) => {
+      const data = {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+      usersData.push(data);
+    });
+    res.json({ users: usersData });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+}
+
+app.post("/signup", handleSignup);
+
+app.post("/login", handleLogin);
+
+app.get("/data", getUsersData);
+
 
 module.exports = app;
