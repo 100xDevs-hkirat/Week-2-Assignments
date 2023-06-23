@@ -40,10 +40,21 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const { find, findOne, updateOne, create, deleteOne } = require("./todo/todo")
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get('/todos', find)
+app.get('/todos/:id', findOne)
+app.post('/todos', create)
+app.put('/todos/:id', updateOne)
+app.delete('/todos/:id', deleteOne)
+
+// app.listen(1337, () => {
+//   console.log(`Example app listening on port ${1337}`)
+// })
 
 module.exports = app;
