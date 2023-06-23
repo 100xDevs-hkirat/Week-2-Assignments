@@ -12,7 +12,7 @@
     Response: 201 Created if successful, or 400 Bad Request if the username already exists.
     Example: POST http://localhost:3000/signup
 
-  2. POST /login - User Login
+  2. POST /login - User Login.
     Description: Gets user back their details like firstname, lastname and id
     Request Body: JSON object with username and password fields.
     Response: 200 OK with an authentication token in JSON format if successful, or 401 Unauthorized if the credentials are invalid.
