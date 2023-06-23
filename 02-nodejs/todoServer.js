@@ -46,4 +46,125 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos = [];
+
+// const port = 3000;
+
+/*
+  1.GET /todos - Retrieve all todo items
+    Description: Returns a list of all todo items.
+    Response: 200 OK with an array of todo items in JSON format.
+    Example: GET http://localhost:3000/todos
+*/
+app.get("/todos", function(req, res){
+  res.status(200).send(todos);
+});
+
+/*
+  2.GET /todos/:id - Retrieve a specific todo item by ID
+    Description: Returns a specific todo item identified by its ID.
+    Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
+    Example: GET http://localhost:3000/todos/123
+*/
+app.get("/todos/:id", function(req, res){
+  let todoID = req.params.id;
+  todoID = Number(todoID);
+  let ansTODO = null;
+  for(let todo of todos){
+    if(todoID === todo.id){
+      ansTODO = todo;
+      break;
+    }
+  }
+  if(ansTODO != null){
+    res.status(200).send(ansTODO);
+  }
+  else{
+    res.status(404).send("Not Found");
+  }
+});
+
+/*
+  3. POST /todos - Create a new todo item
+    Description: Creates a new todo item.
+    Request Body: JSON object representing the todo item.
+    Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+    Example: POST http://localhost:3000/todos
+    Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+*/
+app.post("/todos", function(req, res){
+  let newTodo = req.body;
+  newTodo.id = Date.now();
+  todos.push(newTodo);
+  let sendResID = {
+    id: newTodo.id
+  };
+  res.status(201).send(sendResID);
+});
+
+/*
+  4. PUT /todos/:id - Update an existing todo item by ID
+    Description: Updates an existing todo item identified by its ID.
+    Request Body: JSON object representing the updated todo item.
+    Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+    Example: PUT http://localhost:3000/todos/123
+    Request Body: { "title": "Buy groceries", "completed": true }
+*/
+app.put("/todos/:id", function(req, res){
+  let todoID = req.params.id;
+  todoID = Number(todoID);
+  let reqBody = req.body;
+  let isTodoFound = false;
+  for(let todo of todos){
+    if(todo.id === todoID){
+      isTodoFound = true;
+      todo.title = reqBody.title;
+      todo.completed = reqBody.completed;
+    }
+  }
+  if(isTodoFound){
+    res.status(200).send("Updated");
+  }
+  else{
+    res.status(404).send("Not Found");
+  }
+});
+
+/*
+  5. DELETE /todos/:id - Delete a todo item by ID
+    Description: Deletes a todo item identified by its ID.
+    Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+    Example: DELETE http://localhost:3000/todos/123
+*/
+app.delete("/todos/:id", function(req, res){
+  let todoID = req.params.id;
+  todoID = Number(todoID);
+  let isTodoFound = false;
+  let newTodos = [];
+  for(let todo of todos){
+    if(todo.id === todoID){
+      isTodoFound = true;
+      continue;
+    }
+    newTodos.push(todo);
+  }
+  todos = newTodos;
+  if(isTodoFound){
+    res.status(200).send("Deleted");
+  }
+  else{
+    res.status(404).send("Not Found");
+  }
+});
+
+// for any other route, just return 404 status and Not Found text
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+});
+
+// Used listen method for testing purpose
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
+
 module.exports = app;
