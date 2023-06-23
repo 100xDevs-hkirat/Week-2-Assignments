@@ -29,9 +29,26 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
+
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require('body-parser');
+const { signup, login, data, authCheck } = require("./authenticate/authenticate")
+
+
+app.use(bodyParser.json());
+
+app.get('/data', authCheck, data)
+app.post('/login', login)
+app.post('/signup', signup)
+
+app.use((req, res) => {
+  res.status(404).send('Route not found');
+});
+
+// app.listen(1337, () => {
+//   console.log(`Example app listening on port ${1337}`)
+// })
 
 module.exports = app;

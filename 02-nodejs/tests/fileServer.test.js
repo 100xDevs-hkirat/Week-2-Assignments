@@ -7,7 +7,7 @@ describe('API Endpoints', () => {
 
   beforeAll((done) => {
     if (globalServer) {
-        globalServer.close();
+      globalServer.close();
     }
     globalServer = server.listen(3000);
     done()
@@ -19,15 +19,15 @@ describe('API Endpoints', () => {
 
   describe('GET /files', () => {
     test('should return a list of files', async () => {
-        const options = {
-          method: 'GET',
-          path: '/files'
-        };
+      const options = {
+        method: 'GET',
+        path: '/files'
+      };
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(200);
       expect(response.body.length).toBeGreaterThan(2);
-    });
+    }); n  
 
     test('should handle internal server error', async () => {
       const options = {
@@ -36,17 +36,15 @@ describe('API Endpoints', () => {
       };
 
       const directoryPath = path.resolve(__dirname, '../files/');
-      jest
-        .spyOn(fs, 'readdir')
-        .mockImplementation((directoryPath, callback) => {
-          callback(new Error('Mocked Internal Server Error'), null);
-        });
+
+      // replaced below code with promise form cause i am using promises in th code with 'fs' (i dont like callback structure)
+      jest.spyOn(fs.promises, 'readdir').mockRejectedValue(new Error('Mocked Internal Server Error'));
 
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(500);
 
-      fs.readdir.mockRestore();
+      fs.promises.readdir.mockRestore();
     });
   });
 

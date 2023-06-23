@@ -17,9 +17,19 @@
     Testing the server - run `npm run test-fileServer` command in terminal
  */
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const { find, findOne } = require("./file/filehandler")
 const app = express();
 
+
+
+app.get('/files', find)
+app.get('/file/:filename', findOne)
+
+app.use((req, res) => {
+  res.status(404).send('Route not found');
+});
+// app.listen(1337, () => {
+//   console.log(`Example app listening on port ${1337}`)
+// })
 
 module.exports = app;

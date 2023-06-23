@@ -10,9 +10,9 @@ const lastName = "kirat"
 describe('API Tests', () => {
   let globalServer;
   beforeAll((done) => {
-      if (globalServer) {
-        globalServer.close();
-      }
+    if (globalServer) {
+      globalServer.close();
+    }
     globalServer = server.listen(3000);
     done()
   });
