@@ -73,6 +73,12 @@ app.post("/todos", (req, res) => {
     completed: req.body.completed,
     description: req.body.description
   };
+
+  // store data in file
+  const data = JSON.stringify(newTodo, null, 2);
+  const filename = 'todo.txt';
+  fs.writeFileSync(filename, data);
+
   todos.push(newTodo);
   res.status(201).json(newTodo);
 }); 
