@@ -29,9 +29,75 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const express = require("express");
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const { v1: uuidv1, v4: uuidv4 } = require("uuid");
+
+app.use(express.json());
+
+let userList = [];
+
+function authenticate(req, res, next) {
+  let email = req.body.email;
+  let password = req.body.password;
+  if (req.body.email && req.body.password) {
+    email = req.body.email;
+    password = req.body.password;
+  } else {
+    email = req.headers["email"];
+    password = req.headers["password"];
+  }
+
+  for (let i = 0; i < userList.length; i++) {
+    if (email == userList[i]["email"]) {
+      // check password
+      if (password === userList[i]["password"]) {
+        let resObj = {
+          ...userList[i],
+          authToken: uuidv4(),
+        };
+        userList[i] = resObj;
+
+        res.locals.userData = userList[i];
+        break;
+      } else {
+        break;
+      }
+    }
+  }
+  next();
+}
+
+app.post("/signup", (req, res) => {
+  if (userList.length > 0) {
+    for (let i = 0; i < userList.length; i++) {
+      if (req.body["email"] == userList[i]["email"]) {
+        res.status(400).send();
+        return;
+      }
+    }
+  }
+  let newUser = { ...req.body, id: uuidv1() };
+  userList.push(newUser);
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", authenticate, (req, res) => {
+  if (res.locals.userData) {
+    res.status(200).json(res.locals.userData);
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.get("/data", authenticate, (req, res) => {
+  if (res.locals.userData) {
+    let data = { users: userList };
+    res.status(200).json(data);
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
 
 module.exports = app;
