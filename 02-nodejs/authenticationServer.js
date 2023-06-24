@@ -29,9 +29,64 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const app = require("express")();
 const PORT = 3000;
-const app = express();
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const bodyParser = require("body-parser");
+const {v4 : uuidv4} = require("uuid")
+
+app.use(bodyParser.json());
+
+const users = [];
+
+app.post("/signup",(req,res)=>{
+  //Finding if email already taken or not
+  const ind = users.map(user => user.email).findIndex(email => email === req.body.email);
+  if(ind !== -1) return res.status(400).send("Email already taken");
+
+  //If email not taken, adding new user
+  users.push({
+    id: uuidv4(),
+    ...req.body
+  });
+  res.status(201).send("Signup successful");
+})
+
+app.post("/login",(req,res)=>{
+  //Finding if User exists or not
+  const ind = users.map(user => user.email).findIndex(email => email === req.body.email);
+  if(ind === -1) return res.status(401).send("Unauthorized");
+  if(users[ind].password !== req.body.password) return res.status(401).send("Unauthorized");
+
+  const data = {
+    id: users[ind].id,
+    firstName : users[ind].firstName,
+    lastName : users[ind].lastName,
+    email : users[ind].email
+  }
+  res.status(200).json(data);
+})
+
+
+app.get("/data",(req,res)=>{
+  //Finding if User is authorised or not
+  const ind = users.map(user => user.email).findIndex(email => email === req.headers.email);
+  if(ind === -1) return res.status(401).send("Unauthorized");
+  if(users[ind].password !== req.headers.password) return res.status(401).send("Unauthorized");
+
+  const responseArr = users.map(user => ({
+    id: user.id,
+    firstName : user.firstName,
+    lastName : user.lastName,
+    email : user.email
+  }))
+  res.status(200).json({users: responseArr});
+})
+
+app.all("*",(req,res)=>{
+  res.status(404).send("Route not found");
+})
 
 module.exports = app;
