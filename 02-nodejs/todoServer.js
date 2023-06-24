@@ -39,11 +39,63 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
 
+const data = [];
+
+app.get("/todos", (req, res) => {
+  res.json(data);
+});
+
+app.get("/todos/:id", (req, res) => {
+  var todos = data.find((t) => t.id === parseInt(req.params.id));
+  if (!todos) {
+    res.status(404).send();
+  } else {
+    res.json(todos);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  var todo1 = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description,
+    completed: req.body.completed,
+  };
+  data.push(todo1);
+
+  res.status(201).json(todo1);
+});
+
+app.put("/todos/:id", (req, res) => {
+  var findIndex = data.findIndex((t) => t.id === parseInt(req.params.id));
+  if (findIndex === -1) {
+    res.status(404).send();
+  } else {
+    data[findIndex].completed = req.body.completed;
+    res.status(200).send(data[findIndex]);
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  var findIndex = data.findIndex((t) => t.id === parseInt(req.params.id));
+  if (findIndex === -1) {
+    res.status(404).send();
+  } else {
+    data.splice(findIndex, 1);
+    res.status(200).send();
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+app.listen(3001, () => console.log("todo app listening on port 3000"));
 module.exports = app;
