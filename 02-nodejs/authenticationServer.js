@@ -29,9 +29,96 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require('express');
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
+
+const USERS = [];
+
+function generateUniqueId(length = 8) {
+	const characters =
+		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const charactersLength = characters.length;
+	let id = '';
+
+	for (let i = 0; i < length; i++) {
+		const randomIndex = Math.floor(Math.random() * charactersLength);
+		id += characters.charAt(randomIndex);
+	}
+
+	return id;
+}
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+/* Signup - create a new user */
+app.post('/signup', (req, res) => {
+	const body = req.body;
+	const newUser = {
+		id: generateUniqueId(),
+		username: body.username,
+		password: body.password,
+		firstName: body.firstName,
+		lastName: body.lastName,
+		email: body.email,
+	};
+	const userIndex = USERS.findIndex((user) => user.id === newUser.id);
+	if (userIndex === -1) {
+		USERS.push(newUser);
+		res.status(201).send('Signup successful');
+	} else {
+		res.status(400).send(`User: ${newUser.username}  already exists`);
+	}
+});
+
+app.post('/login', (req, res) => {
+	const { username, password } = req.body;
+	console.log(username, password);
+	let userFound = null;
+	for (let i = 0; i < USERS.length; i++) {
+		if (USERS[i].username === username && USERS[i].password === password) {
+			userFound = USERS[i];
+			break;
+		}
+	}
+	if (userFound) {
+		res.send({
+			id: userFound.id,
+			email: userFound.email,
+			firstName: userFound.firstName,
+			lastName: userFound.lastName,
+		});
+	} else {
+		res.sendStatus(401);
+	}
+});
+
+app.get('/data', (req, res) => {
+	const email = req.headers.email;
+	const password = req.headers.password;
+	let userFound = false;
+
+	for (let i = 0; i < USERS.length; i++) {
+		if (USERS[i].email === email && USERS[i].password === password) {
+			userFound = true;
+			break;
+		}
+	}
+	if (userFound) {
+		let userList = USERS.map((user) => {
+			return {
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+			};
+		});
+		res.send(userList);
+	} else {
+		res.sendStatus(401);
+	}
+});
+
+app.listen(3000, () => console.log('App is listening on port: 3000!'));
 
 module.exports = app;
