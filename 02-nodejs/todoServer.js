@@ -53,7 +53,7 @@ app.get('/todos', (req, res) => {
 
 // Returns a specific todo item identified by its ID
 app.get('/todos/:id', (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
 
   for (i = 0; i < todoList.length; i++) {
     if (todoList[i].id == id) {
@@ -74,7 +74,8 @@ app.post('/todos', (req, res) => {
 // Updates an existing todo item identified by its ID.
 
 app.put('/todos/:id', (req, res) => {
-  const { id } = req.params;
+
+  const id = req.params.id;
   const item = req.body;
   item.id = id;
 
@@ -89,7 +90,7 @@ app.put('/todos/:id', (req, res) => {
 
 // Deletes a todo item identified by its ID.
 app.delete('/todos/:id', (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
 
   for (i = 0; i < todoList.length; i++) {
     if (todoList[i].id === id) {
