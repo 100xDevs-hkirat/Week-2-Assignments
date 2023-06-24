@@ -41,9 +41,95 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
+
+const PORT = 3000;
+
+let data = [];
 
 const app = express();
+const PATH = "./files/todo.txt";
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+function WriteDate(data) {
+  data = JSON.stringify(data);
+  fs.writeFile(PATH, data + "\n", { flag: "a" }, (err) => {
+    if (err) throw err;
+  });
+}
+
+function findById(id) {
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].id == id) {
+      return data[i];
+    }
+  }
+
+  return -1;
+}
+
+const GetAll = (req, res) => {
+  res.json(data);
+};
+
+const GetById = (req, res) => {
+  let data = findById(req.params.id);
+  if (data == -1) {
+    res.status(404).send();
+  }
+  res.json(data);
+};
+
+const CreateTodo = (req, res) => {
+  let body = req.body;
+  let NewBody = { id: uuidv4(), ...body };
+  data.push(NewBody);
+  WriteDate(NewBody);
+  res.json(NewBody);
+};
+
+const Update = (req, res) => {
+  let response = findById(req.params.id);
+  if (todoIndex === -1) {
+    res.status(404).send();
+  }
+  let update = req.body;
+  for (var item of Object.keys(update)) {
+    response[item] = update[item];
+  }
+  res.json(response);
+};
+
+const Delete = (req, res) => {
+  let todoIndex = findById(req.params.id);
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+};
+app.get("/todos", GetAll);
+app.get("/todos/:id", GetById);
+app.post("/todos", CreateTodo);
+app.put("/todos/:id", Update);
+app.delete("/todos/:id", Delete);
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+
+const ServerSetUp = () => {
+  app.listen(PORT, () => {
+    console.log(`Server started at port ${PORT}`);
+  });
+};
+
+ServerSetUp();
+
 
 module.exports = app;
