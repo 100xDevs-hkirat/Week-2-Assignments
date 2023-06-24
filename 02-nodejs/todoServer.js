@@ -39,11 +39,55 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
+app.listen(3000, () => {
+  console.log(`Running on 3000`);
+  console.log(`http://127.0.0.1:3000`);
+});
+data = [];
+// data = [
+//   {
+//     Title: "Work",
+//     Description: "TO DO WORK",
+//     Completed: false,
+//   },
+//   {
+//     Title: "Work1",
+//     Description: "TO DO WORK1",
+//     Completed: false,
+//   },
+//   {
+//     Title: "Work3",
+//     Description: "TO DO WORK3",
+//     Completed: false,
+//   },
+// ];
+
+app.get("/todos", (req, res) => {
+  // res.send("Getting all Todos");
+  console.log(data);
+  res.status(200).json(data);
+});
+
+app.post("/todos", (req, res) => {
+  let input = req.body;
+  if (!(input.id == undefined)) {
+    res.status(302).send("Already Found!!!");
+  } else {
+    id = data.length + 1;
+    input.id = id;
+    data.push(input);
+    if (data.length == id) {
+      res.send("Record Added Successfully").status(201);
+    } else {
+      res.send("Something is wrong").status(202);
+    }
+  }
+});
 
 module.exports = app;
