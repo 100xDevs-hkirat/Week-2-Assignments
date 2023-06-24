@@ -20,6 +20,39 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 4000;
 
+const directoryPath = 'R:/MERN Cohot Assignments/Week-2-Assignments/02-nodejs/files'; 
+
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
+
+app.get('/files', (req, res) => {
+  
+  var fileJson = [];
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      res.status(500).send();
+    }
+    res.status(200).json(files);
+  });
+});
+
+app.get('/file/:name', (req, res) => {
+  const filepath = path.join(__dirname, './files/', req.params.name);
+
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;

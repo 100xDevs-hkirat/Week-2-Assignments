@@ -43,7 +43,88 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+const port = 4000;
+var todoArray = [];
 app.use(bodyParser.json());
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
+
+app.get('/todos', (req, res) => {
+  if(todoArray.length==0){
+    const data = {
+      message: "NO TO-DO's to Display"
+    };
+    res.status(200).json(data);
+  }
+  else{
+    res.status(200).json(todoArray);
+  }
+})
+
+app.get('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  if(todoArray.length>=id){
+    var todo = todoArray[id-1];
+    todo.id = parseInt(id)
+    res.status(200).json(todo);
+  }else{
+    const data = {
+      message: "NOT FOUND TO-DO WITH ID : "+id
+    };
+    res.status(404).json(data);
+  }
+})
+
+app.post('/todos', (req, res) => {
+  var todo = req.body;
+  if(todo.title != null && todo.description != null){
+    var index = todoArray.push(todo);
+    const data = {
+      id: index
+    };
+    res.status(201).json(data);
+  }else{
+    res.status(400).json("Bad Request - Missing Data");
+  }
+})
+
+app.put('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  var todo = req.body;
+  if(todoArray.length>=id){
+    var obj = todoArray[id-1];
+    if(todo.title!=null){
+      obj.title = todo.title;
+    }if(todo.description!=null){
+      obj.description = todo.description;
+    }
+    
+    const data = obj;
+    data.id = id;
+    res.status(200).json(data).send();
+  }else{
+    const data = {
+      message: "NOT FOUND TO-DO WITH ID : "+id
+    };
+    res.status(404).json(data);
+  }
+})
+
+app.delete('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  if(todoArray.length>=id){
+    todoArray.splice(id-1, 1);
+    const data = {
+      message: "Deleted Successfully ID : "+id
+    };
+    res.status(200).json(data);
+  }else{
+    const data = {
+      message: "NOT FOUND TO-DO WITH ID : "+id
+    };
+    res.status(404).json(data);
+  }
+})
 
 module.exports = app;
