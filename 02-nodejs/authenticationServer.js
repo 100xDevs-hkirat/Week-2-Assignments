@@ -31,7 +31,62 @@
 
 const express = require("express")
 const PORT = 3000;
+const bodyParser = require('body-parser');
 const app = express();
+app.use(bodyParser.json());
+
+const USERS = []
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.post('/signup', (req, res) => {
+  const {email, password, firstName, lastName} = req.body;
+  if (!email && !password && !firstName && !lastName) {
+    res.status(400).send('Invalid Credentials')
+  }
+  const user = USERS.find((user) => {
+    return user.email === email;
+  });
+  if (user) {
+    res.status(400).send('User Already Exists');
+  }
+  const userId = Math.floor(Math.random() * 1000000)
+  USERS.push({userId, email, password, firstName, lastName})
+  res.status(201).send('Signup successful')
+});
+
+app.post('/login', (req, res) => {
+  const {email, password} = req.body;
+  if (!email && !password) {
+    res.status(400).send('Missing Credentials')
+  }
+  const loggedUser = USERS.find((user)=>{
+    return user.email === email && user.password === password;
+  })
+  if (!loggedUser) {
+    res.status(401).send('Invalid Credentials')
+  }
+  res.status(200).send({token: 'random-token', email: loggedUser.email, firstName: loggedUser.firstName, lastName: loggedUser.lastName})
+});
+
+app.get('/data', (req, res) => {
+  const {email, password} = req.headers;
+  let flag = true;
+  const result = [];
+  USERS.forEach((user) => {
+    if (email === user.email && password === user.password) {
+      flag = false;
+    }
+    result.push({firstName: user.firstName, lastName: user.lastName});
+  })
+  if (flag) {
+    return res.status(401).send('Unauthorized')
+  }
+  res.json({users: result});
+
+});
+
+//Uncomment to start the server
+// app.listen(3000, ()=>{
+//   console.log('Authentication Server started.')
+// })
 
 module.exports = app;
