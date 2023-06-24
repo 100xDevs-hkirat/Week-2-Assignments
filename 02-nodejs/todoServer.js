@@ -69,6 +69,7 @@ function retrieveATodo(req, res) {
   let matchedTodo = {};
   if (!listOfTodos.length) {
     res.status(404).json("ToDo List is empty.");
+    return;
   }
 
   listOfTodos.forEach((todo) => {
@@ -79,8 +80,10 @@ function retrieveATodo(req, res) {
 
   if (Object.hasOwn(matchedTodo, "title")) {
     res.json(matchedTodo);
+    return;
   } else {
     res.status(404).json(`Todo ID: ${id} not found.`);
+    return;
   }
 }
 
@@ -144,10 +147,29 @@ function updateATodo(req, res) {
   }
 }
 
+function deleteATodo(req, res) {
+  let idToDelete = parseInt(req.params.id);
+  if (isNaN(idToDelete)) {
+    res.status(400).send(`Bad request`);
+    return;
+  }
+
+  listOfTodos.forEach((todo, indexToDelete) => {
+    if (todo.id === idToDelete) {
+      listOfTodos.splice(indexToDelete, 1);
+      res.status(200).send(`Todo ID ${idToDelete} deleted.`);
+      return;
+    }
+  });
+
+  res.status(404).send(`No todo with ID ${idToDelete} found.`);
+}
+
 app.get("/todos", retrieveAllTodos);
 app.get("/todos/:id", retrieveATodo);
 app.post("/todos", createTodo);
 app.put("/todos/:id", updateATodo);
+app.delete("/todos/:id", deleteATodo);
 
 app.listen(port, () => {
   console.log(`Server @ ${port}`);
