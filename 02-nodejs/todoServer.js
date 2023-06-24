@@ -41,9 +41,55 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const TodoApp = require("./todo");
+const objTodoapp = new TodoApp();
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get("/todos",(req,res) => {
+  res.json(objTodoapp.getAll());
+});
+
+app.post("/todos",(req,res)=>{
+  const newToDo = objTodoapp.createNewToDo(req.body.title, req.body.description);
+  res.status(201).json(newToDo);
+});
+
+app.get("/todos/:id",(req,res)=>{
+  const findToDo = objTodoapp.getTodoById(req.params.id);
+  if(!findToDo){
+    res.status(404).send();
+  }
+  else{
+    console.log("findToDo:",findToDo);
+    res.json(findToDo);
+  }
+});
+
+app.put("/todos/:id",(req,res)=>{
+  const updatedToDo = objTodoapp.updateTodo(req.params.id, {
+    title:req.body.title,
+    description:req.body.description
+  });
+  if(!updatedToDo){
+   
+    res.status(404).send();
+  }
+  else{
+    res.status(200).send(updatedToDo)
+  }
+});
+
+app.delete("/todos/:id",(req,res)=>{
+  const deleteTodo = objTodoapp.deleteTodo(req.params.id);
+  if(deleteTodo > -1){
+    res.status(200).send();
+  }
+  else{
+    res.status(404).send();
+  }
+})
 
 module.exports = app;
