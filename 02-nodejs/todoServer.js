@@ -39,11 +39,76 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fsExtra = require("fs-extra");
+const path = require("path");
+
+const filePath = path.resolve(__dirname, "todoData.json");
+
+let todoList = require(filePath);
 
 const app = express();
 
+function validateTodoId(req, res, next) {
+  let id = req.params["id"];
+  if (todoList.length < id) {
+    res.status(404).send();
+    return;
+  }
+  next();
+}
+
 app.use(bodyParser.json());
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(todoList);
+});
+
+app.get("/todos/:id", validateTodoId, (req, res) => {
+  let todoItem = todoList.filter((item) => {
+    if (item["id"] == req.params["id"]) {
+      return item;
+    }
+  });
+  if (todoItem.length === 0) {
+    res.status(404).send();
+  } else {
+    res.status(200).json(todoItem[0]);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  let newTodo = { ...req.body, id: todoList.length + 1 };
+  todoList.push(newTodo);
+  fsExtra.writeJsonSync(filePath, todoList);
+  res.status(201).json({ id: todoList.length });
+});
+
+app.put("/todos/:id", validateTodoId, (req, res) => {
+  let id = req.params["id"];
+  todoList[id - 1] = { ...todoList[id - 1], ...req.body };
+  fsExtra.writeJsonSync(filePath, todoList);
+  res.status(200).send();
+});
+
+app.delete("/todos/:id", validateTodoId, (req, res) => {
+  let id = req.params["id"];
+  let found = false;
+  todoList = todoList.filter((item) => {
+    if (id != item["id"]) {
+      return item;
+    } else {
+      found = true;
+    }
+  });
+
+  if (!found) {
+    res.status(404).send();
+  } else {
+    fsExtra.writeJsonSync(filePath, todoList);
+    res.status(200).send();
+  }
+});
 
 module.exports = app;
