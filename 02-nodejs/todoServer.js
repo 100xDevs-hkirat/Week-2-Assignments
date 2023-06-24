@@ -37,13 +37,88 @@
 
     - For any other route not defined in the server return 404
 
-  Testing the server - run `npm run test-todoServer` command in terminal
+  Testing the server - run `rnpm run test-todoServe` command in terminal
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+// const { parse } = require('uuid');
+
 
 const app = express();
+const port=3000
 
 app.use(bodyParser.json());
+
+module.exports = app;
+
+
+
+let todos = [];
+
+app.get('/todos', function(req, res) {
+  res.json(todos);
+});
+
+app.get('/todos/:id', function(req, res) {
+  const todo = todos.find(function(t) {
+    return t.id === parseInt(req.params.id);
+  });
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.json(todo);
+  }
+});
+
+app.post('/todos', function(req, res) {
+  const newTodo = {
+    id: Math.floor(Math.random() * 1000000), // unique random id
+    title: req.body.title,
+    description: req.body.description
+  };
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+});
+
+app.put('/todos/:id', function(req, res) {
+  const todoIndex = todos.findIndex(function(t) {
+    return t.id === parseInt(req.params.id);
+  });
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos[todoIndex] = {
+      id: todos[todoIndex].id,
+      title: req.body.title,
+      description: req.body.description
+    };
+    res.json(todos[todoIndex]);
+  }
+});
+
+app.delete('/todos/:id', function(req, res) {
+  const todoIndex = todos.findIndex(function(t) {
+    return t.id === parseInt(req.params.id);
+  });
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+
+app.use(function(req, res) {
+  res.status(404).send();
+});
+
+function started() {
+  console.log(`Example app listening on port ${port}`)
+}
+
+
+app.listen(port, started)
+
+
 
 module.exports = app;

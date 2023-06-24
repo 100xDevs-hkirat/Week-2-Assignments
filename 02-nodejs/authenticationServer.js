@@ -30,8 +30,75 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const port= 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var users = [];
+
+app.use(express.json());
+
+app.post("/signup", function(req, res) {
+  var user = req.body;
+  var userAlreadyExists = users.some(function(existingUser) {
+    return existingUser.email === user.email;
+  });
+
+  if (userAlreadyExists) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", function(req, res) {
+  var user = req.body;
+  var userFound = users.find(function(existingUser) {
+    return existingUser.email === user.email && existingUser.password === user.password;
+  });
+
+  if (userFound) {
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", function(req, res) {
+  var email = req.headers.email;
+  var password = req.headers.password;
+
+  var userFound = users.some(function(existingUser) {
+    return existingUser.email === email && existingUser.password === password;
+  });
+
+  if (userFound) {
+    var usersToReturn = users.map(function(existingUser) {
+      return {
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        email: existingUser.email
+      };
+    });
+    res.json({
+      users: usersToReturn
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+function started() {
+  console.log(`Example app listening on port ${port}`)
+}
+
+app.listen(port, started)
+
 module.exports = app;
+
