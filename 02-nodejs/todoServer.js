@@ -42,14 +42,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const uuid = require('uuid');
+const fs = require('fs');
+const path = require('path')
 
 const app = express();
 
 app.use(bodyParser.json());
 
-let TODOLIST = [];
+const DB_PATH = path.join(__dirname, 'todo.json')
 
-const filterTodoList = (id) => TODOLIST.filter((todo) => todo.id === id);
+const getTodoList = () => JSON.parse(fs.readFileSync(DB_PATH)) 
+
+const postTodoList = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data))
+
+const filterTodoList = (id) => getTodoList().filter((todo) => todo.id === id);
 
 app.post('/todos', (req, res) => {
     const { title, description } = req.body;
@@ -62,13 +68,17 @@ app.post('/todos', (req, res) => {
             title: title,
             description: description,
         };
-        TODOLIST.push(todo);
+
+        const todoList = getTodoList()
+        todoList.push(todo);
+
+        postTodoList(todoList)
         res.status(201).send(todo);
     }
 });
 
 app.get('/todos', (req, res) => {
-    res.send(TODOLIST);
+    res.send(getTodoList());
 });
 
 app.get('/todos/:id', (req, res) => {
@@ -97,7 +107,7 @@ app.put('/todos/:id', (req, res) => {
 
         let todoFound = false;
 
-        const updatedList = TODOLIST.reduce((acc, curr) => {
+        const todoList = getTodoList().reduce((acc, curr) => {
             if (curr.id === id) {
                 todoFound = true;
             } else {
@@ -107,7 +117,9 @@ app.put('/todos/:id', (req, res) => {
         }, []);
 
         if (todoFound) {
-            TODOLIST = [...updatedList, updatedTodo];
+            const updatedList = [...todoList, updatedTodo]
+            postTodoList(updatedList);
+
             res.status(200).send('OK');
         } else {
             res.status(404).send('Not Found');
@@ -120,7 +132,7 @@ app.delete('/todos/:id', (req, res) => {
 
     let todoFound = false;
 
-    TODOLIST = TODOLIST.reduce((acc, curr) => {
+    const todoList = getTodoList().reduce((acc, curr) => {
         if (curr.id === id) {
             todoFound = true;
         } else {
@@ -130,6 +142,7 @@ app.delete('/todos/:id', (req, res) => {
     }, []);
 
     if (todoFound) {
+        postTodoList(todoList)
         res.status(200).send('OK');
     } else {
         res.status(404).send('Not Found');
