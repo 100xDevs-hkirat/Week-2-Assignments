@@ -44,6 +44,73 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+const TODO_LIST = [];
+
+function generateUniqueId(length = 8) {
+	const characters =
+		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const charactersLength = characters.length;
+	let id = '';
+
+	for (let i = 0; i < length; i++) {
+		const randomIndex = Math.floor(Math.random() * charactersLength);
+		id += characters.charAt(randomIndex);
+	}
+
+	return id;
+}
+
 app.use(bodyParser.json());
 
+/* Get all todos */
+app.get('/todos', (req, res) => {
+	res.status(200).json(TODO_LIST);
+});
+
+/* Get a TODO by id */
+app.get('/todos/:id', (req, res) => {
+	const todoId = req.params.id;
+	const findById = TODO_LIST.find((todo) => todo.id === todoId);
+	if (!findById) {
+		// Todo not found
+		return res.status(404).json('Todo not found');
+	}
+	res.status(200).send(findById);
+});
+
+app.post('/todos', (req, res) => {
+	const reqBody = req.body;
+	const newTodo = {
+		id: generateUniqueId(),
+		title: reqBody.title,
+		description: reqBody.description,
+	};
+	TODO_LIST.push(newTodo);
+	res.status(201).json(newTodo);
+});
+
+app.put('/todos/:id', (req, res) => {
+	const todoId = req.params.id;
+	const todoIndex = TODO_LIST.findIndex((todo) => todo.id === todoId);
+	if (todoIndex === -1) {
+		res.status(404).send();
+	} else {
+		TODO_LIST[todoIndex].title = req.body.title;
+		TODO_LIST[todoIndex].description = req.body.description;
+		res.json(TODO_LIST[todoIndex]);
+	}
+});
+
+app.delete('/todos/:id', (req, res) => {
+	const todoId = req.params.id;
+	const todoIndex = TODO_LIST.findIndex((todo) => todo.id === todoId);
+	if (todoIndex === -1) {
+		res.status(404).send();
+	} else {
+		TODO_LIST.splice(todoIndex, 1);
+		res.status(200).send();
+	}
+});
+
+// app.listen(3000, () => console.log('App listening on port 3000!!'));
 module.exports = app;
