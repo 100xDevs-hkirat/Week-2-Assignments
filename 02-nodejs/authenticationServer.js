@@ -29,9 +29,79 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
+
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+
+app.post("/signup", (req, res) => {
+  let userObj = {
+    id: Date.now() + parseInt(Math.random()),
+    ...req.body,
+  };
+
+  let userNames = users.map(({ username }) => username);
+
+  if (userNames.includes(req.body.username)) {
+    res.status(400).send("Bad Request: Username already exists!");
+  } else {
+    users.push(userObj);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", (req, res) => {
+  let userName = req.body.username;
+  let password = req.body.password;
+
+  let [userObj] = users.filter((user) => user.username === userName);
+
+  if (
+    !userObj ||
+    userObj?.username !== userName ||
+    userObj?.password !== password
+  ) {
+    res.status(401).send("Unauthorized!");
+  } else {
+    let { email, firstName, lastName } = userObj;
+    res.send(
+      JSON.stringify({
+        token: "Auth_" + Date.now() + parseInt(Math.random() * 0.654),
+        email,
+        firstName,
+        lastName,
+      })
+    );
+  }
+});
+
+app.get("/data", (req, res) => {
+  let { username: userName, password } = req.headers;
+
+  let [userObj] = users.filter((user) => user.username === userName);
+
+  if (
+    !userObj ||
+    userObj?.username !== userName ||
+    userObj?.password !== password
+  ) {
+    res.status(401).send("Unauthorized");
+  } else {
+    res.send(
+      JSON.stringify({
+        users,
+      })
+    );
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send("Sorry, couldn't find that!😕");
+});
 
 module.exports = app;

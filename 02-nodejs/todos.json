@@ -1,0 +1,28 @@
+{
+  "todoItems": [
+    {
+      "id": 1687610581783,
+      "title": "Eat Lunch🍕",
+      "completed": false,
+      "description": "Grab a pizza for lunch"
+    },
+    {
+      "id": 1687610591287,
+      "title": "Eat Lunch🍕",
+      "completed": false,
+      "description": "Grab a pizza for lunch"
+    },
+    {
+      "id": 1687610592266,
+      "title": "Eat Lunch🍕",
+      "completed": false,
+      "description": "Grab a pizza for lunch"
+    },
+    {
+      "id": 1687610766212,
+      "title": "Go on a walk",
+      "completed": true,
+      "description": "Go on a walk for 10 mins"
+    }
+  ]
+}

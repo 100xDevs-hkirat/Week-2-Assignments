@@ -39,11 +39,103 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const fs = require("fs");
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let todos = [];
+
+app.use((req, res, next) => {
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).send("Internal Server Error.");
+    } else {
+      todos = JSON.parse(data)?.todoItems;
+      req.todos = todos;
+      next();
+    }
+  });
+});
+
+const writeData = (data) => {
+  fs.writeFile("./todos.json", data, (err) => {
+    if (err) {
+      res.status(500).send("Internal Server Error.");
+    }
+  });
+};
+
+app.get("/todos", (req, res) => {
+  console.log(req.todos);
+  res.json(req.todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  let todoId = +req.params.id;
+  let todoItem = todos.find(({ id }) => id === todoId);
+
+  if (todoItem) {
+    res.json(todoItem);
+  } else {
+    res.status(404).send("Not Found.");
+  }
+});
+
+app.post("/todos", (req, res) => {
+  let todoItem = { id: Date.now() + parseInt(Math.random() * 6), ...req.body };
+
+  todos.push(todoItem);
+
+  writeData(JSON.stringify({ todoItems: todos }));
+
+  res.status(201).json({ id: todoItem.id });
+});
+
+app.put("/todos/:id", (req, res) => {
+  let todoId = +req.params.id;
+  let updatedTodo = req.body;
+
+  for (let i = 0; i < todos.length; i++) {
+    if (todos[i].id === todoId) {
+      todos[i] = { id: todoId, ...updatedTodo };
+
+      writeData(JSON.stringify({ todoItems: todos }));
+
+      return res.send("Updated");
+    }
+  }
+
+  res.status(404).send("Not Found.");
+
+  next("route");
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let todoId = +req.params.id;
+  let ids = todos.map(({ id }) => id);
+
+  if (ids.includes(todoId)) {
+    let updatedTodos = todos.filter(({ id }) => id !== todoId);
+
+    todos = updatedTodos;
+
+    writeData(JSON.stringify({ todoItems: todos }));
+
+    return res.send("Deleted");
+  } else {
+    res.status(404).send("Not Found.");
+  }
+
+  next("route");
+});
+
+app.use((req, res, next) => {
+  res.status(404).send("Sorry, could not find that!");
+  next();
+});
 
 module.exports = app;
