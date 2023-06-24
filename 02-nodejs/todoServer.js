@@ -41,9 +41,87 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const PORT = 3000
 const app = express();
 
 app.use(bodyParser.json());
+
+let todos = []
+let idCounter = 1;
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(todos)
+})
+
+app.get('/todos/:id', (req, res) => {
+  const { id } = req.params;
+
+  const todo = todos.find(todo => todo.id === id);
+
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.status(404).json({ error: 'Todo not found' });
+  }
+});
+
+app.post('/todos', (req, res) => {
+  const newTodo = {
+    id: `${idCounter++}`,
+    title : req.body.title,
+    completed : req.body.completed,
+    description : req.body.description
+  };
+
+  todos.push(newTodo);
+
+  res.status(201).json(newTodo);
+});
+
+app.put('/todos/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, completed } = req.body;
+
+  
+  const todoToUpdate = todos.find(todo => todo.id === id);
+
+  if (!todoToUpdate) {
+    
+    return res.status(404).send('Todo item not found');
+  }
+
+  todoToUpdate.title = title || todoToUpdate.title;
+  todoToUpdate.completed = completed || todoToUpdate.completed;
+
+  res.status(200).send("Todo Updated");
+});
+
+
+app.delete('/todos/:id', (req, res) => {
+  const { id } = req.params;
+
+  
+  const todoIndex = todos.findIndex(todo => todo.id === id);
+
+  if (todoIndex === -1) {
+    
+    return res.status(404).send('Todo item not found');
+  }
+
+  
+  todos.splice(todoIndex, 1);
+
+
+  res.status(200).send("Todo Deleted");
+});
+
+
+
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`)
+}
+
+app.listen(PORT, started)
 
 module.exports = app;
