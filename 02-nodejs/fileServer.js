@@ -20,6 +20,20 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const PORT = 3000;
 
+app.get('/files', (req, res) => {
+  fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+    if(err) {
+      res.status(500).json({ message: "Failed to get file names" });
+    } else {
+      res.status(200).json(files);
+    }
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`File Server app listening on PORT ${PORT}`);
+});
 
 module.exports = app;
