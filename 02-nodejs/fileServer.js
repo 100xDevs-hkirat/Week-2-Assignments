@@ -21,5 +21,89 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const port= 3000;
+
+app.listen(port,()=>{
+  console.log("server started on port",+port);
+})
+
+app.get('/files',(req,res)=>{
+  const filepath=path.join(__dirname,'files');
+  fs.readdir(filepath,(err,files)=>{
+    if(err){
+      console.log("An error occured",err);
+      res.status(500).json({error:"Internal Server Error"});
+      return;
+    }
+    res.status(200).json(files);
+  })
+})
+
+app.get('/files/:name', (req, res) => {
+  const filename = req.params.name;
+  const filepath = path.join(__dirname, 'files');
+
+  console.log('Filename:', filename); // Debugging: Check if filename is correctly received
+  console.log('Filepath:', filepath);
+
+  fs.readFile(path.join(filepath, filename), 'utf-8', (err, file) => {
+    if (err) {
+      console.log("An error occurred", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    
+    res.status(200).send(file);
+  });
+});
+
+app.get('*',(req,res)=>{
+  res.status(404).send('not found');
+})
+
+
+
+
+
+app.listen(port,()=>{
+  console.log("server started on port",+port);
+})
+
+app.get('/files',(req,res)=>{
+  const filepath=path.join(__dirname,'files');
+  fs.readdir(filepath,(err,files)=>{
+    if(err){
+      console.log("An error occured",err);
+      res.status(500).json({error:"Internal Server Error"});
+      return;
+    }
+    res.status(200).json(files);
+  })
+})
+
+app.get('/files/:name', (req, res) => {
+  const filename = req.params.name;
+  const filepath = path.join(__dirname, 'files');
+
+  console.log('Filename:', filename); // Debugging: Check if filename is correctly received
+  console.log('Filepath:', filepath);
+
+  fs.readFile(path.join(filepath, filename), 'utf-8', (err, file) => {
+    if (err) {
+      console.log("An error occurred", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    
+    res.status(200).send(file);
+  });
+});
+
+app.get('*',(req,res)=>{
+  res.status(404).send('not found');
+})
+
+
+
 
 module.exports = app;
