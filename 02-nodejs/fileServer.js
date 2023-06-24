@@ -16,10 +16,54 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+const PORT = 3000;
+
+// 1. GET /files
+app.get("/files", (req, res) => {
+  fs.readdir(path.join(__dirname, "/files"), (err, files) => {
+    if (err) {
+      return res.status(500).json("Failed to retrieve files");
+    }
+
+    res.send(files);
+  });
+});
+
+// 2. GET /file/:filename
+
+app.get("/file/:filename", (req, res) => {
+  const { params } = req;
+
+  // below also works
+  // `${__dirname}/files/${params.filename}`
+  // path.join makes it simple to use
+
+  fs.readFile(
+    path.join(__dirname, "/files", params.filename),
+    "utf-8",
+    (err, data) => {
+      if (err) {
+        return res.status(404).send("File not found");
+      }
+
+      res.send(data);
+    }
+  );
+});
+
+// handle un-configured routes
+app.use((req, res) => {
+  res.status(404).send("Route not found");
+});
+
+// Dev Mode
+// app.listen(PORT, () => {
+//   console.log(`Listening on Port ${PORT}, http://localhost:${PORT}`);
+// });
 
 module.exports = app;

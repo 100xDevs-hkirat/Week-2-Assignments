@@ -29,9 +29,92 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const bodyParser = require("body-parser");
+const { v4: uuid } = require("uuid");
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const users = [];
+
+// 1. POST /signup - User Signup
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+
+  // commenting this as test is not handled for this
+  // if (!email || !password || !firstName || !lastName) {
+  //   return res.status(400).send("All fields are required");
+  // }
+
+  const find = users.find((user) => user.email === email);
+
+  if (find) {
+    return res.status(400).send("User already exists");
+  }
+
+  users.push({
+    id: uuid(),
+    password,
+    firstName,
+    lastName,
+    email,
+  });
+
+  res.status(201).send("Signup successful");
+});
+
+// 2. POST /login - User Login
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const user = users.find((u) => u.email === email);
+
+  if (!user || user.password !== password) {
+    res.status(401).send("Invalid credentials");
+  }
+
+  res.send({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+  });
+});
+
+// 3. GET /data
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+
+  if (!email || !password) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const user = users.find((u) => u.email === email);
+
+  if (!user || user.password !== password) {
+    res.status(401).send("Invalid credentials");
+  }
+
+  const response = users.map((u) => ({
+    firstName: u.firstName,
+    lastName: u.lastName,
+    email: u.email,
+  }));
+
+  res.send({ users: response });
+});
+
+// handle un-configured routes
+app.use((req, res) => {
+  res.status(404).send("Route not found");
+});
+
+// Dev Mode
+// app.listen(PORT, () => {
+//   console.log(`Listening on Port ${PORT}, http://localhost:${PORT}`);
+// });
 
 module.exports = app;
