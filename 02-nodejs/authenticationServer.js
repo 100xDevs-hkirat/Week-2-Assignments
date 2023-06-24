@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
+
+app.use(bodyParser.json());
+
+let users = [];
+
+function userExists(uEmail) {
+  const status = users.find((users) => {
+    if (users.email === uEmail) return users;
+  });
+  if (status === undefined) return false;
+  return true;
+}
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  let obj = {};
+  userExistsStatus = userExists(email);
+  if (!userExistsStatus) {
+    const uuid = uuidv4();
+    obj["email"] = email;
+    obj["id"] = uuid;
+    obj["password"] = password;
+    obj["firstName"] = firstName;
+    obj["lastName"] = lastName;
+    users.push(obj);
+    res.status(201).send("Signup successful");
+  } else {
+    res.status(400).send();
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const authUser = users.find((users) => {
+    if (users.email === email && users.password === password) {
+      return true;
+    }
+  });
+  if (authUser !== undefined) {
+    let obj = {};
+    obj["firstName"] = authUser.firstName;
+    obj["lastName"] = authUser.lastName;
+    obj["email"] = authUser.email;
+    res.status(200).send(obj);
+  } else {
+    res.status(401).send();
+  }
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.body;
+  const authUser = users.find((users) => {
+    if (users.email === email && users.password === password) {
+      return true;
+    }
+  });
+  if (authUser !== undefined) {
+    let data = { users: [] };
+
+    for (let i = 0; i <= users.length; i++) {
+      data.users.push({
+        id: users[i].id,
+        firstName: users[i].firstName,
+        lastName: users[i].lastName,
+      });
+    }
+    res.status(200).json(data);
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Error 404 occured.");
+});
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;
