@@ -68,12 +68,14 @@ data = [];
 //   },
 // ];
 
+// For getting all the ToDos
 app.get("/todos", (req, res) => {
   // res.send("Getting all Todos");
   console.log(data);
   res.status(200).json(data);
 });
 
+// For Creating the ToDos
 app.post("/todos", (req, res) => {
   let input = req.body;
   if (!(input.id == undefined)) {
@@ -87,6 +89,27 @@ app.post("/todos", (req, res) => {
     } else {
       res.send("Something is wrong").status(202);
     }
+  }
+});
+
+// For getting a particular todo
+app.get("/todos/:id", (req, res) => {
+  id = req.params.id;
+  let ans;
+  let found = false;
+  for (i = 0; i < data.length; i++) {
+    // console.log(id + " " + data[i].id);
+    if (id == data[i].id) {
+      ans = data[i];
+      found = true;
+      break;
+      // res.send(data[i]).status(200);
+    }
+  }
+  if (found) {
+    res.send(ans).status(200);
+  } else {
+    res.send("Not Found").status(200);
   }
 });
 
