@@ -46,10 +46,65 @@ const PORT = 5000;
 
 app.use(bodyParser.json());
 
-app.get("/", (req, resp) => {
-  resp.status(200).send("Welcome to home route");
+const toDos = [
+  { id: 11, title: "football", description: "have to play football" },
+  { id: 12, title: "cooking", description: "have to prepare food" },
+  { id: 13, title: "trekking", description: "have to go for trek" },
+  { id: 14, title: "coding", description: "have to completed assignment" },
+];
+
+//get all to do
+app.get("/alltodo", (req, resp) => {
+  resp.status(200).send(JSON.stringify(toDos));
 });
 
+// get to do based on id
+app.get(`/todo/:id`, (req, resp) => {
+  const index = toDos.findIndex((item) => item.id == req.params.id);
+  console.log(index);
+  if (index != -1) {
+    resp.send(JSON.stringify(toDos[index]));
+  } else {
+    resp.status(404).send("This to do id does not  exist");
+  }
+});
+
+//create a new to do item add it todos array.
+app.post("/addtodo", (req, resp) => {
+  const todo = {
+    id: req.body.id,
+    title: req.body.title,
+    description: req.body.description,
+  };
+  toDos.push(todo);
+  resp.status(201).send("Data added");
+});
+//update an existing to do
+app.put("/updatetodo", (req, resp) => {
+  const obj = {
+    id: req.body.id,
+    title: req.body.title,
+    description: req.body.description,
+  };
+  const index = toDos.findIndex((item) => item.id == obj.id);
+  if (index != -1) {
+    toDos[index] = obj;
+    resp.status(200).send("To do is updated");
+  } else {
+    resp.status(404).send("To do not found");
+  }
+});
+
+//delete to do based on id
+app.delete("/delete/:id", (req, resp) => {
+  const index = toDos.findIndex((item) => item.id == req.params.id);
+  if (index != -1) {
+    toDos.splice(index, 1);
+    resp.send("to do is deleted");
+  } else {
+    resp.status(404).send("this to do does not exist");
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server started at PORT ${PORT} `);
 });
