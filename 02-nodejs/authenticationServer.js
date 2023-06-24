@@ -32,6 +32,40 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server'
+
+let user = [];
+
+app.post("/signup", (req, res) => {
+  let data = req.body;
+  user.forEach(element => {
+    if (data.email === element.email) {
+      res.status(400).send();
+    }
+  });
+  user.push(data);
+  res.status(201).send("Signup successful");
+});
+
+app.post('/login', (req, res) => {
+  let data = req.body;
+  user.forEach(element => {
+    if (data.email === element.email) {
+      if (data.password === element.password) {
+        let jsonFormat = {
+          firstName: element.firstName,
+          lastName: element.lastName,
+          email: element.email
+        }
+        res.json(jsonFormat);
+      }
+    }
+    else {
+      res.status(401).send();
+    }
+  });
+});
+
+
 
 module.exports = app;
