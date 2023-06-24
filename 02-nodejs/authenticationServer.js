@@ -32,6 +32,76 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser')
+let jwt = require('jsonwebtoken');
+
+let userInfo = [];
+let userIdx = 0;
+
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+function userSignUp(req, res)
+{
+  console.log(req.body);
+  if(userInfo.length > 0 && userInfo.has(body.username))
+  {
+    res.status(400).send('Username already exists')
+  }
+
+  let userObj = {
+    username : req.body.username,
+    password : req.body.password,
+    firstName : req.body.firstName,
+    lastName : req.body.lastName
+  }
+
+  userInfo[userIdx] = userObj;
+  userIdx++;
+  res.status(201).send('User created');
+}
+
+function userLogin(req, res)
+{
+  body = req.body;
+  idx = userInfo.indexOf(body.username)
+  if( idx == -1 || (userInfo[idx].password !== body.password))
+  {
+    res.status(401).send('Credentials are invalid')
+  }
+
+  let userdata = {
+    username: body.username,
+    password: body.password
+  };
+
+  let token = jwt.sign(userdata, global.config.secretKey, {
+    algorithm: global.config.algorithm,
+    expiresIn: '1m'
+  });
+  res.status(200).json({
+    message: 'Login Successful',
+    jwtoken: token
+    });
+}
+
+function getUserData(req, res)
+{
+
+}
+
+app.use(bodyParser.json());
+app.post('/signup', userSignUp);
+app.post('/login', userLogin);
+app.get('/data', getUserData);
+
+app.get('*', function (req, res) {
+  res.status(404).send('Route not found');
+});
+
+function started()
+{
+    console.log(`Example app listening on port 3000`)
+}
+app.listen(3000, started);
 
 module.exports = app;
