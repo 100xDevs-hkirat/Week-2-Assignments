@@ -39,11 +39,66 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const bodyParser = require("body-parser");
+const uuid = require("uuid");
 const app = express();
 
 app.use(bodyParser.json());
+
+const todoList = [];
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(todoList);
+});
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const item = todoList.filter((todo) => todo.id === id);
+  if (item && item.length > 0) {
+    res.status(200).json(item[0]);
+  }else{
+    res.status(404).send("Todo not found");
+  }
+
+});
+
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+  const id = uuid.v4();
+  const todo = {
+    id,
+    title,
+    description,
+  };
+  todoList.push(todo);
+  res.status(201).json(todo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const todoIdx = todoList.findIndex((todo) => todo.id === id);
+  if(todoIdx === -1){
+    res.status(404).send('Not found')
+  }else{
+    const {title,description}=req.body;
+    todoList[todoIdx].title=title;
+    todoList[todoIdx].description=description;
+    res.status(200).send("Successfully Updated")
+  }
+});
+app.delete("/todos/:id", (req, res) => {
+  const todoIdx = todoList.findIndex(t => t.id === req.params.id);
+  if (todoIdx === -1) {
+    res.status(404).send('Not found');
+  } else {
+    todoList.splice(todoIdx, 1);
+    res.status(200).send("Successfully Deleted");
+  }
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+});
 
 module.exports = app;
