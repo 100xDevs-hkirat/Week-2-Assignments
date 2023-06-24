@@ -30,8 +30,65 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require("body-parser");
+
+const PORT = 3080;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const { v4: uuidv4 } = require('uuid');
+
+let users = [];
+
+app.use(bodyParser.json());
+
+const signup = (req, res) => {
+  let {username} = req.body;
+
+  let userCheck = users.findIndex((user) => user.username === username);
+
+  if(userCheck > -1) {
+    res.status(400).send('username already exists');
+  } else {
+    let newUser = {
+      id: uuidv4(),
+      ...req.body
+    };
+
+    users.push(newUser);
+
+    res.status(201).send('Signup successful');
+  }
+}
+
+const login = (req, res) => {
+  let {username, password} = req.body;
+
+  let userCheck = users.findIndex(user => user.username === username && user.password === password);
+
+  if(userCheck > -1) {
+    let userDetails = users[userCheck];
+    res.status(200).json(userDetails);
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+}
+
+const getData = (req, res) => {
+  let {username, password} = req.headers;
+
+  let userCheck = users.findIndex(user => user.username === username && user.password === password);
+
+  if(userCheck > -1) {
+    let usersDetails = { users };
+    res.status(200).json(usersDetails);
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+}
+
+app.post('/signup', signup);
+app.post('/login', login);
+app.get('/data', getData);
+
+app.listen(PORT, () => console.log(`server running on port ${PORT}`));
 
 module.exports = app;
