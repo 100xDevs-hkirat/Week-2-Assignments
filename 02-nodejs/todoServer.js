@@ -46,4 +46,64 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todoList =[]
+
+
+app.post('/todos',(req,res)=>{
+  let newTodo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description:req.body.description, 
+  };
+  todoList.push(newTodo);
+  res.status(201).json(newTodo);
+})
+
+app.get('/todos',(req,res)=>{
+  res.status(200).json(todoList);
+})
+
+
+app.get('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  todoList.forEach((ele)=>{
+    if(ele.id===id){
+      res.status(200).json(ele);
+    }else{
+      res.status(404).send("Not Found");
+    }
+  })
+ 
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  const title = req.body.title;
+  const description = req.body.description;
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(id));
+if(todoIndex ===-1){
+  res.status(404).send();
+}else{
+  todoList[todoIndex].title = title;
+  todoList[todoIndex].description = description;
+  res.json(todoList[todoIndex]);
+}
+  
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(id));
+ if(todoIndex ===-1){
+  res.status(404).send;
+ }else{
+  todoList.splice(todoIndex,1);
+  res.status(200).send();
+ }
+})
+
+app.use((req, res) => {
+  res.status(404).send("Route Not found");
+});
+
 module.exports = app;

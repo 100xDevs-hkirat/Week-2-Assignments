@@ -22,4 +22,46 @@ const path = require('path');
 const app = express();
 
 
+//  res.status(200).json(files) this json(files) convert files array into the json object.
+app.get('/files',(req,res)=>{
+  const dirpath = "./files/"
+
+  fs.readdir(dirpath,(err,files)=>{
+    if (err) {
+      console.error("Error reading directory:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    res.status(200).json(files)
+  })
+})
+
+app.get('/files:filename',(req,res)=>{
+  const filName = req.params.filename;
+  const filePath = path.join(__dirname,"files",filName)
+
+
+  fs.access(filePath,fs.constants.F_OK,(err)=>{
+    if (err) {
+      console.error("Error reading directory:", err);
+      res.status(404).json({ error: "File Not Found" });
+      return;
+    }
+  })
+
+ fs.readFile(filePath,"utf-8",(err,data)=>{
+ if(err){
+  console.error("Error reading File",err);
+  res.status(500).send("file not found");
+  return;
+ }
+
+ res.status(200).send(data);
+ })
+})
+app.use((req, res) => {
+  res.status(404).send("Route Not found");
+});
+
+
 module.exports = app;
