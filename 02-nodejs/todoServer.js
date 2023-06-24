@@ -39,11 +39,86 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todos = [];
+let uniqueID = 1;
+
+app.get("/todos", (req, res) => {
+  try {
+    res.status(200).json(todos);
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  try {
+    const foundTodo = todos.find((todo) => todo.id == id);
+    if (foundTodo) {
+      res.status(200).json(foundTodo);
+    } else {
+      res.status(404).send("Not Found");
+    }
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const { title, completed, description } = req.body;
+  try {
+    const todo = {
+      id: uniqueID,
+      title: title,
+      completed: completed,
+      description: description,
+    };
+    todos.push(todo);
+    uniqueID++;
+    res.status(201).json({ id: todo.id });
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const { title, completed } = req.body;
+  try {
+    const updatedTodo = todos.find((todo) => todo.id == id);
+    if (updatedTodo) {
+      updatedTodo.title = title;
+      updatedTodo.completed = completed;
+      res.status(200).json(updatedTodo);
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  try {
+    const deleteTodo = todos.find((todo) => todo.id == id);
+    if (deleteTodo) {
+      const index = todos.indexOf(deleteTodo);
+      todos.splice(index, 1);
+      res.status(200).json({ message: "Todo deleted" });
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
 
 module.exports = app;
