@@ -16,10 +16,57 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+function fileData(err, data) {
+  if (err) {
+    return err;
+  } else {
+    return data;
+  }
+}
+
+app.get("/files", async (req, res) => {
+  const directoryPath = path.resolve(__dirname, "./files/");
+  try {
+    const filesInDir = await fs.promises.readdir(directoryPath, "utf-8");
+    res.status(200).json({ files: filesInDir });
+  } catch (error) {
+    res.status(500).send("Internal error");
+  }
+  // let filesInDir = [];
+  // fs.readdir(directoryPath)
+  //   .then((files) => {
+  //     // filesInDir.push(files)
+  //     res.status(200).json({ files: files });
+  //   })
+  //   .catch((err) => {
+  //     res.status(500).send("Internal error");
+  //   });
+});
+
+app.get("/file/:filename", async (req, res) => {
+  const filenameParam = req.params.filename;
+  const filePath = path.resolve(__dirname, "./files/", filenameParam);
+
+  try {
+    const fileContent = await fs.promises.readFile(filePath, "utf-8");
+    res.status(200).send(fileContent);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      res.status(404).send("File not found");
+    } else {
+      res.status(500).send("Internal Server Error");
+    }
+  }
+});
+app.get("/*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+// app.listen(3000);
 
 module.exports = app;
