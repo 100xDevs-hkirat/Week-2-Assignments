@@ -41,9 +41,66 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const { v4: uuidv4 } = require('uuid')
 const app = express();
+
 
 app.use(bodyParser.json());
 
+let todos = []
+
+const retrieveTodos = (req, res) => {
+  res.status(200).send(todos)
+}
+
+const createTodo = (req, res) => {
+  let todo = req.body;
+  todo.id = uuidv4()
+  console.log(todo.id)
+  todos.push(todo);
+  res.status(201).send({ id: todo.id })
+}
+const retrieveTodoWithID = (req, res) => {
+  const id = req.params.id
+  let isTodo = todos.find(todo => { return todo.id === id })
+  if (isTodo !== undefined) {
+    res.status(200).send(isTodo)
+  } else res.status(404).send("Todo not found")
+}
+const updateTodo = (req, res) => {
+  const id = req.params.id
+  const updated = req.body
+  console.log(updated)
+  let isTodo = todos.find(todo => { return todo.id === id })
+  if (isTodo != undefined) {
+    todos = todos.map(todo => {
+      if (todo.id == id) {
+        return { ...todo, ...updated }
+      } else return todo;
+
+    })
+    res.status(200).send("updated")
+  } else res.status(404).send("todo not found")
+}
+
+const deleteTodo = (req, res) => {
+  const id = req.params.id;
+  let isTodo = todos.find(todo => { return todo.id === id });
+  if (isTodo != undefined) {
+    todos = todos.filter(todo => {
+      return todo.id !== id
+    })
+    res.status(200).send("todo deleted")
+  } else res.status(404).send("todo not found")
+}
+
+app.get('/todos', retrieveTodos)
+app.get('/todos/:id', retrieveTodoWithID)
+app.post('/todos', createTodo)
+app.put('/todos/:id', updateTodo)
+app.delete('/todos/:id', deleteTodo)
+app.get('/*', (req, res) => { res.status(404).send("Not found") })
+// app.listen(3000, () => {
+//   console.log("App is listening at port 3000")
+// })
 module.exports = app;
