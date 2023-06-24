@@ -22,7 +22,14 @@ const path = require('path');
 const app = express();
 
 app.get("/files", (req,res) => {
-    fs.readdir(path.join(__dirname, './files/'), "utf-8", (err, files) => {
+    // fs.readdir(path.join(__dirname, './files/'), "utf-8", (err, files) => {
+    //     if(err) {
+    //         return res.status(500).json({error : "Failed to retrieve files"});
+    //     }
+    //     res.json(files);
+    // });
+    // or
+    fs.readdir(path.join(__dirname, 'files'), "utf-8", (err, files) => {
         if(err) {
             return res.status(500).json({error : "Failed to retrieve files"});
         }
@@ -31,7 +38,9 @@ app.get("/files", (req,res) => {
 });
 
 app.get("/file/:filename" , (req, res) => {
-    const filepath = path.join(__dirname, "./files/", req.params.filename);
+    // const filepath = path.join(__dirname, "./files/", req.params.filename);
+    // or
+    const filepath = path.join(__dirname, "files", req.params.filename);
 
     fs.readFile(filepath, "utf-8", (err, data) => {
         if(err) {
