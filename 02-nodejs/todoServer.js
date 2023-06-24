@@ -52,7 +52,14 @@ const todos = [];
 
 // The first GET request
 app.get("/todos", (req, res) => {
-  res.json(todos);
+  try{
+    const data = fs.readFileSync('todo.txt', 'utf8');
+    const todos = JSON.parse(data);
+    res.json(todos);
+  } catch (error) {
+    console.log('Error: ', error.message);
+    res.status(500).json({ error: 'Failed to retrive the data'})
+  }
 });
 
 // The second GET request
