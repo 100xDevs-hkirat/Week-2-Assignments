@@ -47,8 +47,8 @@ app.all("*", (req, res) => {
   res.status(404).json({ message: "Requested route was not found" });
 });
 
-app.listen(PORT, () => {
-  console.log(`File Server app listening on PORT ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`File Server app listening on PORT ${PORT}`);
+// });
 
 module.exports = app;

@@ -108,8 +108,8 @@ app
     }
   });
 
-app.listen(PORT, () => {
-  console.log(`Todo app listening on PORT ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Todo app listening on PORT ${PORT}`);
+// });
 
 module.exports = app;
