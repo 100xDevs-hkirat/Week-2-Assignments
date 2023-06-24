@@ -41,13 +41,29 @@
  */
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("fs");
+// const TODOnew = require("./data.json"); //!Can't write into it.
+
+const filePath = "./data.json";
+
+let toDos = [];
+let currentId = 1;
+
+if (fs.existsSync(filePath)) {
+  const TODO = fs.readFileSync("./data.json");
+  if (TODO) {
+    toDos = JSON.parse(TODO);
+    currentId =
+      toDos.length > 0 ? Math.max(...toDos.map((todo) => todo.id)) + 1 : 1;
+  }
+}
 
 const port = 5000;
-const app = express();
+const app = express(); //!everthing below is reinitialised(local to server)
 
-const toDos = [];
+// const toDos = [];
 
-let currentId = 1;
+// let currentId = 0;
 
 app.use(bodyParser.json());
 
@@ -80,6 +96,9 @@ app.post("/todos", (req, res) => {
   };
 
   toDos.push(newTodo);
+  const updatedToDo = JSON.stringify(toDos, null, 2);
+
+  fs.writeFileSync("./data.json", updatedToDo);
 
   res.status(201).json({ id: newTodo.id });
 });

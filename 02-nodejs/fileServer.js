@@ -50,8 +50,8 @@ app.use((req, res) => {
   res.status(404).send("Route not found");
 });
 
-app.listen(port, () => {
-  console.log("Listening...");
-});
+// app.listen(port, () => {
+//   console.log("Listening...");
+// });
 
 module.exports = app;
