@@ -46,4 +46,74 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var todos=[]
+
+app.get("/todos",(req,res)=>{
+    res.status(200).json(todos);
+})
+
+app.get("/todos/:id",(req,res)=>{
+    var id=req.params.id;
+    var todo;
+    for(var i=0;i<todos.length;i++){
+        if(parseInt(id)===todos[i].id){
+          todo=todos[i];
+        }
+    }
+    if(todo){
+      res.status(200).json(todo);
+    }
+    else{
+      res.status(404).send("Not Found");
+    }
+});
+   
+app.post("/todos",(req,res)=>{
+  var reqBody=req.body;
+  const todo={
+    "title":reqBody.title,
+    "completed":reqBody.completed,
+    "description":reqBody.description,
+    "id":Math.floor(Math.random() * 1000000)
+  }
+  todos.push(todo);
+  res.status(201).send(todo);
+
+});
+
+app.put("/todos/:id",(req,res)=>{
+  var id=req.params.id;
+  var idFound=-1;
+  var reqBody=req.body;
+  for(var i=0;i<todos.length;i++){
+    if(parseInt(id)===todos[i].id){
+      idFound=i
+      if (reqBody.title) {
+        todos[i].title = reqBody.title;
+      }
+      if (reqBody.description) {
+        todos[i].description = reqBody.description;
+      }
+      break;
+    }
+  }
+  if(idFound!=-1){
+    res.status(200).send("updated");
+  }
+  else{
+    res.status(404).send("Not found");
+  }
+})
+
+app.delete("/todos/:id",(req,res)=>{
+  var id=req.params.id;
+  for(var i=0;i<todos.length;i++){
+    if(parseInt(id)===todos[i].id){
+      todos.splice(i, 1);
+    res.status(200).send("Deleted");
+    }
+}
+    res.status(404).send("Not found");
+})
+
 module.exports = app;
