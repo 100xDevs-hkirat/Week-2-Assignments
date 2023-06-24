@@ -32,6 +32,62 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyparser=require("body-parser");
+app.use(bodyparser.json());
+function randomid(){
+  return Math.random().toString(36).substring(2, 8);
+}
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
+var USERS=[]
+app.post('/signup',(req,res)=>{
+    let obj= req.body;
+    //console.log(obj);
+    const userobj=USERS.findIndex(user=>(user["email"]==uname));
+    if(userobj!=-1){
+      res.sendStatus(500);
+    }
+    else{
+    obj["id"]=randomid();
+    USERS.push(obj);
+    res.status(201).send("Signup successful");
+  }
+})
+app.post('/login',(req,res)=>{
+   let obj= req.body;
+   const uname=obj["email"];
+   const pass=obj["password"]
+   const userobj=USERS.findIndex(user=>(user["email"]==uname && user["password"]==pass));
+   if(userobj==-1){
+      //not found
+      res.sendStatus(401);
+   }
+   else{
+     res.status(200).json(USERS[userobj]);
+   }
+})
+app.get('/data',(req,res)=>{
+  let obj= req.headers;
+   const uname=obj["email"];
+   const pass=obj["password"]
+   const userobj=USERS.findIndex(user=>(user["email"]==uname && user["password"]==pass));
+   if(userobj==-1){
+      res.sendStatus(401);
+   }
+   else{
+    let tosend=[];
+    USERS.forEach(user=> {
+      let obj={
+          "id":user["id"],
+          "firstname":user["firstname"],
+          "lastname":user["lastname"]
+      }
+      tosend.push(obj);
+    });
+    res.status(200).send({"users":tosend});
+   }
+})
+app.get('*',(req,res)=>{
+  res.sendStatus(404);
+})
+//app.listen(PORT);
 module.exports = app;
