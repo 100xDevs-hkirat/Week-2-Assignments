@@ -40,14 +40,50 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs')
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
 
-let todos = []
-function createTodo(req,res){
+const TODOSFILE = 'todos.json'
+
+async function getTodosFromFile(fileName){
+    return new Promise((resolve, reject) => {
+        fs.readFile(fileName, 'utf-8', function (err, data){
+            if(err){
+                reject(err.message)
+            }else {
+                try{
+                    const todos = JSON.parse(data)
+                    resolve(todos)
+                }catch (e) {
+                    reject(e.message)
+                }
+            }
+        })
+    })
+}
+
+async function addTodoToFile(fileName, todos){
+    return new Promise((resolve, reject) => {
+        // console.log(todos,'====')
+        try{
+            fs.writeFile(fileName, JSON.stringify(todos), function (err) {
+                if(err){
+                    reject(err.message)
+                }else {
+                    resolve("Added todo")
+                }
+            })
+        }catch (e) {
+            reject(e.message)
+        }
+        
+    })
+}
+async function createTodo(req,res){
     /**
      * This function handles the incoming request to create a todo
      * @param {req} the incoming request
@@ -60,9 +96,12 @@ function createTodo(req,res){
         const id = Date.now()
         const todo = {...req.body, id: id}
         if (todo.title && todo.description) {
-            todos.push(todo)
+            let fileData = await getTodosFromFile(TODOSFILE)
+            console.log(fileData)
+            fileData.todos.push(todo)
+            fileData = await addTodoToFile(TODOSFILE, fileData)
             results.success = true
-            results.data = "Todo added successfully"
+            results.data = fileData
             results.id = id
             response = res.status(200).json(results)
         }else {
@@ -71,18 +110,19 @@ function createTodo(req,res){
             response = res.status(400).json(results)
         }
         return response
+
     }catch (e) {
         results.success = false
-        results.error = "Not able to add Todo"
+        results.error = e.message
         return res.status(500).json(results)
     }
 }
 
-function getAllTodos(req,res) {
+async function getAllTodos(req,res) {
     let results = {}
     try {
         results.success = true
-        results.data = todos
+        results.data = (await getTodosFromFile(TODOSFILE)).todos
         return  res.status(200).json(results)
     }catch (e) {
         results.success = false
@@ -91,17 +131,18 @@ function getAllTodos(req,res) {
     }
 }
 
-function getTodo(req,res) {
+async function getTodo(req,res) {
     let results = {}
     let response = null
     try {
-        const id = +req.param.id
+        const id = +req.params.id
         if (!id) {
             results.data = false;
             results.success = "Please provide an ID of TODO"
             response = res.status(401).json(results)
         }else {
-            const todo = todos.filter(todo => todo.id === id)
+            const todos = (await getTodosFromFile(TODOSFILE)).todos
+            const todo = todos.find(todo => todo.id === id)
             if (!todo) {
                 results.success = false
                 results.data = "No TODO found with the ID"
@@ -121,16 +162,21 @@ function getTodo(req,res) {
     }
 }
 
-function updateTodo(req,res) {
+async function updateTodo(req,res) {
     let results = {}
     let response = null
     try{
+        console.log(typeof +req.params.id)
         const updatedTodo = {...req.body}
-        const todoIndex = todos.findIndex(todo => todo.id === req.param.id)
-        if(todoIndex){
-            todos[todoIndex] = {...todos[todoIndex], ...updatedTodo}
+        const todos = (await getTodosFromFile(TODOSFILE)).todos
+        const todoIndex = todos.findIndex(todo => todo.id === +req.params.id)
+        // console.log(todoIndex)
+        if(todoIndex>=0){
+            todos[todoIndex] = {...todos[todoIndex],...updatedTodo}
+            // console.log(todos[todoIndex])
+            await addTodoToFile(TODOSFILE,{todos})
             results.success = true
-            results.data = "Updated Todo successfully"
+            results.data = "Updated Todo"
             response = res.status(200).json(results)
         }else {
             results.success = false
@@ -140,24 +186,34 @@ function updateTodo(req,res) {
         return response
     }catch (e) {
         results.success = false
-        results.error = "Could not update todo with the given ID"
+        results.error = e.message
         return res.status(500).json(results)
     }
 }
 
-function deleteTodo(req,res) {
-    let results = {}
-    try{
-        const updatedTodos = todos.filter(todo => todo.id !== req.param.id)
+async function deleteTodo(req,res) {
+    let results = {success:false}
+    let response = null
+    try {
+        let todos = (await getTodosFromFile(TODOSFILE)).todos
+        const todoIndex = todos.findIndex(todo => todo.id === +req.params.id)
+        if (todoIndex < 0) {
+            results.data = "Todo not found"
+            response = res.status(404).json(results)
+        } else {
+        const updatedTodos = todos.filter(todo => todo.id !== +req.params.id)
         todos = [...updatedTodos]
+        await addTodoToFile(TODOSFILE, {todos})
         results.success = true
         results.data = "Deleted the todo successfully"
-        return res.status(200).json(results)
+        response = res.status(200).json(results)
+        }
     }catch (e) {
         results.success = false
         results.data = "Error while deleting the todo"
-        return res.status(404).json(results)
+        response = res.status(404).json(results)
     }
+    return response
 }
 app.post('/todos', createTodo)
 app.get('/todos', getAllTodos)
