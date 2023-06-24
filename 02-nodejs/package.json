@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev-fileserver": "nodemon fileServer.js",
+    "dev-auth": "nodemon authenticationServer.js",
     "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
     "test-todoServer": "./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
     "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
