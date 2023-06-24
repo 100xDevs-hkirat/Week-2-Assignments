@@ -32,6 +32,75 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const Users = [];
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+//* Sign Up
+app.post('/signup', (req,res)=> {
+  try {
+    const {firstName, lastName, userName, password} = req.body;
+    const userExists = Users.forEach(user => {
+      if(user.userName === userName){
+        return user;
+      }
+    });
+    if(userExists){
+      return res.status(400).send("User already Exists");
+    }
+    function generateRandomToken() {
+      let token = '';
+      const characters = '0123456789ABCDEF';
+      
+      for (let i = 0; i < 16; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        token += characters.charAt(randomIndex);
+      }
+      
+      return token;
+    }
+    const userToken = generateRandomToken();
+
+    Users.push({userToken, firstName, lastName, userName, password});
+
+    return res.status(201).json({userToken, firstName, lastName, userName, password});
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+
+
+})
+
+//* Sign in
+app.post('/login', (req,res) => {
+  try {
+    const {userName, password} = req.body;
+    const userExists = Users.forEach(user => {
+      if(user.userName === userName){
+        return user;
+      }
+    });
+
+    if(!userExists){
+      return res.status(401).send('user doesnt exists with this username')
+    }
+    if(userExists.password === password){
+      return res.status(200).json(userExists);
+    }
+    else{
+      return res.status(401).send('password is incorrect');
+    }
+  } catch (error) {
+    return res.status(401).json(error);
+  }
+})
+
+//* All User's 
+app.get('/data', (req,res) => {
+  try {
+    const allUsers = Users;
+    return res.status(200).json(allUsers);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+})
 module.exports = app;
