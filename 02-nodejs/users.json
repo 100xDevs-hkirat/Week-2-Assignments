@@ -1,0 +1,16 @@
+[
+  {
+    "id": "e0b4152e-c00a-437c-9713-cad0da777ed5",
+    "username": "testuser@gmail.com",
+    "firstname": "kirat",
+    "lastname": "kirat",
+    "password": "$2b$10$f.hnddiYnBWG9Zgm48bid.sR1CE2QFEuT9icDKrJ.5EIKwWvchCdu"
+  },
+  {
+    "id": "3b37ea50-1a46-4e47-b71d-70eaf6069a94",
+    "username": "sagnik.guru4@gmail.com",
+    "firstname": "sagnik",
+    "lastname": "guru",
+    "password": "$2b$10$vp08sllsPmsv0SflLJXV8.V5HjOrpFsHMu200Y9j2oZdSmkYEHIOy"
+  }
+]
