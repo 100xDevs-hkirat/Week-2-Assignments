@@ -39,11 +39,97 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
 
 const app = express();
 
+const PORT = 3000;
+
+const filePath = "./files/todoJsonFile.json";
+
 app.use(bodyParser.json());
+
+let todos = [];
+
+fs.readFile(filePath, "utf8", (err, data) => {
+  if (err) {
+    return res.status(500);
+  }
+  let jsonTodos = JSON.parse(data);
+  todos = jsonTodos.data;
+});
+
+const getTodos = (req, res, next) => {
+  return res.status(200).send(todos);
+};
+
+const getTodo = (req, res, next) => {
+  const index = todos.findIndex((todo) => todo.id === req.params.id);
+  if (index !== -1) {
+    return res.status(200).send(todos[index]);
+  } else {
+    return res.status(404).send("Not Found");
+  }
+};
+
+const updateTodo = (req, res, next) => {
+  for (let i = 0; i < todos.length; i++) {
+    if (todos[i].id === req.params.id) {
+      todos[i].completed = req.body.completed;
+      todos[i].title = req.body.title;
+      fs.writeFile(filePath, JSON.stringify({ data: todos }), (err, data) => {
+        if (err) {
+          return res.status(500).send("Internal Server Error");
+        }
+        return res.status(200).send("Successfully updated");
+      });
+    }
+  }
+};
+
+const deleteTodo = (req, res, next) => {
+  const index = todos.findIndex((todo) => todo.id === req.params.id);
+
+  if (index !== -1) {
+    todos.splice(index, 1);
+    fs.writeFile(filePath, JSON.stringify({ data: todos }), (err, data) => {
+      if (err) {
+        return res.status(500).send("Internal Server Error");
+      }
+      return res.status(200).send("Successfully deleted");
+    });
+  } else {
+    res.status(404).send("Todo not found");
+  }
+};
+
+const createTodo = (req, res, next) => {
+  todos?.push({
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description,
+    id: uuidv4(),
+  });
+  fs.writeFile(filePath, JSON.stringify({ data: todos }), (err, data) => {
+    if (err) {
+      return res.status(500).send("Internal Server Error");
+    }
+    return res.status(201).send({ id: todos?.[todos?.length - 1].id });
+  });
+};
+
+app.get("/todos", getTodos);
+app.get("/todos/:id", getTodo);
+app.post("/todos", createTodo);
+app.put("/todos/:id", updateTodo);
+app.delete("/todos/:id", deleteTodo);
+
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+});
+// app.listen(PORT);
 
 module.exports = app;
