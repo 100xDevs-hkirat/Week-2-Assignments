@@ -20,6 +20,57 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const PORT = 8000;
+
+function listFileMethod(req,res){
+  directoryPath = './files';
+  function fileReadFunc(error,files){
+    if (error) {
+      res.status(500).send("Internal Server Error");
+    }
+    else{
+      res.status(200).send(JSON.stringify(files));
+    }
+  }
+  
+  fs.readdir(directoryPath, fileReadFunc);
+  
+}
+
+app.get("/files",listFileMethod);
+
+function showFileContent(req,res){
+  var files = fs.readdirSync('./files');
+  var flag = false;
+  for(var i=0;i<files.length;++i){
+    if(files[i]==req.params.fileName){
+      flag =  true;
+      break;
+    }
+  }
+
+  if(flag){
+    res.status(200).sendFile(__dirname + '/files/' + req.params.fileName);
+  }
+  else{
+    res.status(404).send("File not found");
+  }
+}
+
+app.get("/file/:fileName",showFileContent);
+
+
+function undifRoutes(req,res){
+  res.status(404).send('Route not found');
+}
+
+app.get('*', undifRoutes);
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`)
+}
+
+// app.listen(PORT, started);
 
 
 module.exports = app;

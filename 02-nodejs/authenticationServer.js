@@ -30,8 +30,124 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require("body-parser")
+const PORT = 8000;
 const app = express();
+var jwt = require('jsonwebtoken');
+var bcrypt = require('bcryptjs');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+var users = []
+
+app.use(bodyParser.json());
+
+function idGen(){
+  return Math.random().toString(36).substring(2, 6+2);
+}
+
+function signUpMethod(req,res){
+  var flag = false;
+  for(var i=0;i<users.length;++i){
+      if(users[i].email==req.body.email){
+        flag=true;
+        break;
+      }
+  }
+  if(flag){
+    res.status(400).send("email already exists");
+  }
+  else{
+    var obj = {
+      id: idGen(), 
+      email: req.body.email,
+      password:req.body.password,
+      firstName:req.body.firstName,
+      lastName:req.body.lastName
+    }
+    users.push(obj);
+    res.status(201).send("Signup successful");
+  }
+  console.log(users);
+
+}
+
+app.post("/signup",signUpMethod);
+
+function loginMethod(req,res){
+  var flag=false;
+  var i;
+  l1:for(i=0;i<users.length;++i){
+    if(req.body.email==users[i].email){
+      {
+        if(req.body.password==users[i].password){
+          flag=true;
+          break l1;
+        }
+      }
+    }
+  }
+  if(flag)
+  {
+    var token = jwt.sign({ id: users[i].id }, "secretx", {
+    expiresIn: 86400 // expires in 24 hours
+    });
+    const resJson=JSON.stringify({ 
+      email: users[i].email, 
+      firstName: users[i].firstName,
+      lastName: users[i].lastName, 
+      authTtoken: token 
+    })
+    res.status(200).send(resJson);
+  }
+  else{
+    res.status(401).send("Invalid Credentials");
+  }
+}
+
+app.post("/login",loginMethod);
+
+function showMethod(req,res){
+  var flag=false;
+  var i;
+  l1:for(i=0;i<users.length;++i){
+    if(req.headers.email==users[i].email){
+      {
+        if(req.headers.password==users[i].password){
+          flag=true;
+          break l1;
+        }
+      }
+    }
+  }
+  if(flag){
+    var userData=[];
+    for(i=0;i<users.length;++i){
+      var obj = {
+        email:users[i].email,
+        firstName:users[i].firstName,
+        lastName:users[i].lastName
+      }
+      userData.push(obj)
+    }
+    const resJson = JSON.stringify({"users":userData});
+    res.status(200).send(resJson);
+  }else{
+    res.status(401).send("Unauthorized");
+  }
+}
+
+app.get("/data",showMethod);
+
+function undifRoutes(req,res){
+  res.status(404).send('page not found');
+}
+
+app.get('*', undifRoutes);
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`)
+}
+
+// app.listen(PORT, started)
 
 module.exports = app;

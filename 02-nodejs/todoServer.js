@@ -41,9 +41,103 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const PORT = 8000
 const app = express();
 
 app.use(bodyParser.json());
+
+function idGen(){
+  return Math.random().toString(36).substring(2, 6+2);
+}
+
+var todos = [
+];
+
+function listTodos(req,res){
+  res.status(200).send(JSON.stringify(todos));
+}
+
+app.get("/todos",listTodos);
+
+function listTodoById(req,res){
+  var flag = false;
+  var i;
+  for(i=0;i<todos.length;++i){
+    if(todos[i].id==req.params.id){
+      flag=true;
+      break;
+    }
+  }
+  if(flag){
+    res.status(200).send(JSON.stringify(todos[i]));
+  }else{
+    res.status(404).send("Todo with requested Id Not found");
+  }
+}
+
+app.get("/todos/:id",listTodoById);
+
+function addTodo(req,res){
+  var idCreated = idGen();
+
+  var newTodo = {
+    id:idCreated,
+    title:req.body.title,
+    description:req.body.description,
+    completed:req.body.completed
+  }
+  todos.push(newTodo);
+
+  res.status(201).json({id:idCreated});
+}
+
+app.post("/todos",addTodo);
+
+function updateTodo(req,res){
+  var flag = false;
+  var i;
+  for(i=0;i<todos.length;++i){
+    if(todos[i].id==req.params.id){
+      flag=true;
+      break;
+    }
+  }
+  if(flag){
+    todos[i].title = req.body.title;
+    todos[i].description = req.body.description;
+    todos[i].completed = req.body.completed;
+    res.status(200).send("Todo Updated");
+  }else{
+    res.status(404).send("Todo not found");
+  }
+}
+
+app.put("/todos/:id",updateTodo);
+
+function deleteTodo(req,res){
+  var flag = false;
+  var i;
+  for(i=0;i<todos.length;++i){
+    if(todos[i].id==req.params.id){
+      flag=true;
+      break;
+    }
+  }
+  if(flag){
+    todos.splice(i,1);
+    res.status(200).send("Todo Deleted");
+  }else{
+    res.status(404).send("Todo not found");
+  }
+}
+
+app.delete("/todos/:id",deleteTodo);
+
+
+function serverStart(){
+  console.log(`todo app started at ${PORT}`)
+}
+
+// app.listen(PORT,serverStart);
 
 module.exports = app;
