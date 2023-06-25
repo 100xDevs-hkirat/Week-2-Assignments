@@ -10,26 +10,26 @@
     Description: Returns a list of all todo items.
     Response: 200 OK with an array of todo items in JSON format.
     Example: GET http://localhost:3000/todos
-    
+
   2.GET /todos/:id - Retrieve a specific todo item by ID
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
+
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -39,11 +39,79 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todoFileName = "./todos.json";
+
+const getAllTodos = (req, res) => {
+    const todos = JSON.parse(fs.readFileSync(todoFileName).toString());
+    const ret = [];
+    Object.values(todos)
+        .filter((val) => {
+            return isNaN(val);
+        })
+        .forEach((todo) => {
+            ret.push(todo);
+        });
+    res.send(ret);
+};
+app.get("/todos", getAllTodos);
+
+const getTodo = (req, res) => {
+    const todos = JSON.parse(fs.readFileSync(todoFileName).toString());
+    const todoId = req.params.id;
+    if (todoId in todos) {
+        res.send(todos[req.params.id]);
+    }
+    res.status(404).send("Not found");
+};
+app.get("/todos/:id", getTodo);
+
+const addTodo = (req, res) => {
+    const todos = JSON.parse(fs.readFileSync(todoFileName).toString());
+    const newTodo = req.body;
+    todos.count += 1;
+    newTodo.id = todos.count;
+    todos[todos.count] = newTodo;
+    fs.writeFileSync(todoFileName, JSON.stringify(todos));
+    res.status(201).send({ id: todos.count });
+};
+app.post("/todos", addTodo);
+
+const updateTodo = (req, res) => {
+    const todos = JSON.parse(fs.readFileSync(todoFileName).toString());
+    const todoId = req.params.id;
+    if (todoId in todos) {
+        const oldTodo = todos[todoId];
+        const updatedTodo = { ...oldTodo, ...req.body };
+        todos[todoId] = updatedTodo;
+        fs.writeFileSync(todoFileName, JSON.stringify(todos));
+        res.send();
+    }
+    res.status(404).send("Not found");
+};
+app.put("/todos/:id", updateTodo);
+
+const deleteTodo = (req, res) => {
+    const todos = JSON.parse(fs.readFileSync(todoFileName).toString());
+    const todoId = req.params.id;
+    if (todoId in todos) {
+        delete todos[todoId];
+        fs.writeFileSync(todoFileName, JSON.stringify(todos));
+        res.send();
+    }
+    res.status(404).send("Not found");
+};
+app.delete("/todos/:id", deleteTodo);
+
+// app.listen(3000, () => {
+//     console.log("Listening on port 3000");
+// });
 
 module.exports = app;
