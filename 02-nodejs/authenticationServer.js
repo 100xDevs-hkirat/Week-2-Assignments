@@ -30,8 +30,55 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const port = 3000;
 const app = express();
+app.use(bodyParser.json())
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let users = []
+app.post("/signup", (req, res) => {
+  let { email, password, firstName, lastName } = req.body
+  let isUser = users.find(item => item.email === email)
+  if (!isUser) {
+    let newUser = { id: uuidv4(), email, password, firstName, lastName }
+    users.push(newUser)
+    res.status(201).send("Signup successful")
+  }
+  else {
+    res.status(400).send()
+  }
+})
 
+app.post("/login", (req, res) => {
+  let { email, password } = req.body
+  let userFound = users.find(item => item.email === email)
+  if (!userFound) {
+    res.status(401).send()
+  } else {
+    res.json({ email: userFound.email, firstName: userFound.firstName, lastName: userFound.lastName })
+  }
+})
+
+// let users = [{ id: 1, username: "randheer", firstname: "ravi", lastname: "gautam" }]
+app.get("/data", (req, res) => {
+  let email = req.headers.email
+  let password = req.headers.password
+  let userFound = users.find(item => item.email === email && item.password === password)
+  console.log(userFound)
+  if (!userFound) {
+    res.status(401).send("Unauthorized")
+  } else {
+    let userData = users.map(item => ({
+      id: item.id,
+      email: item.email,
+      firstName: item.firstName,
+      lastName: item.lastName
+    }));
+    res.json({ 'users': userData })
+  }
+})
+
+app.all("*", (req, res) => { res.status(401).send("Unauthorized") })
+// app.listen(port, () => { console.log(`listening at port http://localhost:${port}`) })
 module.exports = app;
