@@ -42,6 +42,23 @@
 
   function parsedResponse(data) {
       console.log(data);
+      var parentElement = document.getElementById("mainArea");
+      var childElement = document.createElement("div");
+
+      var grandChildElement1 = document.createElement("span");
+      grandChildElement1.innerHTML = data.title
+
+      var grandChildElement2 = document.createElement("span");
+      grandChildElement2.innerHTML = data.description
+
+      var grandChildElement3 = document.createElement("button");
+      grandChildElement3.innerHTML = "Delete"
+
+      childElement.appendChild(grandChildElement1)
+      childElement.appendChild(grandChildElement2)
+      childElement.appendChild(grandChildElement3)
+
+      parentElement.appendChild(childElement);
   }
 
   function callback(resp) {
