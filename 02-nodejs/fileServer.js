@@ -26,7 +26,7 @@ app.get('/files', (_, res) => {
     const dirPath = __dirname + '/files/';
     fs.readdir(dirPath, (err, files) => {
         if (err) {
-            res.status(500).send('Failed to retrieve files');
+            return res.status(500).send('Failed to retrieve files');
         }
         res.status(200).send(files);
     });
@@ -37,7 +37,7 @@ app.get('/file/:filename', (req, res) => {
 
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            res.status(404).send('File not found');
+            return res.status(404).send('File not found');
         }
         res.status(200).send(data);
     });
