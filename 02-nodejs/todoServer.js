@@ -39,11 +39,73 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  
+  const app = express();
+  // const port = 3000
+  
+  app.use(bodyParser.json());
+  
+  let todos = [];
+  
+  app.get('/todos', (req, res) => {
+    res.json(todos);
+  });
+  
+  app.get('/todos/:id', (req, res) => {
+    item = todos.find(item => item.id === parseInt(req.params.id))
+    if (item) {
+      res.status(200).json(item)
+    } else {
+      res.status(404).json({"error": "item not found"})
+    }
+  });
+  
+  app.post('/todos', (req, res) => {
+    const new_item = {
+      id: Math.floor(Math.random() * 100000),
+      title: req.body.title,
+      description: req.body.description
+      // completed: false,
+    }
+    todos.push(new_item)
+    res.status(201).json(new_item);
+  });
+  
+  app.put('/todos/:id', (req, res) => {
+    id = parseInt(req.params.id);
+    item_index = todos.findIndex(item => item.id === id)
+    if (item_index !== -1) {
+      todos[item_index].title = req.body.title 
+      todos[item_index].description = req.body.description
+      // todos[item_index].completed = req.body.completed
+      res.status(200).json(todos[item_index]);
+    } else {
+      res.status(404).json({"error": "item not found"})
+    }
+  });
+  
+  app.delete('/todos/:id', (req, res) => {
+    id = parseInt(req.params.id);
+    item = todos.findIndex(item => item.id === id)
+    if (item !== -1) {
+      todos.splice(item, 1);
+      res.status(200).json({"message": "item deleted successfully"});
+    } else {
+      res.status(404).json({"error": "item not found"})
+    }
+  });
+  
+  // for all other routes, return 404
+  app.use((req, res, next) => {
+    res.status(404).json();
+  });
+  
+  // app.listen(port, () => {
+  //   console.log(`Example app listening on port ${port}`)
+  // });
+  
+  module.exports = app;
