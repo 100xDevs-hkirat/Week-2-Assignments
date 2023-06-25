@@ -19,6 +19,8 @@ describe('Todo API', () => {
 
   afterAll((done) => {
     globalServer.close(done);
+  done()
+
   });
 
   const todo = {

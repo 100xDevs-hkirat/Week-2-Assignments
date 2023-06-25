@@ -19,6 +19,7 @@ describe('API Tests', () => {
 
   afterAll((done) => {
     globalServer.close(done);
+  done()
   });
 
   it('should allow a user to sign up', async () => {
