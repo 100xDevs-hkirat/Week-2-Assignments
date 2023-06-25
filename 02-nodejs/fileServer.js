@@ -55,9 +55,9 @@ app.use((req,res)=>{
 //   res.status(404).send('Route not found');
 // });
 
-app.listen(port,(req,res)=>{
-  console.log(`File Server running on ${port}`);
-});
+// app.listen(port,(req,res)=>{
+//   console.log(`File Server running on ${port}`);
+// });
 
 
 module.exports = app;
