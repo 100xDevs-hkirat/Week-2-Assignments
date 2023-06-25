@@ -8,13 +8,16 @@
     "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
     "test-todoServer": "./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
     "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
-    "test-all": "./node_modules/jest/bin/jest.js ./tests/"
+    "test-all": "./node_modules/jest/bin/jest.js ./tests/",
+    "dev" : "nodemon todoServer" ,
+    "dev2": "nodemon fileServer"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "jest": "^29.5.0",
+    "nodemon": "^2.0.22",
     "supertest": "^6.3.3"
   },
   "jest": {

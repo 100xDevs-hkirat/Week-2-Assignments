@@ -16,10 +16,39 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files', (req , res ) => {
+  fs.readdir(path.join(__dirname,'files'), (err , data) => {
+    if(err) throw err;
+    res.status(200).json(data)
+  })
+})
+
+app.get('/file/:filename' ,(req ,res ) => {
+  fs.readFile(path.join(__dirname , 'files' , req.params.filename), 'utf8' , (err, data) => {
+    if(err){
+      if(err.code == 'ENOENT'){
+        res.status(404).send('File not found')
+      } else {
+        throw err;
+      }
+    } 
+    res.send(data)
+  })
+})
+
+
+app.all('*', (req , res) => {
+  res.status(404).send("Route not found")
+})
+
+// app.listen(3000 , ()=> {
+//   console.log(`Server is running in 3000`)
+// })
 
 module.exports = app;
