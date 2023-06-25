@@ -57,10 +57,4 @@ app.get('*', function (req, res) {
   res.status(404).send('Route not found');
 });
 
-// function started()
-// {
-//     console.log(`Example app listening on port 3000`)
-// }
-// app.listen(3000, started);
-
 module.exports = app;

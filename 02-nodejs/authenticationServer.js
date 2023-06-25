@@ -36,72 +36,103 @@ const bodyParser = require('body-parser')
 let jwt = require('jsonwebtoken');
 
 let userInfo = [];
-let userIdx = 0;
 
+function isExistingUser(user)
+{
+  let userAlreadyExists = false;
+  for (var i = 0; i<userInfo.length; i++) {
+    if (userInfo[i].email === user.email) {
+        userAlreadyExists = true;
+        break;
+    }
+  }
+
+  return userAlreadyExists;
+}
+
+function getExistingUser(email, password)
+{
+  let existingUser = null;
+  for (var i = 0; i<userInfo.length; i++) {
+    if (userInfo[i].email === email && userInfo[i].password === password) {
+        existingUser = userInfo[i];
+        break;
+    }
+  }
+
+  return existingUser;
+}
 
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 function userSignUp(req, res)
 {
-  console.log(req.body);
-  if(userInfo.length > 0 && userInfo.has(body.username))
-  {
-    res.status(400).send('Username already exists')
-  }
+  var user = req.body;
 
-  let userObj = {
-    username : req.body.username,
-    password : req.body.password,
-    firstName : req.body.firstName,
-    lastName : req.body.lastName
+  if (isExistingUser(user)) {
+    res.sendStatus(400);
   }
-
-  userInfo[userIdx] = userObj;
-  userIdx++;
-  res.status(201).send('User created');
+  else{
+    userInfo.push(user);
+    res.status(201).send('Signup successful');
+  }
 }
 
 function userLogin(req, res)
 {
-  body = req.body;
-  idx = userInfo.indexOf(body.username)
-  if( idx == -1 || (userInfo[idx].password !== body.password))
-  {
-    res.status(401).send('Credentials are invalid')
-  }
+  var user = req.body;
+  var userFound = getExistingUser(user.email, user.password);
 
-  let userdata = {
-    username: body.username,
-    password: body.password
-  };
-
-  let token = jwt.sign(userdata, global.config.secretKey, {
-    algorithm: global.config.algorithm,
-    expiresIn: '1m'
-  });
-  res.status(200).json({
-    message: 'Login Successful',
-    jwtoken: token
+  if(userFound){
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email
     });
+    // let userdata = {
+    //   firstName: userFound.firstName,
+    //   lastName: userFound.lastName,
+    //   email: userFound.email
+    // };
+  
+    // jwt.sign({userdata}, 'abcdef', (err, token)=>{
+    //   res.json({token})
+    // });
+  }
+  else
+  {
+    res.status(401).send('Unauthorized');
+  }
 }
 
 function getUserData(req, res)
 {
+  email = req.headers.email;
+  password = req.headers.password;
+  
+  var userFound = getExistingUser(email, password);
 
+  if (userFound) {
+    let users = [];
+    for (let i = 0; i<userInfo.length; i++) {
+        users.push({
+            firstName: userInfo[i].firstName,
+            lastName: userInfo[i].lastName,
+            email: userInfo[i].email
+        });
+    }
+    res.json({users});
+  } else {
+    res.sendStatus(401);
+  }
 }
 
 app.use(bodyParser.json());
-app.post('/signup', userSignUp);
-app.post('/login', userLogin);
+app.post('/signup', bodyParser.json(), userSignUp);
+app.post('/login', bodyParser.json(), userLogin);
 app.get('/data', getUserData);
 
 app.get('*', function (req, res) {
   res.status(404).send('Route not found');
 });
-
-function started()
-{
-    console.log(`Example app listening on port 3000`)
-}
-app.listen(3000, started);
 
 module.exports = app;
