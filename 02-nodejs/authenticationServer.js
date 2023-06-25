@@ -33,5 +33,49 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const USERS = [];
+
+app.post('/signup', (req,res)=>{
+  const existingUser = USERS.find(user => user.email === req.body.email);
+  if(existingUser){
+    res.status(400).send();
+  }
+  USERS.push(req.body);
+  res.status(201).send('Signup successful');
+});
+
+app.post('/login', (req,res)=>{
+  for (const user of USERS) {
+    if(user.email === req.body.email && user.password === req.body.password){
+      res.json({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      });
+    }
+  }
+  res.sendStatus(401);
+});
+
+app.get('/data', (req, res)=>{
+  const users = [];
+  for (const user of USERS) {
+    if(user.email === req.headers.email && user.password === req.headers.password){
+      for (const user1 of USERS) {
+        const newUser = {
+          firstName: user1.firstName,
+          lastName: user1.lastName,
+          email : user1.email
+        };
+        users.push(newUser);
+      }
+      res.json({
+        users
+      });
+    }
+  }
+  res.sendStatus(401);
+});
+// app.listen(PORT,()=>{console.log("hi")})
 
 module.exports = app;
