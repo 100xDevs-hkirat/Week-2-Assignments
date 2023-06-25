@@ -1,9 +1,11 @@
+const API_ENDPOINT = window.location.origin;
+
 function getTodos() {
   const todoList = document.getElementById("todo-list");
   // Clear todos to remove any stale data
   todoList.innerHTML = "";
 
-  fetch("http://localhost:3000/todos", {
+  fetch(`${API_ENDPOINT}/todos`, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -19,7 +21,7 @@ function createTodo() {
   const description = document.getElementById("description");
 
   if (title.value && description.value) {
-    fetch("http://localhost:3000/todos", {
+    fetch(`${API_ENDPOINT}/todos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +62,7 @@ function editTodo(id) {
       updated.description = newDescription;
     }
 
-    fetch(`http://localhost:3000/todos/${id}`, {
+    fetch(`${API_ENDPOINT}/todos/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -80,7 +82,7 @@ function editTodo(id) {
 }
 
 function deleteTodo(id) {
-  fetch(`http://localhost:3000/todos/${id}`, {
+  fetch(`${API_ENDPOINT}/todos/${id}`, {
     method: "DELETE",
   })
     .then((res) => res.json())
