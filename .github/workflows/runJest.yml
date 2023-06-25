@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run Tests
-        run: |
+        run: | 
+          cd 02-nodejs
           npm install
           npm install express
           npm install jest
