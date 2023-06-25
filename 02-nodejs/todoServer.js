@@ -39,11 +39,82 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let todos = [
+  {
+    id: "123",
+    name: "Get Eggs",
+    description: "because protein is love",
+    completed: false,
+  },
+];
+const API_ENDPOINTS = {
+  getAllTodos: "/todos",
+  getTodo: "/todos/:id",
+};
+
+// 1
+app.get(API_ENDPOINTS.getAllTodos, (req, res) => {
+  console.log(`${API_ENDPOINTS.getAllTodos} GET API HIT`);
+  res.status(200).send(todos);
+});
+
+// 2
+app.get(API_ENDPOINTS.getTodo, (req, res) => {
+  console.log(`${API_ENDPOINTS.getTodo} API HIT`);
+
+  const id = req.params.id;
+  const todo = todos.find((todo) => todo.id === id);
+
+  if (!todo) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+
+  res.json(todo);
+});
+
+// 3
+app.post(API_ENDPOINTS.getAllTodos, (req, res) => {
+  console.log(`${API_ENDPOINTS.getAllTodos} POST API HIT`);
+  const newTodoId = uuidv4();
+  const newTodoObject = {
+    ...req.body,
+    id: newTodoId,
+    completed: false,
+  };
+  todos.unshift(newTodoObject);
+  res.status(201).send({ id: newTodoId });
+});
+
+// 4
+app.put(API_ENDPOINTS.getTodo, (req, res) => {
+  console.log("afeere");
+  const id = req.params.id;
+  const updatedTodo = todos.find((todo) => todo.id === id);
+
+  if (req.body.name) {
+    updatedTodo.name = req.body.name;
+  }
+  if (req.body.description) {
+    updatedTodo.description = req.body.description;
+  }
+  if (req.body.completed) {
+    updatedTodo.completed = req.body.completed;
+  }
+
+  res.status(200).send(updatedTodo);
+});
+
+// app.listen(3000, () => {
+//   console.log("Server started on port 3000");
+// });
 
 module.exports = app;
