@@ -42,95 +42,95 @@ app.use(bodyParser.json());
 
 // Sign Up
 app.post("/signup", (req, res) => {
-  inputData = req.body;
-  isAccountExists = false;
-  for (var i = 0; i < data.length; i++) {
-    if (inputData.username === data[i].username) {
-      isAccountExists = true;
-      break;
+    inputData = req.body;
+    isAccountExists = false;
+    for (var i = 0; i < data.length; i++) {
+        if (inputData.username === data[i].username) {
+            isAccountExists = true;
+            break;
+        }
     }
-  }
-  if (isAccountExists) {
-    res.status(401).send("username already exists");
-  } else {
-    uniqueId = data.length + 1;
-    inputData.id = uniqueId;
-    data.push(inputData);
-    res.status(201).send("Signup successful");
-  }
+    if (isAccountExists) {
+        res.status(401).send("username already exists");
+    } else {
+        uniqueId = data.length + 1;
+        inputData.id = uniqueId;
+        data.push(inputData);
+        res.status(201).send("Signup successful");
+    }
 });
 
 // Login In
 app.post("/login", (req, res) => {
-  inputData = req.body;
-  uname = inputData.username;
-  pword = inputData.password;
-  email = inputData.email;
-  accountPresent = false;
-  output = {};
-  for (var i = 0; i < data.length; i++) {
-    if (
-      uname == data[i].username &&
-      pword == data[i].password &&
-      email == data[i].email
-    ) {
-      accountPresent = true;
-      output.id = data[i].id;
-      output.firstName = data[i].firstName;
-      output.lastName = data[i].lastName;
-      output.email = data[i].email;
-      break;
+    inputData = req.body;
+    uname = inputData.username;
+    pword = inputData.password;
+    email = inputData.email;
+    accountPresent = false;
+    output = {};
+    for (var i = 0; i < data.length; i++) {
+        if (
+            uname == data[i].username &&
+            pword == data[i].password &&
+            email == data[i].email
+        ) {
+            accountPresent = true;
+            output.id = data[i].id;
+            output.firstName = data[i].firstName;
+            output.lastName = data[i].lastName;
+            output.email = data[i].email;
+            break;
+        }
     }
-  }
-  if (!accountPresent) {
-    res.status(401).send();
-  } else {
-    res.status(200).json(output);
-  }
+    if (!accountPresent) {
+        res.status(401).send();
+    } else {
+        res.status(200).json(output);
+    }
 });
 
 // getting all the info
 app.get("/data", (req, res) => {
-  pword = req.headers.password;
-  email = req.headers.email;
-  invalidPassOrEmail = false;
-  if (pword == undefined || pword == "") {
-    invalidPassOrEmail = true;
-  }
-  if (email == undefined || email == "") {
-    invalidPassOrEmail = true;
-  }
-  if (invalidPassOrEmail) {
-    res.status(401).send("Unauthorized");
-  } else {
-    accountPresent = false;
-    console.log("pword");
-    console.log(pword);
-    console.log(email);
-    for (var i = 0; i < data.length; i++) {
-      if (pword === data[i].password && email === data[i].email) {
-        accountPresent = true;
-        break;
-      }
+    pword = req.headers.password;
+    email = req.headers.email;
+    invalidPassOrEmail = false;
+    if (pword == undefined || pword == "") {
+        invalidPassOrEmail = true;
     }
-    if (!accountPresent) {
-      res.status(401).send("Unauthorized");
+    if (email == undefined || email == "") {
+        invalidPassOrEmail = true;
+    }
+    if (invalidPassOrEmail) {
+        res.status(401).send("Unauthorized");
     } else {
-      output = [];
-      for (var i = 0; i < data.length; i++) {
-        output.push({
-          firstName: data[i].firstName,
-          lastName: data[i].lastName,
-          email: data[i].email,
-        });
-      }
-      res.send({ users: output });
+        accountPresent = false;
+        console.log("pword");
+        console.log(pword);
+        console.log(email);
+        for (var i = 0; i < data.length; i++) {
+            if (pword === data[i].password && email === data[i].email) {
+                accountPresent = true;
+                break;
+            }
+        }
+        if (!accountPresent) {
+            res.status(401).send("Unauthorized");
+        } else {
+            output = [];
+            for (var i = 0; i < data.length; i++) {
+                output.push({
+                    firstName: data[i].firstName,
+                    lastName: data[i].lastName,
+                    email: data[i].email,
+                });
+            }
+            res.send({ users: output });
+        }
     }
-  }
 });
 
 app.get("/alldata", (req, res) => {
-  res.status(200).json(data);
+    res.status(200).json(data);
 });
 
 module.exports = app;

@@ -20,8 +20,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const app = express();
+const bodyParser = require("body-parser");
+app.use(bodyParser);
 
-app.get("/files", (req, res) => {
-  res.send("hello world");
-});
 module.exports = app;
