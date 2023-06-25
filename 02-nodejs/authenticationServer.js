@@ -60,39 +60,34 @@ function firsttask(req,res) {
   arr.push(obj);
   res.status(201).send("Signup successful");
 }
-function secondtask(req,res) {
-   const received_username=req.body.username;
-   const received_password=req.body.password;
-   
-   console.log(TobePassedobj);
-  const  index = arr.findIndex( (t) => t.username === received_username);
-  
-  if (index === -1){
-    res.status(401).send("Unauthorized");
-  }
-  else{
-    if(arr[index].password === received_password){
-      var TobePassedobj ={
-        email :  arr[index].email,
-        firstName : arr[index].firstName,
-        lastName: arr[index].lastName
-        
-       };
-         return res.status(200).json(TobePassedobj);
-    }
-    res.status(401).send("Unauthorized");
-  }
+function secondtask(req,res) 
+  {
+  const receivedEmail = req.body.email;
+  const receivedPassword = req.body.password;
 
- }
+  const foundUser = arr.find((user) => user.email === receivedEmail && user.password === receivedPassword);
+
+  if (foundUser) {
+    const responseObj = {
+      firstName: foundUser.firstName,
+      lastName: foundUser.lastName,
+      email: foundUser.email
+    };
+    res.status(200).json(responseObj);
+  } else {
+    res.sendStatus(401);
+  }
+}
+
 
 
  function thirdtask(req,res) {
 
-  const received_username=req.query.username;
-  const received_password=req.query.password;
+  const received_username=req.headers.email;
+  const received_password=req.headers.password;
    console.log(received_username);
    console.log(received_password);
-  const  index = arr.findIndex( (t) => t.username === received_username);
+  const  index = arr.findIndex( (t) => t.email === received_username);
   
   if (index === -1){
     res.status(401).send("Unauthorized");
