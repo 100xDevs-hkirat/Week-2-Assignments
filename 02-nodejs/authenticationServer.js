@@ -31,7 +31,83 @@
 
 const express = require("express")
 const PORT = 3000;
+const bodyParser = require('body-parser');
+const jwt = require("jsonwebtoken");
+
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+
+var users = [];
+
+app.post("/signup", (req, res) => {
+  var newUser = req.body;
+  for (const user of users) {
+    if (user.email === newUser.email) {
+      res.status(400).send("User already exists!!!");
+    }
+  }
+  const id = Math.floor(Math.random() * 100000);
+  newUser.id = id;
+  users.push(newUser);
+  res.status(201).send("Signed up successgully!!!");
+});
+
+app.post("/login", (req, res) => {
+  const {userName, password} = req.body;
+
+  for(const user of users){
+    if(user.userName === userName){
+      if(user.password === password){
+        const token = jwt.sign({userName}, "qwertyuiop098765");
+        res.send({token: token});
+      }
+      else{
+        res.status(401).send("password incorrect");
+      }
+    }
+    else{
+      res.status(401).send("User not found");
+    }
+  }
+})
+
+app.get("/data", (req, res) => {
+  const token = req.headers.authorization;
+
+  if(token){
+    try{
+      const decodedToken = jwt.verify(token, 'qwertyuiop098765');
+      console.log(decodedToken);
+      var data = [];
+      for(const user of users){
+        var obj = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+        data.push(obj);
+      }
+      res.send(data);
+    }
+    catch(err){
+      res.status(401).send("Invalid token!!!");
+    }
+  }
+  else{
+    res.status(401).send("Missing token!!");
+  }
+
+})
+
+app.get("/users", (req, res) => {
+  res.send(users);
+})
+
+
+app.listen(3000, () => {
+  console.log("Port is started on 3000");
+})
 
 module.exports = app;
