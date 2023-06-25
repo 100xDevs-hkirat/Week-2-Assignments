@@ -15,6 +15,8 @@ describe('API Endpoints', () => {
 
   afterAll((done) => {
     globalServer.close(done);
+  done()
+
   });
 
   describe('GET /files', () => {
@@ -57,8 +59,9 @@ describe('API Endpoints', () => {
       fs.writeFileSync(testFilePath, 'Test file content');
     });
 
-    afterAll(() => {
+    afterAll((done) => {
       fs.unlinkSync(testFilePath);
+      done()
     });
 
     test('should serve the requested file', async () => {
