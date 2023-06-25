@@ -42,6 +42,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+const fs = require("fs");
 const PORT = 5000;
 
 app.use(bodyParser.json());
@@ -55,7 +56,20 @@ const toDos = [
 
 //get all to do
 app.get("/alltodo", (req, resp) => {
-  resp.status(200).send(JSON.stringify(toDos));
+  const content = JSON.stringify(toDos);
+  fs.writeFile(
+    "/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files/a.txt",
+    content,
+    (err) => {
+      if (err) {
+        resp
+          .status(404)
+          .send("Some erroroccured while writing content to file :" + err);
+      } else {
+        resp.status(200).send("to do's added to file successfully");
+      }
+    }
+  );
 });
 
 // get to do based on id
@@ -77,7 +91,19 @@ app.post("/addtodo", (req, resp) => {
     description: req.body.description,
   };
   toDos.push(todo);
-  resp.status(201).send("Data added");
+  fs.appendFile(
+    "/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files/a.txt",
+    JSON.stringify(todo),
+    (err) => {
+      if (err) {
+        resp
+          .status(404)
+          .send("Some erroroccured while writing content to file :" + err);
+      } else {
+        resp.status(201).send("to do added to file successfully");
+      }
+    }
+  );
 });
 //update an existing to do
 app.put("/updatetodo", (req, resp) => {
