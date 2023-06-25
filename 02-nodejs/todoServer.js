@@ -46,4 +46,60 @@ const app = express();
 
 app.use(bodyParser.json());
 
+app.listen(3000, () => {
+  console.log("Application Started")
+})
+
+var todolist = [];
+
+app.get("/todos" , (req, res)=> {
+    console.log(todolist);
+    res.status(200).send(todolist)
+})
+
+app.get("/todos/:id", (req, res) => {
+  for(var i=0; i<todolist.length; i++){
+    if(req.params.id==todolist[i][0]){
+      console.log(todolist[i][1]);  
+      return res.status(200).send(todolist[i][1]);          
+    }
+  }
+  res.status(200).send("404 Not Found")
+})
+
+app.post("/todos", (req, res) => {
+    todolist.push([todolist.length==0?0:todolist[todolist.length -1][0]+1, {"title": req.body.title, "description": req.body.description, "completed" :"False"}]);
+    res.status(201).json({id : todolist[todolist.length -1][0]})
+    console.log(todolist.indexOf(todolist[todolist.length -1]))
+})
+
+app.put("/todos/:id", (req, res) => {
+  for(var i=0; i<todolist.length; i++){
+    if(req.params.id==todolist[i][0]){
+      todolist[i][1].title= req.body.title!==undefined?req.body.title:todolist[i][1].title
+      todolist[i][1].description= req.body.description!==undefined?req.body.description:todolist[i][1].description
+      todolist[i][1].completed= req.body.completed!==undefined?req.body.completed:todolist[i][1].completed
+      return res.status(200).send("Task has been successfully updated")
+    }
+  }
+  res.status(200).send("404 Not Found")
+})
+
+app.delete('/todos/:id', (req,res) => {
+  for(var i=0; i<todolist.length; i++){
+    if(req.params.id==todolist[i][0]){
+      todolist.splice(i, 1);
+      console.log(todolist);
+      return res.status(200).send("Task has been found & Deleted");
+    }
+  }
+  res.status(200).send("404 Not Found")
+})
+
+
+app.get('/*', (req,res) => {
+  res.status(200).send("404 Not Found");
+})
+
+
 module.exports = app;
