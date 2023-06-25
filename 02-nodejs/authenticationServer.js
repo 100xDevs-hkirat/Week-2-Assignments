@@ -34,4 +34,8 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+app.listen(3000, () => {
+  console.log("Server started on port 3000");
+});
+
 module.exports = app;
