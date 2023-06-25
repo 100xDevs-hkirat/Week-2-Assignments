@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const bodyParser = require('body-parser');
+const express = require('express');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
 
+const AUTH_TOKEN_LENGTH = 32;
+// index will be treated as id
+const datastore = { users: [] };
+class User {
+  constructor({ email, password, firstName, lastName }) {
+    this.email = email;
+    this.password = password;
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
+}
+
+const generateAuthToken = function (length) {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charactersLength);
+    result += characters.charAt(randomIndex);
+  }
+
+  return result;
+};
+
+app.post('/signup', (req, res) => {
+  const userData = req.body;
+  if (datastore.users.some((user) => user.email === userData.email))
+    return res
+      .status(400)
+      .send(`User with username ${userData.email} already exists`);
+
+  const user = new User(userData);
+  datastore.users.push(user);
+  res.status(201).send('Signup successful');
+});
+
+app.post('/login', (req, res) => {
+  const userAuth = req.body;
+  const dbUser = datastore.users.find((user) => user.email === userAuth.email);
+  if (!dbUser) return res.status(401).send('User does not exists');
+
+  if (dbUser.password !== userAuth.password)
+    return res.status(401).send('Invalid password');
+
+  const { email, firstName, lastName } = dbUser;
+
+  const authToken = generateAuthToken(AUTH_TOKEN_LENGTH);
+  const successfulLoginResponse = { email, firstName, lastName, authToken };
+
+  res.status(200).json(successfulLoginResponse);
+});
+
+app.get('/data', (req, res) => {
+  const { email, password } = req.headers;
+
+  const user = datastore.users.find((user) => user.email === email);
+  console.log(user);
+  if (!user) return res.sendStatus(401);
+  if (user.password !== password) return res.sendStatus(401);
+
+  const allUsers = {
+    users: datastore.users.map((dbUser) => ({
+      email: dbUser.email,
+      firstName: dbUser.firstName,
+      lastName: dbUser.lastName,
+    })),
+  };
+  res.status(200).json(allUsers);
+});
+
+app.use((_, res) => res.status(404).send('Endpoint not found'));
+
+// app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 module.exports = app;
