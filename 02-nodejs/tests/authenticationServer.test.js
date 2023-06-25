@@ -19,7 +19,6 @@ describe('API Tests', () => {
 
   afterAll((done) => {
     globalServer.close(done);
-    server.close()
   done()
   });
 
