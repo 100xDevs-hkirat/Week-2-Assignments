@@ -43,7 +43,63 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+//const port = 3000;
 
 app.use(bodyParser.json());
+
+let todos = [];
+
+app.get("/todos", (_, res) => {
+    res.send(todos)
+});
+
+app.get("/todos/:id", (req, res) => {
+    let id = req.params.id;
+    let todo = todos.find(x => x.id == id);
+    if (todo === undefined) {
+        res.status(404).send("Not found");
+    } else {
+        res.status(200).send(todo);
+    }
+});
+
+app.post("/todos", (req, res) => {
+    let todo = req.body;
+    let idg = Date.now();
+    todo["id"] = idg;
+    console.log(todo);
+    todos.push(todo);
+    res.status(201).send(todo);
+});
+
+app.put("/todos/:id", (req, res) => {
+    let id = req.params.id;
+    let result = todos.find(x => x.id == id);
+    if (result === undefined) {
+        res.status(404).send("No todo found");
+    } else {
+        let todo = req.body;
+        todo["id"] = id;
+        todos.splice(todos.indexOf(result), 1, todo);
+        res.status(200).send("Todo has been updated");
+    }
+});
+
+app.delete("/todos/:id", (req, res) => {
+    let id = req.params.id;
+    let result = todos.find(x => x.id == id);
+    if (result === undefined) {
+        res.status(404).send("No such todo to delete");
+    } else {
+        todos.splice(todos.indexOf(result), 1);
+        res.status(200).send("Todo has been deleted");
+    }
+});
+
+
+
+//app.listen(port, () => {
+//    console.log(`Todo app is listening on port ${port}`);
+//});
 
 module.exports = app;
