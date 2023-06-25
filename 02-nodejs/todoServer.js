@@ -41,9 +41,89 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port=3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+var todoList=[
+  {
+    id : 1,
+    title:'Learn React',
+    description:'React is very cool framework for frontend development'
+    
+  },
+  {
+    id : 2,
+    title:'Learn javascript',
+    description:'JavaScript is very important language for frontend as well as backend development'
+    
+  }
+]
+
+function printAlltodos(req,res){
+  res.json(todoList);
+}
+ 
+function printIDtodo(req,res){
+  const todoId=parseInt(req.params.id);
+  console.log(todoId);
+  const todo=todoList.find((todo)=>{if(todo.id===todoId)return todo});
+ if(!todo){
+  res.status(404).send('error: Todo not found');
+ }
+res.status(200).send(todo);
+}
+
+function createTodo(req,res){
+  var newTodoId=todoList.length+1;
+  var newTodo={
+    id:newTodoId,
+    title: req.body.title,
+    description : req.body.description
+  }
+  todoList.push(newTodo);
+  res.send(todoList);
+}
+
+function updateIDtodo(req,res){
+  const todoId=parseInt(req.params.id);
+  var todo=todoList.find((todo)=>{if(todo.id===todoId)return todo});
+  // var todo=todoList.find((todo)=>todo.title===todoId);
+
+  if(!todo){
+  res.status(404).send('error: Todo not found');
+  }
+  todo.title=req.body.title;
+  todo.description=req.body.description;
+  res.status(200).send(todoList);
+}
+
+function deleteTodo(req,res){
+  let todoId=parseInt(req.params.id);
+  const index=todoList.findIndex((todo)=>todoId===todo.id);
+  if(index===-1){
+  res.status(404).send('error: Todo not found');
+  }
+  todoList.splice(index, 1);
+  for(let i=0;i<todoList.length;i++){
+    todoList[i].id=i+1;
+  }
+  res.status(200).send(todoList);
+}
+
+app.get('/todos',printAlltodos)
+app.get('/todos/:id',printIDtodo)
+app.post('/todos',createTodo)
+app.put('/todos/:id',updateIDtodo)
+app.delete('/todos/:id',deleteTodo)
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'route not defined in the server' });
+});
+
+app.listen(port,(req,res)=>{
+  console.log(`app is listening on ${port}`);
+})
 
 module.exports = app;
