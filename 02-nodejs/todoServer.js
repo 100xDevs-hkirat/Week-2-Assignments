@@ -39,11 +39,103 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
+const port = 3000;
 
+app.use(express.json());
 app.use(bodyParser.json());
+
+function generateUniqueID() {
+  const idLength = 10;
+  let uniqueID = "";
+
+  for (let i = 0; i < idLength; i++) {
+    const randomDigit = Math.floor(Math.random() * 10);
+    uniqueID += randomDigit;
+  }
+
+  return parseInt(uniqueID, 10);
+}
+
+app.get("/todos", (req, res) => {
+  const todos = JSON.parse(fs.readFileSync("data.json"));
+  res.status(200).json(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const todos = JSON.parse(fs.readFileSync("data.json"));
+  const todoId = req.params.id;
+  const todo = todos.find((todo) => todo.id === todoId);
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.status(404).json({ error: "Todo not found" });
+  }
+});
+
+app.post("/todos", (req, res) => {
+  console.log(req.body);
+
+  const todoID = generateUniqueID();
+  const todo = {
+    id: todoID,
+    title: req.body.title,
+    description: req.body.description,
+  };
+
+  let existingData = JSON.parse(fs.readFileSync("data.json"));
+  existingData.push(todo);
+
+  fs.writeFile("data.json", JSON.stringify(existingData), () => {
+    console.log("New data added successfully:", todo);
+    res.status(200).json({ id: todoID });
+    console.log(todoID);
+  });
+});
+
+app.put("/todos/:id", (req, res) => {
+  const todos = JSON.parse(fs.readFileSync("data.json"));
+  const todoId = req.params.id;
+  const updatedTodo = req.body;
+
+  const todoIndex = todos.findIndex((todo) => todo.id === todoId);
+
+  if (todoIndex !== -1) {
+    todos[todoIndex] = { ...todos[todoIndex], ...updatedTodo };
+    fs.writeFile("data.json", JSON.stringify(todos), () => {
+      res.status(200).json({ message: "Todo item updated successfully" });
+    });
+  } else {
+    res.status(404).json({ error: "Todo not found" });
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const todos = JSON.parse(fs.readFileSync("data.json"));
+  const todoId = req.params.id;
+
+  const todoIndex = todos.findIndex((todo) => todo.id === todoId);
+
+  if (todoIndex !== -1) {
+    todos.splice(todoIndex, 1);
+    fs.writeFile("data.json", JSON.stringify(todos), () => {
+      res.status(200).json({ message: "Todo item deleted successfully" });
+    });
+  } else {
+    res.status(404).json({ error: "Todo not found" });
+  }
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+app.listen(port, () => {
+  console.log(`Server is live on port ${port}`);
+});
 
 module.exports = app;
