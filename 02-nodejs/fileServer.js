@@ -28,7 +28,7 @@ app.get('/files', (_, res) => {
         if (err) {
             return res.status(500).send('Failed to retrieve files');
         }
-        res.status(200).send(files);
+        return res.status(200).send(files);
     });
 });
 
