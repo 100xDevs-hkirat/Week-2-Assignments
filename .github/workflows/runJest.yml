@@ -12,5 +12,6 @@ jobs:
       - uses: actions/checkout@v1
       - name: Run Tests
         run: |
+          cd 02-nodejs
           npm install 
           jest
