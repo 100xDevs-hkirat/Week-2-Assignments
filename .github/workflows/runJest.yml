@@ -1,0 +1,19 @@
+name: Unit Tests
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+    branches: [master]
+
+jobs:
+  Jest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run Tests
+        run: |
+          npm install
+          npm install express
+          npm install jest
+          jest
