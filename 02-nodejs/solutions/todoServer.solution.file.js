@@ -28,18 +28,7 @@ app.get('/todos', (req, res) => {
   });
 });
 
-app.get('/todos/:id', (req, res) => {
-  fs.readFile("todos.json", "utf8", (err, data) => {
-    if (err) throw err;
-    const todos = JSON.parse(data);
-    const todoIndex = findIndex(todos, parseInt(req.params.id));
-    if (todoIndex === -1) {
-      res.status(404).send();
-    } else {
-      res.json(todos[todoIndex]);
-    }
-  });
-});
+
 
 app.post('/todos', (req, res) => {
   const newTodo = {
@@ -58,27 +47,7 @@ app.post('/todos', (req, res) => {
   });
 });
 
-app.put('/todos/:id', (req, res) => {
-  fs.readFile("todos.json", "utf8", (err, data) => {
-    if (err) throw err;
-    const todos = JSON.parse(data);
-    const todoIndex = findIndex(todos, parseInt(req.params.id));
-    if (todoIndex === -1) {
-      res.status(404).send();
-    } else {
-      const updatedTodo = {
-        id: todos[todoIndex].id,
-        title: req.body.title,
-        description: req.body.description
-      };
-      todos[todoIndex] = updatedTodo;
-      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
-        if (err) throw err;
-        res.status(200).json(updatedTodo);
-      });
-    }
-  });
-});
+
 
 app.delete('/todos/:id', (req, res) => {
 
@@ -103,4 +72,4 @@ app.use((req, res, next) => {
   res.status(404).send();
 });
 
-module.exports = app;
+app.listen(3000);
