@@ -9,7 +9,8 @@
     "test-todoServer": "./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
     "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
     "test-all": "./node_modules/jest/bin/jest.js ./tests/",
-    "dev" : "nodemon todoServer"
+    "dev" : "nodemon todoServer" ,
+    "dev2": "nodemon fileServer"
   },
   "keywords": [],
   "author": "",

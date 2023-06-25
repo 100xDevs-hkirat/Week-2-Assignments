@@ -1,0 +1,4 @@
+GET http://localhost:3000/files/a.txt
+
+###
+GET http://localhost:3000/files
