@@ -79,6 +79,7 @@ app.post("/login", function(req, res){
     if(user.username === userInput.username && user.password === userInput.password){
       isUserAuthorized = true;
       userData = user;
+      break;
     }
   }
   if(isUserAuthorized){
@@ -104,6 +105,7 @@ app.get("/data", function(req, res){
   for(let user of users){
     if(user.username === userNameInput && user.password === userPwdInput){
       isUserAuthorized = true;
+      break;
     }
   }
   if(isUserAuthorized){
