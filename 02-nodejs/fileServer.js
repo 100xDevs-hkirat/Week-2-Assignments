@@ -21,5 +21,54 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const port = 3000
+
+var fileNames = {
+  names: []
+}
+
+function readFileNames(err, files) {
+  if (err) {
+    console.log('Error reading directory:', err);
+    return;
+  }
+
+  // Iterate through the files
+  files.forEach((file) => {
+    console.log(file);
+    fileNames.names.push(file);
+  });
+}
+
+function getFileNames() {
+  const directoryPath = './files';
+
+  fs.readdir(directoryPath, readFileNames);
+  return fileNames;
+}
+
+function filesHandler(req, res) {
+
+  var fileNames = getFileNames();
+  res.status(200).send(fileNames);
+}
+
+app.get('/files', filesHandler)
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+
+app.get('/file/:filename', (req, res) => {
+  const filepath = path.join(__dirname, './files/', req.params.filename);
+
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
 
 module.exports = app;
