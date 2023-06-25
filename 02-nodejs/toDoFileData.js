@@ -1,18 +1,23 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-//const fs = require("fs");
+
 const app = express();
+const fs = require("fs");
+
+data = [];
 
 app.use(bodyParser.json());
-// app.listen(3000, () => {
-//   console.log(`Running on 3000`);
-//   console.log(`http://127.0.0.1:3000`);
-// });
-data = [];
+app.listen(3000, () => {
+  console.log(`Running on 3000`);
+  console.log(`http://127.0.0.1:3000`);
+});
 // For getting all the ToDos
 app.get("/todos", (req, res) => {
   console.log(data);
-  res.status(200).json(data);
+  fs.readFile("database.txt", "utf-8", (err, data) => {
+    console.log(data);
+    res.status(200).json(data);
+  });
 });
 
 // For Creating the ToDos
@@ -63,7 +68,7 @@ app.put("/todos/:id", (req, res) => {
     if (id == data[i].id) {
       found = true;
       data[i] = updatedData;
-      data[i].id = parseInt(id);
+      data[i].id = id;
       console.log(data[i]);
     }
   }
