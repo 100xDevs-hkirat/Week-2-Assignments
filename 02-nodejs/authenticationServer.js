@@ -28,10 +28,76 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
-
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express")
+  const PORT = 3000;
+  const app = express();
+  var bod = require('body-parser')
+  app.use(bod.json());
+  var people = []
+  var id = 1000
+  
+  function signup(req,res){
+      var det = req.body;
+      det["id"] = id
+      
+      console.log(id)
+      for (let i = 0; i < people.length; i++){
+          if(people[i].email == det.email){
+              res.status(400).send("User already exits")
+          }
+      }
+      people.push(det)
+      id = id+1
+      res.status(201).send("Signup successful")
+  }
+  
+  function login(req,res){
+      var det = req.body
+      for(var i =0;i<people.length;i++){
+          if(det["email"] == people[i].email && det["password"] == people[i].password){
+              res.json({
+                  firstName: people[i].firstName,
+                  lastName: people[i].lastName,
+                  email: people[i].email
+              })
+          }
+      }
+  
+      res.sendStatus(401)
+  }
+  
+  function dataa(req,res){
+      var email = req.headers.email
+      var pass = req.headers.password
+      var isa = false
+      for(var i =0;i<people.length;i++){
+          if(email === people[i].email && pass === people[i].password){
+                  isa = true
+                  break
+          }
+      }
+      if(isa === false){
+          res.status(401).send("Unauthorized")
+          return
+      }
+      var result = []
+      for(var i=0;i<people.length;i++){
+          result.push({
+              firstName: people[i].firstName,
+              lastName: people[i].lastName,
+              email: people[i].email
+          })
+      }
+      res.status(200).json({users:result})
+  }
+  app.post("/signup",signup)
+  app.post("/login",login)
+  app.get("/data",dataa)
+  function started(){
+      console.log("starteddd")
+  }
+  //app.listen(3000,started)
+  
+  
+  module.exports = app;
+  
