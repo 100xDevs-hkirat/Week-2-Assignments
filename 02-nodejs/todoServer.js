@@ -41,12 +41,21 @@
  */
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
 
-const todos = [];
+const todos = JSON.parse(fs.readFileSync("./files/todos.json", "utf-8"));
+
+function updateTodos() {
+  fs.writeFile("./files/todos.json", JSON.stringify(todos), "utf-8", (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
 
 app.get("/todos", (req, res) => {
   res.send(todos);
@@ -64,10 +73,14 @@ app.get("/todos/:id", (req, res) => {
 });
 
 app.post("/todos", (req, res) => {
-  const todo = req.body;
-  todo["id"] = Math.floor(Math.random() * 1000000);
+  const todo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description,
+  };
 
   todos.push(todo);
+  updateTodos();
 
   res.status(201).json(todo);
 });
@@ -79,6 +92,7 @@ app.put("/todos/:id", (req, res) => {
   if (todoIndex !== -1) {
     todos[todoIndex].title = req.body.title;
     todos[todoIndex].description = req.body.description;
+    updateTodos();
     res.json(todos[todoIndex]);
   } else {
     res.status(404).send("Not Found");
@@ -91,6 +105,7 @@ app.delete("/todos/:id", (req, res) => {
 
   if (todoIndex !== -1) {
     todos.splice(todoIndex, 1);
+    updateTodos();
     res.status(200).send("Successfully deleted");
   } else {
     res.status(404).send("Not Found");
