@@ -15,4 +15,4 @@ jobs:
           cd 02-nodejs
           npm install 
           npm install jest express
-          jest
+          npx jest
