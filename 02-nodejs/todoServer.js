@@ -39,11 +39,121 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
 const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+// todos is an array of objects, using index of array as id, id = index + 1
+const todos = [];
+
+let counter = 0;
+
+function getIndexById(id) {
+  id = +id;
+  for (let i = 0; i < todos.length; i++) {
+    if (todos[i].id === id) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+function getTodoById(id) {
+
+  let idx = getIndexById(id);
+
+
+  return (idx === -1) ? null : todos[idx];
+}
+
+function updateTodo(id, updates) {
+  const idx = getIndexById(id);
+
+  if (idx === -1) {
+    return null;
+  }
+
+  todos[idx].title = updates.title;
+  todos[idx].description = updates.description;
+
+  return todos[idx];
+
+}
+
+function deleteTodo(id) {
+  const idx = getIndexById(id);
+
+  if (id === -1) {
+    return null;
+  }
+
+  todos.splice(idx, 1);
+  return 1;
+}
+
+// task 1
+app.get('/todos', (req, res) => {
+  res.json(todos);
+})
+
+// task 2
+app.get('/todos/:id', (req, res) => {
+  const result = getTodoById(req.params.id);
+
+  if (result === null) {
+    res.status(404).send('id not found');
+  } else {
+    res.json(result);
+  }
+
+})
+
+// task 3
+app.post('/todos', (req, res) => {
+  ++counter;
+  const newTodo = {
+    id: counter,
+    title: req.body.title,
+    description: req.body.description,
+  }
+
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+
+})
+
+// task 4
+app.put('/todos/:id', (req, res) => {
+  const id = req.params.id;
+  const result = updateTodo(id, req.body);
+
+  if (result === null) {
+    res.status(404).send();
+  } else {
+    res.status(200).json(result);
+  }
+})
+
+// task 5
+app.delete('/todos/:id', (req, res) => {
+  const id = req.params.id;
+  const result = deleteTodo(id);
+
+  if (result === null) {
+    res.status(404).send();
+  } else {
+    res.json(todos);
+  }
+})
+
+
+// app.listen(3000, () => {
+//   console.log('server is on');
+// })
 
 module.exports = app;

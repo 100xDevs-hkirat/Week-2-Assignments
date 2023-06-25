@@ -32,6 +32,73 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const Users = [];
+
+let counter = 0;
+
+// task1 : signup
+app.post('/signup', (req, res) => {
+  const givenUser = req.body;
+
+  const existingUser = Users.filter((user) => user.email === givenUser.email);
+
+  if (existingUser.length) {
+    res.status(400).send('username already exists');
+  } else {
+    givenUser['id'] = ++counter;
+    Users.push(givenUser);
+    res.status(201).send("Signup successful")
+  }
+})
+
+// task2 : login
+app.post('/login', (req, res) => {
+  const givenDetails = req.body;
+
+  const user = Users.filter((user) => user.email === givenDetails.email && user.password === givenDetails.password);
+
+  if (!user.length) {
+    res.status(404).send('credentials are invalid');
+  } else {
+    const details = {
+      firstName: user[0].firstName,
+      lastName: user[0].lastName,
+      email: user[0].email
+    }
+    res.json(details);
+  }
+
+})
+
+app.get('/data', (req, res) => {
+
+
+  const check = Users.filter((user) => user.email === req.headers.email && user.password === req.headers.password);
+
+  if (!check.length) {
+    res.status(401).send('Unauthorized');
+  } else {
+    const users = [];
+    Users.forEach((user) => {
+      const currUser = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+      users.push(currUser);
+    })
+
+    res.json({ users });
+  }
+})
+
+// app.listen(PORT, () => {
+//   console.log('server is on');
+// })
 
 module.exports = app;
