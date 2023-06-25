@@ -24,7 +24,7 @@ describe('API Endpoints', () => {
           path: '/files'
         };
       const response = await sendRequest(options);
-
+      // console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.length).toBeGreaterThan(2);
     });
