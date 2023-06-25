@@ -42,52 +42,80 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {v4:uuidv4} = require('uuid');
+const fs = require("fs");
+const path = require("path");
 
 const validation = require('./todovalidation');
 const todo = require('./todovalidation');
 
-const port = 3000;
+const port = 3001;
 const app = express();
 
 app.use(bodyParser.json());
 
-let todos =[];
+let todosList =[];
+
+const todosFile = path.resolve(__dirname,'./files', 'todosFile.json');
+
+function WriteFile(todos){
+
+  fs.writeFile(todosFile, JSON.stringify(todos), (err)=>{
+    if(err){
+      console.log("error");
+      return; 
+    }
+    console.log("Successfully written todos to file");
+  });
+}
+function ReadFile(todos){
+ try {
+    todos = JSON.parse(fs.readFileSync(todosFile, 'utf-8'));
+    return todos;
+  } catch (error) {
+    console.error('Error reading file:', error);
+    throw error;
+  }
+  }
 
 app.post('/todos',(req, res)=>{
   let todo = req.body;
+  todosList = ReadFile(todosList);
   const {
     error
   } = validation.validate(req.body);
   if (error) {
-    res.status(422)
+    res.status(422)   
       .send(error.details[0].message);
   } else {
   
     todo.id = uuidv4();
-    todos.push(todo);
+    todosList.push(todo);
+    WriteFile(todosList);
     res.status(201).json({id :todo.id});
   }
 });
 
 app.get('/todos',(req, res)=>{
+  todosList= ReadFile(todosList);
+    
+    if(todosList.length === 0){
+    res.status(200).send('no todos, pls add some todos');
+    }
+  res.status(200).json(todosList);
   
-  if(todos.length ===0){
-    res.send('no todos, pls add some todos');
-  }
-  res.status(200).json(todos);
-
 });
 
 app.get('/todos/:id',(req, res)=>{
 
   let id = req.params.id;
   let todoFound = null;
+  todosList = ReadFile(todosList);
   if(id.length === 0){
     res.status(400).send('Bad Request');
   }
-  for(let i=0; i<todos.length; i++){
-    if(todos[i].id=== id){
-      todoFound = todos[i];
+  for(let i=0; i<todosList.length; i++){
+    if(todosList[i].id=== id){
+      todoFound = todosList[i];
       break;
     }
   }
@@ -101,12 +129,13 @@ app.put('/todos/:id', (req, res)=>{
   let id= req.params.id;
   let todoFound = null;
   let updatedTodo = req.body;
+  ReadFile(todosList);
   if(id.length ===0){
     res.status(400).send("Bad request");
   }
-  for(let i=0; i<todos.length; i++){
-    if(todos[i].id === id){
-      todoFound = todos[i];
+  for(let i=0; i<todosList.length; i++){
+    if(todosList[i].id === id){
+      todoFound = todosList[i];
       break;
     }
   }
@@ -116,6 +145,7 @@ app.put('/todos/:id', (req, res)=>{
     for(let key of keys){
       todoFound[key] = updatedTodo[key];
     }
+    WriteFile(todosList);
     res.status(200).send('todo item was found and updated');
   }
   res.status(404).send("Not Found");
@@ -124,19 +154,21 @@ app.put('/todos/:id', (req, res)=>{
 app.delete('/todos/:id',(req,res)=>{
   let id = req.params.id;
   let todoFound = null;
+  ReadFile(todosList);
   if(id.length ===0){
     res.status(400).send("Bad request");
   }
-  for(let i=0; i<todos.length; i++){
-    if(todos[i].id === id){
-      todoFound = todos[i];
+  for(let i=0; i<todosList.length; i++){
+    if(todosList[i].id === id){
+      todoFound = todosList[i];
       break;
     }
   }
   if(todoFound){
-    todos = todos.filter( (todo) => todo.id !== id)
-    let todo = todos.find((todo)=> todo.id === id);
+    todosList = todosList.filter( (todo) => todo.id !== id)
+    let todo = todosList.find((todo)=> todo.id === id);
     if(todo === undefined){
+      WriteFile(todosList);
       res.status(200).send('item was found and deleted');
     }
     else{
@@ -150,5 +182,5 @@ app.delete('/todos/:id',(req,res)=>{
 function start(){
   console.log(`started on the port: ${port}`);
 }
-//app.listen(port,start);
+app.listen(port,start);
 module.exports = app;
