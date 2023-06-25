@@ -21,6 +21,19 @@ const fs = require("fs");
 const path = require("path");
 const app = express();
 const bodyParser = require("body-parser");
+const directoryPath = path.join(__dirname + "files");
 app.use(bodyParser);
+
+app.get("/files", (req, res) => {
+    fs.readdir(directoryPath, (err, files) => {
+        if (err) {
+        } else {
+            files.forEach((file) => {
+                console.log(file);
+            });
+        }
+    });
+    res.send(200);
+});
 
 module.exports = app;
