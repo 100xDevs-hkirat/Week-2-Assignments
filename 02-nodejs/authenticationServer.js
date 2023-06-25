@@ -26,12 +26,93 @@
 
   - For any other route not defined in the server return 404
 
-  Testing the server - run `npm run test-authenticationServer` command in terminal
+  Testing the server - run ``npm run test-authenticationServer`` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+// app.use(bodyParser.json());
+app.use(express.json());
+
+const users = [];
+
+// Check if the username already exists in the array
+// const exists = users.some(user => user.username === username);
+
+//FOR USER COUNT--
+let userCount = 100000;
+
+//CALLBACK FUNCTION FOR THE /SIGNUP ROUTE
+function signUp(req, res) {
+  //RECIEVING THE BODY FROM REQUEST
+  const { email, password, firstName, lastName } = req.body;
+
+  //CHECK ALREADY EXIST OR NOT
+  const existingUser = users.find((user) => user.email === email);
+  if (existingUser) {
+    return res.status(400).json({ error: "Usernmae already exits" });
+  }
+
+  const newUser = {
+    id: userCount++,
+    email,
+    password,
+    firstName,
+    lastName,
+  };
+
+  users.push(newUser);
+
+  res.status(201).send("Signup successful");
+}
+
+function UserLogin(req, res) {
+  const { email, password } = req.body;
+
+
+  const user = users.find((user) => user.email === email);
+
+  if(user && user.password === password){
+    return res.status(200).json({
+      email: user.email,
+      firstName :user.firstName,
+      lastName : user.lastName
+    });
+  }
+  return res.status(401).json({});
+}
+
+function getData(req, res){
+  const { email, password } = req.headers;
+
+
+  const user = users.find((user) => user.email === email);
+
+  if(user && user.password === password){
+   let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+
+        res.json({
+          users
+      });
+  }}
+  return res.status(401).send('Unauthorized');
+
+}
+
+app.post("/signup", signUp);
+app.post("/login", UserLogin);
+app.get("/data",getData);
+// app.listen(PORT);
 
 module.exports = app;

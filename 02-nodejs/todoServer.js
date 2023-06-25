@@ -39,11 +39,90 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const PORT = 3001;
 
 const app = express();
 
 app.use(bodyParser.json());
+
+//WHOLE LIST AND ID FOR GENERATING
+let todoList = [];
+let userId = 10000;
+
+// GIVE ALL LIST IN RESPONSE
+app.get("/todos", (req, res) => {
+  res.status(200).json(todoList);
+});
+
+//FIND INDIVIDUAL TODO ITEM WITH ID AND GIVE RESPONSE WITH THAT TODO ITEM
+app.get("/todos/:id", (req, res) => {
+  const Id = req.params.id;
+  console.log(Id);
+
+  const todo = todoList.find((to) => to.id === parseInt(Id));
+  const todo1 = todoList.find((t) => t.id === parseInt(req.params.id));
+  console.log(todo);
+  console.log(todo1);
+
+  if (todo) {
+    res.json(todo);
+  } else {
+    res.status(404).send("TODO not found");
+  }
+});
+
+//ADDING TODO ITEM
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+
+  // WE CAN ALSO GENERATE UNIQUE ID LIKE THIS
+  // const id = Date.now().toString();
+  const newtodo = {
+    id: userId++,
+    title,
+    description,
+  };
+  todoList.push(newtodo);
+
+  console.log(newtodo);
+  console.log(todoList);
+
+  res.status(201).json(newtodo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id); // Convert id to a number
+  const index = todoList.findIndex((to) => to.id === id);
+
+  if (index === -1) {
+    res.status(404).send("TODO not found");
+  } else {
+    todoList[index].title = req.body.title;
+    todoList[index].description = req.body.description;
+    res.json(todoList[index]);
+    console.log(todoList);
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id); // Convert id to a number
+  const index = todoList.findIndex((to) => to.id === id);
+
+  if (index === -1) {
+    return res.status(404).send("NOT found");
+  }
+
+  todoList.splice(index, 1);
+  res.status(200).send("Todo deleted successfully");
+});
+
+app.listen(PORT);
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
 
 module.exports = app;
