@@ -44,6 +44,7 @@ const bodyParser = require('body-parser');
 const {v4:uuidv4} = require('uuid');
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 const validation = require('./todovalidation');
 const todo = require('./todovalidation');
@@ -51,6 +52,7 @@ const todo = require('./todovalidation');
 const port = 3001;
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 
 let todosList =[];
@@ -99,7 +101,7 @@ app.get('/todos',(req, res)=>{
   todosList= ReadFile(todosList);
     
     if(todosList.length === 0){
-    res.status(200).send('no todos, pls add some todos');
+    res.status(200).json(todosList);
     }
   res.status(200).json(todosList);
   
