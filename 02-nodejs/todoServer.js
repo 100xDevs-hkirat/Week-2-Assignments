@@ -40,12 +40,12 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const fs = require("node:fs/promises");
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 // let lastId;
 // ( () => {
