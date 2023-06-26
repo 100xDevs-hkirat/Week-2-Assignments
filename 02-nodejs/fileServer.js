@@ -16,10 +16,46 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
+const PORT = 3000;
 
+app.use(middleware);
+
+function middleware(req, res, next) {
+	if (req.url.startsWith("/files") || req.url.startsWith("/file/")) {
+		// May not be the right way to do it. But yeah all test are passing :).
+		next();
+	} else {
+		res.status(404).send("Route not found");
+	}
+}
+
+app.get("/files", (req, res) => {
+	fs.readdir(path.join(__dirname, "files"), (error, files) => {
+		if (error) {
+			res.status(500).send(error);
+		} else {
+			res.status(200).send(files);
+		}
+	});
+});
+
+app.get("/file/:fileName", (req, res) => {
+	const filePath = path.join("files", req.params.fileName);
+	fs.readFile(path.join(__dirname, filePath), "utf-8", (err, data) => {
+		if (err) {
+			res.status(404).send("File not found");
+		} else {
+			res.status(200).send(data);
+		}
+	});
+});
+
+// app.listen(PORT, () => {
+// 	console.log("Listening to port : " + PORT);
+// });
 
 module.exports = app;

@@ -39,11 +39,97 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
-
+const PORT = 3000;
 app.use(bodyParser.json());
+app.use(middleware);
+
+let counter = 0;
+
+let todoList = [];
+
+function middleware(req, res, next) {
+	if (req.url.startsWith("/todos")) {
+		next();
+	} else {
+		res.status(404).send("Invalid Route");
+	}
+}
+
+function createTodo(todo) {
+	counter++;
+	return { ...todo, id: counter };
+}
+
+function getTodo(id) {
+	return todoList.find((todo) => todo.id == id);
+}
+
+function updateTodo(id, todo) {
+	let isValidTodo = false;
+
+	todoList = todoList.map((todo) => {
+		if (todo.id == id) {
+			isValidTodo = true;
+			return { ...todo, id: id };
+		}
+		return todo;
+	});
+
+	return isValidTodo;
+}
+
+function deleteTodo(id) {
+	let newTodoList = todoList.filter((todo) => todo.id != id);
+
+	if (newTodoList.length != todoList.length) {
+		todoList = newTodoList;
+		return true;
+	}
+
+	return false;
+}
+
+app.get("/todos", (req, res) => {
+	res.status(200).send(todoList);
+});
+
+app.post("/todos", (req, res) => {
+	const obj = createTodo(req.body);
+	todoList.push(obj);
+	const returnObj = { id: obj.id };
+	res.status(201).send(returnObj);
+});
+
+app.get("/todos/:id", (req, res) => {
+	const todo = getTodo(req.params.id);
+	if (todo) {
+		res.status(200).send(todo);
+	} else {
+		res.status(404).send("Not Found");
+	}
+});
+
+app.put("/todos/:id", (req, res) => {
+	if (updateTodo(req.params.id, req.body)) {
+		res.status(200).send();
+	} else {
+		res.status(404).send("Not Found");
+	}
+});
+
+app.delete("/todos/:id", (req, res) => {
+	if (deleteTodo(req.params.id)) {
+		res.status(200).send();
+	} else {
+		res.status(404).send("Not Found");
+	}
+});
+
+app.listen(PORT, () => {
+	console.log("HI");
+});
 
 module.exports = app;
