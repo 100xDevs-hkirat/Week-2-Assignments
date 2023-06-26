@@ -13,7 +13,7 @@ todos = fs.readFileSync("todoData.json", "utf-8", (err) => {
 });
 todos = JSON.parse(todos);
 function creteId() {
-  var id = Math.floor(Math.random()) * 1000000;
+  var id = Math.floor(Math.random() * 1000000);
   return id;
 }
 // console.log(todos);
@@ -44,7 +44,9 @@ app.post("/todos", (req, res) => {
 
   todos.push(todoObject);
   fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
   });
   // console.log(todos);
   res.status(201).json({ id: todoObject.id });
@@ -69,7 +71,9 @@ app.put("/todos/:id", (req, res) => {
   };
   todos[indexOfTodo] = todoObject;
   fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
   });
   // console.log(todos);
   res.sendStatus(200);
@@ -85,7 +89,9 @@ app.delete("/todos/:id", (req, res) => {
     .slice(0, indexDel)
     .concat(todos.slice(indexDel, todos.length - 1));
   fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
   });
   // console.log(todos);
   res.sendStatus(200);

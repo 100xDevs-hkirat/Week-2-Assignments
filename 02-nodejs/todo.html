@@ -4,26 +4,103 @@
     </title>
 </head>
 <script>
+    function callbackDel(res){
+        res.json().then((data)=>{
+            let toRemoveParent = document.getElementById("todo-list")
+            let toRemoveChild = document.getElementById(`todo${data.id}`);
+            toRemoveParent.removeChild(toRemoveChild)
+            // toRemoveChild.parentNode.removeChild(toRemoveChild)
+            // if(toRemoveChild){
+            //     toRemoveChild.remove()
+            // }
+        })
+    }
+    function deleteTodo(id){
+        fetch("http://localhost:3000/todos/"+id,{
+            method:"DELETE",
+            headers:{
+                'Content-Type': 'application/json'
+            }
+        }).then(callbackDel)
+    }
     function parsedResponse(data) {
-        console.log(data);
+        // data = JSON.stringify(data);console.log(data);
+        for(let i in data){
+            // let todo = `<input type="checkbox" class="todo"></input> 
+            // ${data[i].title}`;
+            // let todo = `<button onclick="deleteTodo(${data[i].id})"><input type="checkbox" id="todo${data[i].id}"></input></button>${data[i].title}`;
+            // todoList.innerHTML += todo;
+            let parentElemnt = document.getElementById("todo-list");
+            let childEleemt = document.createElement("div")
+            let titleTodo = document.createElement("span")
+            let titleDes = document.createElement("span")
+            let delBtn = document.createElement("button")
+            delBtn.setAttribute("onclick",`deleteTodo(${data[i].id})`)
+            delBtn.innerText = "del"
+            titleTodo.innerText = data[i].title
+            titleDes.innerText = data[i].description
+            childEleemt.appendChild(titleTodo)
+            childEleemt.appendChild(titleDes)
+            childEleemt.appendChild(delBtn)
+            childEleemt.setAttribute("id",`todo${data[i].id}`)
+            parentElemnt.append(childEleemt)
+        }
+    }
+    function parsedResponsePost(data) {
+        
+        // let todoList = document.getElementById("todo-list");
+        // let todo = `<button onclick="deleteTodo(${data.id})"><input type="checkbox" id="todo${data.id}"></input></button>${data.title}`;
+        // todoList.innerHTML += todo;
+        let parentElemnt = document.getElementById("todo-list");
+            let childEleemt = document.createElement("div")
+            let titleTodo = document.createElement("span")
+            let titleDes = document.createElement("span")
+            let delBtn = document.createElement("button")
+            delBtn.setAttribute("onclick",`deleteTodo(${data.id})`)
+            delBtn.innerText = "del"
+            titleTodo.innerText = data.title
+            titleDes.innerText = data.description
+            childEleemt.appendChild(titleTodo)
+            childEleemt.appendChild(titleDes)
+            childEleemt.appendChild(delBtn)
+            childEleemt.setAttribute("id",`todo${data.id}`)
+            parentElemnt.append(childEleemt)
     }
 
-    function callback(resp) {
+    function callbackGet(resp) {
         resp.json().then(parsedResponse);
     }
+    function callback(resp) {
+        resp.json().then(parsedResponsePost);
+    }
 
-    function onPress() {
+    function onPressGet() {
         fetch("http://localhost:3000/todos", {
             method: "GET",
+        }).then(callbackGet)
+    }
+    function onPressPost() {
+        fetch("http://localhost:3000/todos", {
+            method: "POST",
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body:JSON.stringify({
+                "title": document.getElementById('title').value,
+                "description":document.getElementById("description").value
+            })
         }).then(callback)
     }
+    onPressGet();
 </script>
 <body>
     Todo title
     <input type="text" id="title"></input>
     <br><br>
     Todo description
-    <input type="text" id="title"></input>
+    <input type="text" id="description"></input>
     <br><br>
-    <button onclick="onPress()">send todo</button>
+    <button onclick="onPressPost()">send todo</button>
+    <!-- <button onclick="onPressGet()">Get todo</button> -->
+    <div id="todo-list"></div>
 </body>
