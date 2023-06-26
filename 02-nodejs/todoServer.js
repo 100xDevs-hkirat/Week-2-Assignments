@@ -122,8 +122,8 @@ app.use((req, res) => {
   res.status(404).json({ error: 'route not defined in the server' });
 });
 
-app.listen(port,(req,res)=>{
-  console.log(`app is listening on ${port}`);
-})
+// app.listen(port,(req,res)=>{
+//   console.log(`app is listening on ${port}`);
+// })
 
 module.exports = app;

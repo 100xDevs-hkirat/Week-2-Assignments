@@ -30,8 +30,65 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser=require("body-parser");
+const Port = 3000;
 const app = express();
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users=[];
 
+app.post('/signup',(req,res)=>{
+  var User=(req.body);
+  if(users.find(user=>user.email===User.email)){
+    res.sendStatus(400);
+  
+  }else{
+    users.push(User);
+    res.status(201).send("Signup successful");
+
+  }
+});
+app.post('/login',(req,res)=>{
+  var User=(req.body);
+  var user=users.find(user=>user.email===User.email&&user.password===User.password);
+  if(user){
+    res.json({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email
+  });
+  }
+  else{
+    res.sendStatus(401);
+
+  }
+});
+app.get('/data',(req,res)=>{
+  var email=req.headers.email;
+  var password=req.headers.password;
+  var user=users.find((user)=>user.email===email&&user.password===password);
+  if(user){
+    let usersToReturn = [];
+    users.forEach(user=>{
+usersToReturn.push({
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email
+})
+
+    })
+    res.json({users});
+  }else{
+    res.sendStatus(401);
+
+  }
+});
+
+app.use((req,res)=>{
+  res.status(404).json({error:'route not define in server'});
+})
+
+// app.listen(Port,(req,res)=>{
+//   console.log(`App is listening on port ${Port}`);
+// })
 module.exports = app;
