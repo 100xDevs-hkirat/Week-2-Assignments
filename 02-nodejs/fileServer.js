@@ -21,5 +21,29 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files', (req, res) => {
+  try {
+    let filenames = fs.readdirSync(__dirname + '/files/');
+    res.json(filenames);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve files' });
+  }
+})
+
+app.get('/file/:filename', (req, res) => {
+  let filename = req.params.filename;
+  try {
+    filePath = path.join(__dirname + '/files/' + filename);
+    let fileContents = fs.readFileSync(filePath, {encoding: 'utf-8'});
+    res.send(fileContents);
+  } catch (err) {
+    res.status(404).send(`File not found`)
+  }
+})
+
+// middleware for non-existent routes
+app.use( function(req, res, next) {
+  res.status(404).send(`Route not found`);
+});
 
 module.exports = app;
