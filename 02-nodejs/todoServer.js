@@ -42,10 +42,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
 const todos = JSON.parse(fs.readFileSync("./files/todos.json", "utf-8"));
 
@@ -118,5 +120,8 @@ function handleOtherRoutes(req, res, next) {
 
 app.use(handleOtherRoutes);
 
+app.listen(3080, () => {
+  console.log("Server started on port 3080");
+});
 
 module.exports = app;
