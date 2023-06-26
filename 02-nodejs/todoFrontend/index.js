@@ -1,3 +1,16 @@
+function handleDelete(id) {
+  console.log("Deleting");
+  fetch(`http://127.0.0.1:3080/todos/${id}`, {
+    method: "delete",
+  })
+    .then((response) => {
+      console.log(response);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
 function loadTodos() {
   fetch("http://127.0.0.1:3080/todos")
     .then((response) => response.json())
@@ -5,11 +18,11 @@ function loadTodos() {
       console.log("Fetched todos: ", data);
       let todoStr = ``;
       data.forEach((todo) => {
-        todoStr += `<li>Title: ${todo.title} <br> Description: ${todo.description}</li> <br>`;
+        todoStr += `<li>Title: ${todo.title} <br> Description: ${todo.description} <br> <button onclick="handleDelete(${todo.id})">Delete</button></li> <br>`;
       });
       document.getElementById("todos").innerHTML = `
-      <h2>Current Todos</h2>
-      <ul>${todoStr}</ul>`;
+        <h2>Current Todos</h2>
+        <ul>${todoStr}</ul>`;
     })
     .catch((err) => console.log(err));
 }
