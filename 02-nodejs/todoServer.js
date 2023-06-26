@@ -43,91 +43,87 @@ const PORT = 3000;
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
+const cors = require("cors");
+
 const app = express();
 
-// Global variables
-const filePath = "./todoData.json";
-const TODOS = [];
-
+app.use(cors());
 app.use(bodyParser.json());
-// Middleware for writing data into file
-app.use((req, res, next) => {
-  fs.writeFile(filePath, JSON.stringify(TODOS), (err) => {
-    if (err) {
-      return res.status("404").send("Error reading data");
-    }
-    next();
+
+app.get("/todos", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    res.json(JSON.parse(data));
   });
 });
 
-// Get all the TODOS
-app.get("/todos", (req, res) => {
-  res.status(200).json(TODOS);
-});
-
-// Reterive Specific todo by ID
 app.get("/todos/:id", (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  const todo = TODOS.find((todo) => todo.id == id);
-  console.log(todo);
-
-  if (todo) {
-    res.status(200).json(todo);
-  } else {
-    res.status(404).json({ error: "Todo not found" });
-  }
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    isID = todoArray.find((user) => user.id == req.params.id);
+    if (!isID) {
+      return res.status(404).json("Not Found");
+    }
+    res.status(200).json(isID);
+  });
 });
 
-// Create a new todo item
 app.post("/todos", (req, res) => {
-  const { title, completed, description } = req.body;
-
-  const newTodo = {
-    id: TODOS.length + 1,
-    title: title,
-    completed: completed,
-    description: description,
-  };
-
-  TODOS.push(newTodo);
-  res.status(201).json({ id: newTodo.id });
-});
-
-// Update Existing Todo by ID
-app.put("/todos/:id", (req, res) => {
-  const { id } = req.params;
   const { title, description } = req.body;
-  const todo = TODOS.find((todo) => todo.id == id);
-
-  if (todo) {
-    todo.title = title || todo.title;
-    todo.description = description || todo.description;
-    res.status(200).json({ message: "Todo updated successfully" });
-  } else {
-    res.status(404).json({ error: "Todo not found" });
-  }
+  const newTodo = {
+    id: Math.floor(Math.random() * 100000),
+    title,
+    description,
+  };
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    todoArray.push(newTodo);
+    fs.writeFile("./todoData.json", JSON.stringify(todoArray), (err) => {
+      if (err) throw err;
+      res.status(201).json(newTodo);
+    });
+  });
 });
 
-// Delete Todo
+app.put("/todos/:id", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    isUser = todoArray.find((user) => user.id == req.params.id);
+    if (!isUser) {
+      return res.status(404).json("Not Found");
+    }
+    const { title, completed, description } = req.body;
+    isUser.title = title || isUser.title;
+    isUser.completed = completed || isUser.completed;
+    isUser.description = description || isUser.description;
+    fs.writeFile("./todoData.json", JSON.stringify(todoArray), (err) => {
+      if (err) throw err;
+      res.status(201).json("todo Updated");
+    });
+  });
+});
+
 app.delete("/todos/:id", (req, res) => {
-  const { id } = req.params;
-  const todo = TODOS.find((todo) => todo.id == id);
-
-  if (todo) {
-    TODOS.filter((filterId) => filterId.id !== id);
-    res.status(200).json({ message: "Todo deleted successfully" });
-  } else {
-    res.status(404).json({ error: "404 Not Found" });
-  }
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    newTodo = todoArray.filter((isID) => isID.id != req.params.id);
+    fs.writeFile("./todoData.json", JSON.stringify(newTodo), (err) => {
+      if (err) throw err;
+      res.status(200).json("Todo Deleted");
+    });
+  });
 });
 
-// middleware for checking other routes
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
 });
-// app.listen(PORT, () => {
-//   console.log("server is running ");
-// });
 
-module.exports = app;
+app.listen(PORT, () => {
+  console.log("server is running ");
+});
+// module.exports = app;
