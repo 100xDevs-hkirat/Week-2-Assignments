@@ -22,12 +22,13 @@ const path = require('path');
 const app = express();
 
 app.get('/files', (req, res) => {
-  try {
-    let filenames = fs.readdirSync(__dirname + '/files/');
+  let filePath = path.join(__dirname + '/files/')
+  fs.readdir(filePath, (err, filenames) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to retrieve files' });
+    }
     res.json(filenames);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to retrieve files' });
-  }
+  });
 })
 
 app.get('/file/:filename', (req, res) => {
