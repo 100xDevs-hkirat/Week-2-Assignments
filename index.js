@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
+const { v4: uuid } = require("uuid");
 
 const app = express();
 
@@ -95,20 +96,18 @@ app.post("/todos", (req, res) => {
       .send({ error: "Title and description are required" });
   }
 
-  const todoId = todos.length + 1;
-
-  const dbTodo = {
-    id: todoId,
+  const newTodo = {
+    id: uuid(),
     title,
     description,
     completed,
   };
 
-  todos.push(dbTodo);
+  todos.push(newTodo);
 
   updateStore();
 
-  res.status(201).send({ id: todoId });
+  res.status(201).send(newTodo);
 });
 
 // 4. PUT /todos/:id
