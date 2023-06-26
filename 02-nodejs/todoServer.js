@@ -41,9 +41,72 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const {v4: uuidv4} = require("uuid");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const TODOS = [];
+
+app.post('/todos', (req, res) => {
+    const title = req.body.title;
+    const description = req.body.description;
+    const id = uuidv4();
+
+    const newTodo = {
+        id: id,
+        title: title,
+        description: description
+    };
+
+    TODOS.push(newTodo);
+
+    res.status(201).json(newTodo);
+});
+
+app.get('/todos', (req, res) => {
+    res.status(200).json(TODOS)
+})
+
+app.get('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const todo = TODOS.find((todo) => todo.id === id);
+    if(todo){
+        res.status(200).json(todo);
+    }else{
+        res.status(404).send('Not Found');
+    }
+});
+
+app.put('/todos/:id', (req, res) => {
+    const title = req.body.title;
+    const description = req.body.description;
+    const id = req.params.id;
+    const todo = TODOS.find((todo) => todo.id === id);
+    if(todo){
+        todo.title = title;
+        todo.description = description;
+        res.status(200).json(todo);
+    }else{
+        res.status(404).send('Not Found');
+    }
+});
+
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const indexToRemove = TODOS.findIndex(todo => todo.id === id);
+
+    if (indexToRemove !== -1) {
+        TODOS.splice(indexToRemove, 1);
+        res.status(200).send();
+    }else{
+        res.status(404).send('Not Found');
+    }
+});
+
+app.use((req, res) => {
+    res.status(404);
+})
 
 module.exports = app;

@@ -30,8 +30,83 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require('uuid');
+
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const USERS = [];
+
+async function authenticationMiddleware(req, res, next) {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const existingUser = USERS.find((user) => user.email === email);
+
+    if (existingUser && bcrypt.compareSync(password, existingUser.password)) {
+        req.token = await bcrypt.genSalt(10);
+        next();
+    } else {
+        res.status(401).send('Unauthorized');
+    }
+}
+
+app.post('/signup', (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+
+    const existingUser = USERS.find((user) => user.email === email);
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const userId = uuidv4();
+
+    const newUser = {
+        userId:userId,
+        email:email,
+        password:hashedPassword,
+        firstName:firstName,
+        lastName:lastName
+    };
+
+    if(!existingUser){
+        USERS.push(newUser);
+        res.status(201).send('Signup successful');
+    }else{
+        res.status(400).send("User Already Exists, please try logging in");
+    }
+});
+
+app.post('/login', authenticationMiddleware, (req, res) => {
+    const email = req.body.email;
+    const existingUser = USERS.find((user) => user.email === email);
+
+    res.status(200).json({
+        userId: existingUser.userId,
+        email: existingUser.email,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        token: req.token
+    });
+});
+
+app.get('/data', authenticationMiddleware,(req, res) => {
+    const usersList = []
+    for(let users of USERS){
+        usersList.push(users);
+    }
+    res.status(200).send(usersList);
+});
+
+app.use((req, res) => {
+    res.status(404).send('Not Found');
+});
+
+
 
 module.exports = app;
