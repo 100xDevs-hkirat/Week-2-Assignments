@@ -29,9 +29,71 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
+const express = require('express')
+const session = require('express-session')
+const PORT = 3000
+const app = express()
+const bodyParser = require('body-parser')
+const port = 3000
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json())
+app.use(
+  session({
+    secret: 'misty', // Replace with your own secret key
+    resave: false,
+    saveUninitialized: false,
+  })
+)
+const users = []
 
-module.exports = app;
+app.post('/signup', (req, res) => {
+  var username = req.body.username
+  var password = req.body.password
+  var firstName = req.body.firstName
+  var lastName = req.body.lastName
+  var user = {
+    username: username,
+    password: password,
+    firstName: firstName,
+    lastName: lastName,
+  }
+  var index = users.findIndex((user) => user.username === req.body.username)
+  if (index === -1) {
+    users.push(user)
+    res.status(201).send(user)
+  } else {
+    res.status(400).send('User already exists')
+  }
+})
+
+app.post('/login', (req, res) => {
+  username = req.body.username
+  password = req.body.password
+  var index = -1
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].username === username && users[i].password === password) {
+      index = i
+      break
+    }
+  }
+  if (index === -1) {
+    req.session.isAuthenticated = false
+    res.status(401).send('Invalid Credentials')
+  } else {
+    req.session.isAuthenticated = true
+    res.send('Login Successful')
+  }
+})
+
+app.get('/data', (req, res, next) => {
+  if (!req.session.isAuthenticated) {
+    res.status(401).send('Unauthorized')
+  } else {
+    res.send(users)
+  }
+})
+
+app.listen(port, () => {
+  console.log('App is running on port ' + port)
+})
+module.exports = app

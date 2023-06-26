@@ -39,11 +39,80 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
+const bodyParser = require('body-parser')
 
-const app = express();
+const app = express()
+const port = 3000
 
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 
-module.exports = app;
+let todos = []
+
+function findById(id) {
+  const foundTodo = todos.find((todo) => todo.id === id)
+  console.log(foundTodo)
+  return foundTodo
+}
+
+function deleteById(id) {
+  todos.splice(id, 1)
+}
+
+app.get('/todos', (req, res) => {
+  res.json(todos)
+})
+
+app.post('/todos', (req, res) => {
+  var id = Math.floor(Math.random() * 100)
+  var title = req.body.title
+  var description = req.body.description
+  newTodo = {
+    id: id,
+    title: title,
+    description: description,
+  }
+  todos.push(newTodo)
+  res.status(201).send(newTodo)
+})
+
+app.get('/todos/:id', (req, res) => {
+  var todo = findById(parseInt(req.params.id))
+  if (todo == undefined) {
+    res.status(404).send('Id not found')
+  }
+  console.log(todo)
+  res.json(todo)
+})
+
+app.put('/todos/:id', (req, res) => {
+  var id = parseInt(req.params.id)
+  var newTodo = findById(id)
+  if (newTodo == undefined) {
+    res.status(404).send('Todo is not present')
+  } else {
+    newTodo.title = req.body.title
+    newTodo.description = req.body.description
+    todos.push(newTodo)
+    res.send(newTodo)
+  }
+})
+
+app.delete('/todos/:id', (req, res) => {
+  var index = todos.findIndex((todo) => todo.id === parseInt(req.params.id))
+  if (index === -1) {
+    res.status(404).send('id not found!!')
+  }
+  var todo = todos[index]
+  deleteById(index)
+  res.send(todo)
+})
+
+app.use((req, res, next) => {
+  res.status(404).send('Page not found')
+})
+
+app.listen(port, () => {
+  console.log('App is running on port ' + port)
+})
+module.exports = app
