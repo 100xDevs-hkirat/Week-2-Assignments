@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+</head>
+<script>
+    function del(id) {
+        fetch('http://localhost:3000/todos/' + id, {
+            method: 'DELETE'
+        }).then((resp) => {
+            document.getElementById('i' + id).remove();
+        });
+    }
+
+    function getData() {
+        fetch("http://localhost:3000/todos", {
+            method: "GET",
+        }).then((resp)=>{
+            resp.json().then((data) => {
+                let div = document.getElementById('tasks');
+                for (let i = 0; i < data.length; i++) {
+                    var chdiv = document.createElement('div');
+                    chdiv.style.border = '3px solid';
+                    chdiv.style.padding = '5px';
+                    chdiv.style.margin = '10px';
+
+                    chdiv.setAttribute('id', 'i'+data[i].id);
+
+                    var title = document.createElement("span");
+                    title.innerHTML = '<b style="color:blue">Title: </b>' + data[i].title + ', ';
+
+                    var description = document.createElement("span");
+                    description.innerHTML = '<b style="color:blue">Description: </b>' + data[i].description;
+                
+                    var delB = document.createElement("button");
+                    delB.innerHTML = "Delete"
+                    delB.setAttribute('onclick', 'del(' + data[i].id + ')');
+
+                    chdiv.appendChild(title)
+                    chdiv.appendChild(description)
+                    chdiv.appendChild(delB)
+
+                    div.appendChild(chdiv);
+                }
+            });
+        });
+    }
+
+    getData();
+
+    
+    function postit() {
+        fetch('http://localhost:3000/todos', {
+            method:'POST',
+            body: JSON.stringify({
+                title:document.getElementById('tit').value,
+                description: document.getElementById('descr').value
+            }),
+            headers: {
+            "Content-Type": "application/json"
+            }
+        }).then((resp)=>{
+            resp.json().then((data)=>{
+                let div = document.getElementById('tasks');
+                var chdiv = document.createElement('div');
+                chdiv.setAttribute('id', 'i' + data.id);
+                chdiv.style.padding = '5px';
+                chdiv.style.margin = '10px';
+
+                chdiv.style.color = 'blue';
+
+                var title = document.createElement("span");
+                title.innerHTML = '<b style="color:blue">Title: </b>' + data.title + ', ';
+                    
+
+                var description = document.createElement("span");
+                description.innerHTML = '<b style="color:blue">Description: </b>'+data.description;
+
+                var delB = document.createElement("button");
+                delB.setAttribute('onclick', 'del(' + data.id + ')');
+                
+                delB.innerHTML = "Delete"
+
+                chdiv.appendChild(title)
+                chdiv.appendChild(description)
+                chdiv.appendChild(delB)
+
+                div.appendChild(chdiv);
+            });
+        });
+    }
+</script>
+<body>
+    <form action="" style="border:2px solid; border-radius: 5px; display:inline-flex; flex-direction: column; padding:15px">
+        <label id="title">Title: </label>
+        <input type="text" for="title" name="title" id="tit">
+        <br><br>
+        <label id="desc">Description: </label>
+        <input type="text", for="desc" name="description" id="descr">
+        <br><br>
+        <button type="submit" onclick="postit()">SUBMIT</button>
+    </form>
+
+    <div id="tasks" style="display:inline-flex; flex-direction: column; padding:15px"></div>
+</body>
+</html>
+
