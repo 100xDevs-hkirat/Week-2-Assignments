@@ -29,9 +29,73 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const usersArray = [];
+let uniqueID = 1;
+const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+
+app.use(bodyParser.json());
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  try {
+    for (let i = 0; i < usersArray.length; i++) {
+      if (usersArray[i].email === email) {
+        res.status(400).json({ message: "email already exists" });
+      }
+    }
+    const newUser = {
+      id: uniqueID,
+      email: email,
+      password: password,
+      firstName: firstName,
+      lastName: lastName,
+    };
+    usersArray.push(newUser);
+    res.status(201).send("Signup successful");
+    uniqueID++;
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const validUser = usersArray.find((singleUser) => {
+      if (singleUser.email === email && singleUser.password === password) {
+        return true;
+      }
+    });
+    if (validUser) {
+      res.status(200).send("Login successful");
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+    // for (let i = 0; i < usersArray.length; i++) {
+    //   if (
+    //     usersArray[i].email === email &&
+    //     usersArray[i].password === password
+    //   ) {
+    //     const payload = {
+    //       email: email,
+    //     };
+    //     const token = jwt.sign(payload, process.env.TOKEN_SECRET, {
+    //       expiresIn: process.env.TOKEN_EXPRATION_TIME,
+    //     });
+    //     return res.send("Success");
+    //   }
+    // }
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+// app.listen(PORT);
 
 module.exports = app;
