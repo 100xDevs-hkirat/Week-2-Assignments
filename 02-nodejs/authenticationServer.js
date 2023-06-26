@@ -30,8 +30,116 @@
  */
 
 const express = require("express")
+var bodyParser=require('body-parser');
+const { use } = require("./authenticationServer");
+
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+let userDetails=[];
+app.post('/signup',(req,res)=>{
+  let oneUse=req.body;
+  
+  let condition=true;
+
+  for(let i=0;i<userDetails.length;i++){
+    
+    if(userDetails[i].email===oneUse.email){
+
+    condition=false;
+    break;
+     
+    }
+  }
+ if(condition){
+  userDetails.push(oneUse);
+  
+  res.status(201).send("Signup successful");
+
+ }else{
+  res.status(400).send("Bad Request");
+ }
+  
+})
+
+
+app.post('/login',(req,res)=>{
+  let oneUse=req.body;
+  let userfound=null;
+  for(let i=0;i<userDetails.length;i++){
+    let userid=userDetails[i].email;
+    let pd=userDetails[i].password;
+
+    if(oneUse.email===userid && oneUse.password===pd){
+      
+      userfound=userDetails[i];
+      break;
+    }
+
+
+  }
+  if(userfound){
+   res.json({firstName:userfound.firstName,
+  lastName:userfound.lastName,
+  email:userfound.email
+});
+    
+  }else{
+    res.status(401).send("invalid Credentials");
+  }
+
+})
+
+function checkValidity(req,res,next){
+   let userID=req.headers.email;
+   let pd=req.headers.password;
+   let validUser=false;
+
+   for(let i=0;i<userDetails.length;i++){
+      if(userDetails[i].email===userID && userDetails[i].password===pd){
+        validUser=true;
+        break;
+      }
+
+
+   }
+   if(validUser){
+    next();
+   }else{
+    res.sendStatus(401);
+   }
+
+
+}
+
+app.get('/data',checkValidity,(req,res)=>{
+
+
+  let ans=[];
+  for(let i=0;i<userDetails.length;i++){
+    ans.push({
+      firstName: userDetails[i].firstName,
+    lastName: userDetails[i].lastName,
+  email: userDetails[i].email
+    });
+
+  }
+  res.send({users:ans});
+
+})
+
+// app.get('/',(req,res)=>{
+//   res.send("hello world")
+// })
+
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`)
+// })
+
+
+
+
+
 
 module.exports = app;
