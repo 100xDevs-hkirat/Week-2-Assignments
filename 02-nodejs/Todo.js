@@ -13,14 +13,32 @@
   - `npm run test-todo-list`
 */
 
+const fs = require('fs');
+
 class Todo {
     constructor() {
         this.todos = [];
+        this.filename = './todos.json';
+        this.loadTodos();
+    }
+
+    loadTodos() {
+        if (fs.existsSync(this.filename)) {
+            const data = fs.readFileSync(this.filename, 'utf8');
+            if(data){
+                this.todos = JSON.parse(data);
+            }
+        }
+    }
+
+    saveTodos() {
+        fs.writeFileSync(this.filename, JSON.stringify(this.todos), 'utf8');
     }
 
     add(todo) {
         const newTodo = { ...todo, id: this.generateId() };
         this.todos.push(newTodo);
+        this.saveTodos();
     }
 
     remove(idInput) {
@@ -29,7 +47,8 @@ class Todo {
         });
         if (index >= 0 && index < this.todos.length) {
             this.todos.splice(index, 1);
-        }else{
+            this.saveTodos();
+        } else {
             return -1;
         }
     }
@@ -40,8 +59,9 @@ class Todo {
         });
         if (index >= 0 && index < this.todos.length) {
             this.todos[index] = { ...updatedTodo, id: this.todos[index].id };
+            this.saveTodos();
             return index;
-        }else{
+        } else {
             return -1;
         }
     }
@@ -62,6 +82,7 @@ class Todo {
 
     clear() {
         this.todos = [];
+        this.saveTodos();
     }
 
     generateId() {
@@ -70,7 +91,6 @@ class Todo {
         return `${timestamp}-${randomId}`;
     }
 }
-
 
 
 /**const myTodoList = new Todo();

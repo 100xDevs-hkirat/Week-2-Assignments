@@ -41,9 +41,13 @@
  */
 const Todo = require('./Todo')
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
-//const port = 3000;
+const port = 3000;
+
+// Enable CORS
+app.use(cors());
 
 app.use(bodyParser.json());
 
@@ -146,7 +150,7 @@ function started() {
     console.log(`Example app listening on port ${port}`);
 }
 
-//app.listen(port, started);
+app.listen(port, started);
 
 // for all other routes, return 404
 app.use((req, res, next) => {
