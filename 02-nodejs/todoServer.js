@@ -76,7 +76,7 @@ async function addTodoItem(req, res) {
 // get
 async function getAllTodos(req, res) {
   let fileSize = (await fs.stat('./todoData.txt', )).size;
-  if(fileSize == 0) {
+  if(fileSize != 0) {
     res.status(404).send();
     return;
   }
