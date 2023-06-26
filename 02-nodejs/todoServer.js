@@ -46,4 +46,82 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos = [];
+
+function findId(id,todos) {
+    for (let i=0; i<todos.length; i++) {
+        if(todos[i].id === id) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function removeTodo(index,todos) {
+    let newTodos = [];
+    for (let i=0; i<todos.length; i++) {
+        if(i !== index) {
+            newTodos.push(todos[i]);
+        }
+    }
+    return newTodos;
+}
+app.get("/todos", (req,res) => {
+    res.json(todos);
+});
+
+app.get('/todos/:id', (req,res) => {
+    const id = parseInt(req.params.id);
+    const index = findId(id,todos);
+    if(index == -1) {
+        res.status(404).send();
+    } else {
+        res.status(200).json(todos[index]);
+        // res.json(todos[todoIndex]);
+    }
+});
+
+app.post("/todos", (req,res) => {
+    const id = Math.floor(Math.random() * 1000);
+    const newtodos = {
+        id : id,
+        title : req.body.title,
+        description : req.body.description,
+        completed : req.body.completed
+    }
+    todos.push(newtodos);
+    // console.log(todos);
+    res.status(201).send({id});
+});
+
+app.put("/todos/:id", (req,res) => {
+    const id = parseInt(req.params.id);
+    const index = findId(id,todos);
+    if(index == -1) {
+        res.status(404);
+    } else {
+        todos[index].title = req.body.title;
+        todos[index].completed = req.body.completed;
+        res.sendStatus(200);
+    }
+});
+
+app.delete("/todos/:id", (req,res) => {
+    let id = parseInt(req.params.id);
+    // console.log(id);
+    const index = findId(id,todos);
+    if( index == -1) {
+        res.status(404).send();
+    } else {
+        todos = removeTodo(index,todos);
+        res.status(200).send(todos);
+    }
+});
+
+app.use((req, res, next) => {
+    res.status(404).send();
+});
+
+// app.listen(3000);
+
 module.exports = app;
