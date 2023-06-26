@@ -40,15 +40,59 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs= require('fs');
 const bodyParser = require('body-parser');
 const {v4:uuidv4}=require('uuid')
 const port = 3000;
 const app = express();
-const taskToId=new Map();
-const idToTask=new Map();
+// var taskToId=new Map();
+var idToTask=new Map();
+
+loadFromFiles();
 
 
 app.use(bodyParser.json());
+
+
+ function saveToFiles(){
+
+  const data2=JSON.stringify(Array.from(idToTask.entries()));
+
+  fs.writeFile('./files/idToTask.txt',data2,(err)=>{
+    if(err){
+    console.error("Error writing the data to the file");
+    return;
+    }
+    console.log("File written successfully")
+  })
+
+
+}
+
+
+function loadFromFiles(){
+
+  fs.readFile("./files/idToTask.txt",'utf8',(err,filedata)=>{
+
+    if(err){
+      console.error("couldn't read the file");
+      return;
+    }
+    if(filedata.trim().length>0){
+      idToTask.clear();
+      let loadedMap=new Map(JSON.parse(filedata));
+      loadedMap.forEach((value,key)=>{
+        idToTask.set(key,value);
+      })
+    }
+
+  })
+
+
+
+}
+
+
 
 
 app.delete('/todos/:id',(req,res)=>{
@@ -56,7 +100,9 @@ app.delete('/todos/:id',(req,res)=>{
 
 
   if(idToTask.has(id)){
+    let task=idToTask[id];
     idToTask.delete(id);
+    saveToFiles();
     res.send(`Task with id ${id} deleted successfully `);
   }
   else
@@ -93,9 +139,7 @@ app.put('/todos/:id',(req,res)=>{
     let task=req.body;
     let old_task=idToTask.get(id);
     idToTask.set(id,task);
-    taskToId.delete(old_task);
-    taskToId.set(task,id);
-
+    saveToFiles();
     res.send('Updated successfully to \n'+JSON.stringify(task));
   }
 
@@ -108,7 +152,7 @@ app.put('/todos/:id',(req,res)=>{
 
 app.get('/todos',(req,res)=>{
 
-  res.send(Array.from(taskToId.keys()));
+  res.send(Array.from(idToTask.values()));
 });
 
 
@@ -120,11 +164,10 @@ app.post('/todos',(req,res)=>{
   todo_task.id=id;
 
   idToTask.set(id,todo_task);
-  taskToId.set(todo_task,id);
   res.statusCode=201;
 
   console.log(idToTask);
-  console.log(taskToId);
+  saveToFiles();
 
   res.send({
      id:id
