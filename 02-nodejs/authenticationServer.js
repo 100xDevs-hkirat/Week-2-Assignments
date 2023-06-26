@@ -30,8 +30,91 @@
  */
 
 const express = require("express")
+const {v4:uuidv4}=require('uuid')
 const PORT = 3000;
 const app = express();
+const userToDetails={};
+
+
+app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+isAuthenticated=(req,res,next)=>{
+  let userName=req.headers.email;
+  let password=req.headers.password;
+
+
+
+  if(!(userName in userToDetails) || password!=userToDetails[userName].password)
+    return res.status(401).send("Unauthorized");
+
+  return next();
+
+}
+
+app.get('/data',isAuthenticated,(req,res)=>{
+
+  userList=[];
+  for(let user in userToDetails)
+  {
+    console.log("cur user is "+user);
+    let curUser={
+      firstname:userToDetails[user]["firstName"],
+      lastname:userToDetails[user]["lastName"],
+      email:userToDetails[user]["email"]
+      }
+    userList.push(curUser);
+  }
+
+  res.json({users:userList});
+
+
+})
+
+
+app.post('/login',(req,res)=>{
+  let userName=req.body.email;
+  let password=req.body.password;
+
+  console.log(`username ${userName} password ${password}`);
+
+  console.log(userToDetails);
+
+  if(!(userName in userToDetails) || password!=userToDetails[userName].password)
+      return res.status(401).send("Invalid username or password");
+
+
+  res.json({
+    firstName:userToDetails[userName]["firstName"],
+    lastName:userToDetails[userName]["lastName"],
+    email:userToDetails[userName].email
+  })
+
+})
+
+
+app.post('/signup',(req,res)=>{
+let userDetails=req.body;
+let userName=userDetails.email;
+
+if(userName in userToDetails)
+  return res.status(404).send("User already exists");
+
+let userId=uuidv4();
+userDetails.id=userId;
+userToDetails[userName]=userDetails;
+console.log(userToDetails);
+res.status(201).send('Signup successful');
+
+})
+
+app.all('*',(req,res)=>{
+  res.status(404).send("Route not found");
+})
+
+// app.listen(PORT,()=>{
+//   console.log("Listening on port "+PORT);
+// })
+
 
 module.exports = app;

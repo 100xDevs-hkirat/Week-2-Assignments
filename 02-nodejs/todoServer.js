@@ -10,26 +10,26 @@
     Description: Returns a list of all todo items.
     Response: 200 OK with an array of todo items in JSON format.
     Example: GET http://localhost:3000/todos
-    
+
   2.GET /todos/:id - Retrieve a specific todo item by ID
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
+
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -41,9 +41,100 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const {v4:uuidv4}=require('uuid')
+const port = 3000;
 const app = express();
+const taskToId=new Map();
+const idToTask=new Map();
+
 
 app.use(bodyParser.json());
+
+
+app.delete('/todos/:id',(req,res)=>{
+  let id=req.params.id;
+
+
+  if(idToTask.has(id)){
+    idToTask.delete(id);
+    res.send(`Task with id ${id} deleted successfully `);
+  }
+  else
+  {
+    res.statusCode=404;
+    res.send(`Couldn't find task with id ${id} , to delete`);
+  }
+
+
+});
+
+
+
+
+app.get('/todos/:id',(req,res)=>{
+  let id=req.params.id;
+
+  if(idToTask.has(id)){
+     res.statusCode=200;
+    res.send(idToTask.get(id));
+  }
+  else{
+    res.statusCode=404;
+    res.send(`Task Not found for id ${id}`);
+  }
+
+});
+
+app.put('/todos/:id',(req,res)=>{
+  let id=req.params.id;
+
+  if(idToTask.has(id))
+  {
+    let task=req.body;
+    let old_task=idToTask.get(id);
+    idToTask.set(id,task);
+    taskToId.delete(old_task);
+    taskToId.set(task,id);
+
+    res.send('Updated successfully to \n'+JSON.stringify(task));
+  }
+
+  else{
+    res.statusCode=404;
+    res.send("Object not found")
+  }
+
+});
+
+app.get('/todos',(req,res)=>{
+
+  res.send(Array.from(taskToId.keys()));
+});
+
+
+app.post('/todos',(req,res)=>{
+  let todo_task=req.body;
+  console.log(todo_task);
+
+  let id=uuidv4();
+  todo_task.id=id;
+
+  idToTask.set(id,todo_task);
+  taskToId.set(todo_task,id);
+  res.statusCode=201;
+
+  console.log(idToTask);
+  console.log(taskToId);
+
+  res.send({
+     id:id
+  });
+
+})
+
+
+// app.listen(port,()=>{
+//   console.log(`Todo App listening on port ${port}`)
+// })
 
 module.exports = app;
