@@ -14,14 +14,14 @@
 
   2. POST /login - User Login
     Description: Gets user back their details like firstname, lastname and id
-    Request Body: JSON object with username and password fields.
+    Request Body: JSON object with *- and password fields.
     Response: 200 OK with an authentication token in JSON format if successful, or 401 Unauthorized if the credentials are invalid.
     Example: POST http://localhost:3000/login
 
   3. GET /data - Fetch all user's names and ids from the server (Protected route)
-    Description: Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
+    : Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
     The users username and password should be fetched from the headers and checked before the array is returned
-    Response: 200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
+    Response: Description200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
     Example: GET http://localhost:3000/data
 
   - For any other route not defined in the server return 404
@@ -33,5 +33,22 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users = [];
+app.use(express.json())
+app.post("/signup", (req, res) => {
+  var user = req.body;
+  let userAlreadyExists = false;
+  for(let i =0; i < users.length; i++) {
+    if(user[i].email === user.email) {
+      userAlreadyExists = true;
+      break;
+    }
+  }
+  if(userAlreadyExists) {
+    res.sendStatus(400)
+  } else {
+    res.send(200).send("Signup Successfully");
+  }
+})
 
 module.exports = app;
