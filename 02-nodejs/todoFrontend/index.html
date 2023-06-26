@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo</title>
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <div style="width: fit-content; margin: auto; text-align: center;">
+        <h1>Todo List</h1>
+        <br>
+        <form>
+            <label>
+                <p>Todo title </p>
+                <input type="text" placeholder="enter todo" required>
+            </label>
+            <label>
+                <p>Todo description </p>
+                <textarea cols="30" rows="10" placeholder="enter description" required></textarea>
+            </label>
+            <br>
+            <br>
+            <button type="submit">Add Todo</button>
+        </form>
+    
+        <br>
+
+        <div id="todos">
+            <h2>Current Todos</h2>
+            <ul></ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -39,11 +39,89 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
+
+const todos = JSON.parse(fs.readFileSync("./files/todos.json", "utf-8"));
+
+function updateTodos() {
+  fs.writeFile("./files/todos.json", JSON.stringify(todos), "utf-8", (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+app.get("/todos", (req, res) => {
+  res.send(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const todo = todos.filter((t) => t.id === id);
+
+  if (todo.length === 0) {
+    res.status(404).send();
+  } else {
+    res.json(todo[0]);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const todo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description,
+  };
+
+  todos.push(todo);
+  updateTodos();
+
+  res.status(201).json(todo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const todoIndex = todos.findIndex((t) => t.id === id);
+
+  if (todoIndex !== -1) {
+    todos[todoIndex].title = req.body.title;
+    todos[todoIndex].description = req.body.description;
+    updateTodos();
+    res.json(todos[todoIndex]);
+  } else {
+    res.status(404).send("Not Found");
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const todoIndex = todos.findIndex((t) => t.id === id);
+
+  if (todoIndex !== -1) {
+    todos.splice(todoIndex, 1);
+    updateTodos();
+    res.status(200).send("Successfully deleted");
+  } else {
+    res.status(404).send("Not Found");
+  }
+});
+
+function handleOtherRoutes(req, res, next) {
+  res.status(404).send("Route not found");
+}
+
+app.use(handleOtherRoutes);
+
+app.listen(3080, () => {
+  console.log("Server started on port 3080");
+});
 
 module.exports = app;
