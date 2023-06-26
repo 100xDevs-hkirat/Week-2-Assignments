@@ -32,11 +32,9 @@ function createTodo() {
       }),
     })
       .then((res) => res.json())
-      .then(() => {
+      .then((data) => {
         console.log("Todo Created ✅");
-
-        // refetch todos
-        getTodos();
+        makeTodoCard(data.title, data.description, data.id);
 
         // clear title and description on successful creation
         title.value = "";
