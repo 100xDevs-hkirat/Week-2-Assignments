@@ -11,7 +11,7 @@ function getTodos() {
     .then((res) => res.json())
     .then((todos) => {
       todos.forEach((todo) => {
-        makeTodoCard(todo.title, todo.description, todo.id);
+        makeTodoCard(todo);
       });
     });
 }
@@ -32,9 +32,9 @@ function createTodo() {
       }),
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then((newTodo) => {
         console.log("Todo Created ✅");
-        makeTodoCard(data.title, data.description, data.id);
+        makeTodoCard(newTodo);
 
         // clear title and description on successful creation
         title.value = "";
@@ -68,11 +68,9 @@ function editTodo(id) {
       body: JSON.stringify(updated),
     })
       .then((res) => res.json())
-      .then(() => {
+      .then((updatedTodo) => {
         console.log("Todo Updated ✅");
-
-        // refetch todos
-        getTodos();
+        updateTodoInDom(updatedTodo);
       });
   } else {
     alert("One of Title, description is required");
@@ -86,19 +84,18 @@ function deleteTodo(id) {
     .then((res) => res.json())
     .then(() => {
       console.log("Todo Deleted ✅");
-
-      // refetch todos
-      getTodos();
+      deleteTodoFromDom(id);
     });
 }
 
-// ------------------------------------------------------------------
+// -------------------------DOM Manipulations-----------------------------------------
 
 // Create Todo Card and Append it to div with class todo-list
-function makeTodoCard(title, description, id) {
+function makeTodoCard({ title, description, id }) {
   // create div with todo-item class
   const todoItem = document.createElement("div");
   todoItem.classList.add("todo-item");
+  todoItem.id = id;
 
   // create title and description <span> elements
   const todoItemTitle = document.createElement("span");
@@ -142,4 +139,30 @@ function makeTodoCard(title, description, id) {
   // push todo-item to todo-list
   const todoList = document.getElementById("todo-list");
   todoList.appendChild(todoItem);
+}
+
+function deleteTodoFromDom(id) {
+  // identify the deleted to with id ( which is set in makeTodoCard )
+  const todoItem = document.getElementById(id);
+
+  // get the todo list
+  const todoList = document.getElementById("todo-list");
+
+  // remove the respective todo
+  todoList.removeChild(todoItem);
+}
+
+function updateTodoInDom({ id, title, description }) {
+  // identify the deleted to with id ( which is set in makeTodoCard )
+  const todoItem = document.getElementById(id);
+
+  // update title
+  const todoItemTitle = todoItem.querySelector("span.todo-item-title");
+  todoItemTitle.innerText = title;
+
+  // update description
+  const todoItemDescription = todoItem.querySelector(
+    "span.todo-item-description"
+  );
+  todoItemDescription.innerText = description;
 }
