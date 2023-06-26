@@ -29,9 +29,99 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
+const bodyParser = require("body-parser");
+
 const app = express();
+
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+let usersList = [];
+
+function authorize(email, password) {
+  for (let i = 0; i < usersList.length; i++) {
+    if (email == usersList[i].email) {
+      if (password == usersList[i].password) {
+        return i;
+      } else {
+        return -1;
+      }
+    }
+  }
+
+  return -1;
+}
+
+app.post("/signup", (req, res) => {
+  let id = Math.floor(Math.random() * 1000000);
+  let email = req.body.email;
+  let password = req.body.password;
+  let firstName = req.body.firstName;
+  let lastName = req.body.lastName;
+
+  for (let i = 0; i < usersList.length; i++) {
+    if (email == usersList[i].email) {
+      res.sendStatus(400);
+      return;
+    }
+  }
+
+  usersList.push({
+    id: id,
+    email: email,
+    password: password,
+    firstName: firstName,
+    lastName: lastName,
+  });
+
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+
+  let index = authorize(email, password);
+
+  if (index != -1) {
+    let user = usersList[index];
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res) => {
+  let email = req.headers.email;
+  let password = req.headers.password;
+  
+  let index = authorize(email, password);
+
+  if (index != -1) {
+    users = [];
+
+    usersList.forEach(user => users.push({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
+    }));
+
+    res.json({users:users});
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+// middleware for non-existent routes
+app.use( function(req, res, next) {
+  res.status(404).send(`Route not found`);
+});
 module.exports = app;

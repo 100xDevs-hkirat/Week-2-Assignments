@@ -46,4 +46,72 @@ const app = express();
 
 app.use(bodyParser.json());
 
+todos = []
+
+app.get('/todos', (req, res) => {
+  res.json(todos);
+})
+
+app.get('/todos/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  for(let i = 0; i < todos.length; i++) {
+    if (id === todos[i].id) {
+      res.json(todos[i]);
+      return;
+    }
+  }
+
+  res.sendStatus(404);
+})
+
+app.post('/todos', (req, res) => {
+  const id = Math.floor(Math.random() * 1000000);
+  const title = req.body.title;
+  const description = req.body.description;
+  const completed = req.body.completed;
+
+  todos.push(
+    {
+      id: id,
+      title: title,
+      description: description,
+      completed: completed
+    }
+  )
+
+  res.status(201).send({id})
+})
+
+app.put('/todos/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const title = req.body.title;
+  const completed = req.body.completed;
+
+  for(let i = 0; i < todos.length; i++) {
+    if (id === todos[i].id) {
+      todos[i].title = title;
+      todos[i].completed = completed;
+      res.sendStatus(200);
+      return;
+    }
+  }
+
+  res.sendStatus(404);
+})
+
+app.delete('/todos/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  for(let i = 0; i < todos.length; i++) {
+    if (id === todos[i].id) {
+      todos.splice(i, 1);
+      res.sendStatus(200);
+      return;
+    }
+  }
+
+  res.sendStatus(404);
+})
+
 module.exports = app;
