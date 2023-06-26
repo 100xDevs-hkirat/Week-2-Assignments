@@ -39,11 +39,91 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const PORT = 3000;
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 
-module.exports = app;
+app.get("/todos", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    res.json(JSON.parse(data));
+  });
+});
+
+app.get("/todos/:id", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    isID = todoArray.find((user) => user.id == req.params.id);
+    if (!isID) {
+      return res.status(404).json("Not Found");
+    }
+    res.status(200).json(isID);
+  });
+});
+
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+  const newTodo = {
+    id: Math.floor(Math.random() * 100000),
+    title,
+    description,
+  };
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    todoArray.push(newTodo);
+    fs.writeFile("./todoData.json", JSON.stringify(todoArray), (err) => {
+      if (err) throw err;
+      res.status(201).json(newTodo);
+    });
+  });
+});
+
+app.put("/todos/:id", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    isUser = todoArray.find((user) => user.id == req.params.id);
+    if (!isUser) {
+      return res.status(404).json("Not Found");
+    }
+    const { title, completed, description } = req.body;
+    isUser.title = title || isUser.title;
+    isUser.completed = completed || isUser.completed;
+    isUser.description = description || isUser.description;
+    fs.writeFile("./todoData.json", JSON.stringify(todoArray), (err) => {
+      if (err) throw err;
+      res.status(201).json("todo Updated");
+    });
+  });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  fs.readFile("./todoData.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todoArray = JSON.parse(data);
+    newTodo = todoArray.filter((isID) => isID.id != req.params.id);
+    fs.writeFile("./todoData.json", JSON.stringify(newTodo), (err) => {
+      if (err) throw err;
+      res.status(200).json("Todo Deleted");
+    });
+  });
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+app.listen(PORT, () => {
+  console.log("server is running ");
+});
+// module.exports = app;

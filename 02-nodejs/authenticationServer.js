@@ -29,9 +29,70 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 const PORT = 3000;
 const app = express();
+
+// Middlewares
+app.use(bodyParser.json());
+app.use(cookieParser());
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const USERS = [];
+
+app.post("/signup", (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
+
+  if (USERS.find((user) => user.email === email)) {
+    return res.status(401).json({
+      success: false,
+      message: "User Already Exist, Please Login",
+    });
+  }
+
+  USERS.push({
+    id: USERS.length + 1,
+    firstName,
+    lastName,
+    email,
+    password,
+  });
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const user = USERS.find(
+    (user) => user.email === email && user.password === password
+  );
+  if (user) {
+    res.status(200).json({
+      email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user.id,
+    });
+  } else {
+    return res.status(401).send("Invalid");
+  }
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+
+  const user = USERS.find(
+    (user) => user.email === email && user.password === password
+  );
+
+  if (!user) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  res.status(200).send({ users: USERS });
+});
 
 module.exports = app;
