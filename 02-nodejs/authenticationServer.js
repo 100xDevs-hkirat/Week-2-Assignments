@@ -39,6 +39,13 @@ var users=[];
 
 app.post('/signup',(req,res)=>{
   var User=(req.body);
+  //Both means same
+  // var User={
+  //   email:req.body.email,
+  //   password:req.body.password,
+  //   firstName:req.body.firstName,
+  //   lastName:req.body.lastName
+  // }
   if(users.find(user=>user.email===User.email)){
     res.sendStatus(400);
   
@@ -68,15 +75,15 @@ app.get('/data',(req,res)=>{
   var password=req.headers.password;
   var user=users.find((user)=>user.email===email&&user.password===password);
   if(user){
-    let usersToReturn = [];
-    users.forEach(user=>{
-usersToReturn.push({
-  firstName: user.firstName,
-  lastName: user.lastName,
-  email: user.email
-})
+    // let usersToReturn = [];
+//     users.forEach(user=>{
+// usersToReturn.push({
+//   firstName: user.firstName,
+//   lastName: user.lastName,
+//   email: user.email
+// })
 
-    })
+//     })
     res.json({users});
   }else{
     res.sendStatus(401);
