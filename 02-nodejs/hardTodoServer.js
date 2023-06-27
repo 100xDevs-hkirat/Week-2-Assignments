@@ -1,19 +1,22 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs')
+const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
-port = '3000'
-// let todos = [{ id: "1", title: 'new todo1', description: "description of new tood1" },
-// { id: "2", title: 'new todo2', description: "description of new tood2" }]
+port = 3000
+app.use(cors());
 app.use(bodyParser.json());
+
 app.get("/todos", (req, res) => {
     fs.readFile('todos.json', 'utf8', (err, data) => {
         if (err) {
-            res.status(503).json({ err: "error in reading file" })
+            console.log(err)
+            res.status(500).json({ err: "error in reading file" })
         } else {
             data = JSON.parse(data)
+            console.log(data)
             res.json(data)
         }
 
@@ -25,7 +28,7 @@ app.get("/todos/:id", (request, response) => {
     // console.log(`id: ${id}, ${typeof (id)}`)
     fs.readFile('todos.json', 'utf8', (err, data) => {
         if (err) {
-            res.status(503).json({ err: "error in reading file" })
+            res.status(500).json({ err: "error in reading file" })
         } else {
             todos = JSON.parse(data)
             let elem = todos.find(item => item.id === id)
@@ -50,15 +53,18 @@ app.post("/todos", (req, res) => {
     }
     fs.readFile('todos.json', "utf8", (err, data) => {
         if (err) {
-            res.status(503).json({ err: "error in reading db" })
+            console.log(err)
+            res.status(500).json({ err: "error in reading db" })
         } else {
             let todos = JSON.parse(data)
             todos.push(newPost)
             fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
                 if (err) {
-                    res.status(503).json({ err: "error in saving to db" })
+                    console.log(err)
+                    res.status(500).json({ err: "error in saving to db" })
                 }
                 else {
+                    console.log(newPost)
                     res.status(201).send(newPost)
                 }
             })
@@ -71,7 +77,7 @@ app.put("/todos/:id", (req, res) => {
     const { title, description } = req.body
     fs.readFile('todos.json', 'utf8', (err, data) => {
         if (err) {
-            res.status(503).json({ err: "error in reading db" })
+            res.status(500).json({ err: "error in reading db" })
         } else {
             let todos = JSON.parse(data)
             let index = todos.findIndex(item => item.id === id)
@@ -97,7 +103,7 @@ app.delete("/todos/:id", (req, res) => {
     let id = req.params.id
     fs.readFile('todos.json', 'utf8', (err, data) => {
         if (err) {
-            res.status(503).json({ err: "err in reading db" })
+            res.status(500).json({ err: "err in reading db" })
         } else {
             let todos = JSON.parse(data)
             let index = todos.findIndex(item => item.id === id)
@@ -107,7 +113,7 @@ app.delete("/todos/:id", (req, res) => {
                 todos.splice(index, 1)
                 fs.writeFile('todos.json', JSON.stringify(todos), (err) => {
                     if (err) {
-                        res.status(503).json({ err: "failed to delete from db" })
+                        res.status(500).json({ err: "failed to delete from db" })
                     }
                     else {
                         res.send()
