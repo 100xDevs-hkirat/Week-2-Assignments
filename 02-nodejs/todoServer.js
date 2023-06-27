@@ -47,7 +47,7 @@ app.use(bodyParser.json());
 
 let todos = [];
 
-function findTodoById(id) {
+function findTodoById(id) {  // find the todo item by id
   return todos.find((todo) => todo.id === id);
 }
 
