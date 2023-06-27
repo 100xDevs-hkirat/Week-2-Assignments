@@ -50,8 +50,6 @@ let count = 1;
 let todos = [];
 
 app.get("/todos", (req, res) => {
-	// console.log(req.params);
-	// console.log("\n----------------------------------");
 	res.status(200).json(todos);
 });
 
@@ -66,7 +64,7 @@ app.get("/todos/:id", (req, res) => {
 
 app.post("/todos", (req, res) => {
 	const newTodo = {
-		id: count, // unique random id
+		id: count, 
 		title: req.body.title,
 		description: req.body.description
 	  };
@@ -87,8 +85,6 @@ app.put("/todos/:id", (req, res) => {
 });
 
 app.delete('/todos/:id', (req, res) => {
-	console.log(req.params);
-	console.log("\n----------------------------------");
 	const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
 	if (todoIndex === -1) {
 	  res.status(404).send();
