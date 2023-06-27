@@ -39,11 +39,70 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  
+  const app = express();
+  
+  var todos=[];
+  var counter=0;
+  app.use(bodyParser.json());
+  
+  app.get('/todos', function(req,res){
+    res.send(todos);
+  });
+  
+  app.get('/todos/:id', function(req,res){
+    var todo = todos.find(function(v,i,a){return v.id==req.params.id});
+    if(todo){
+      res.send(todo);
+    }
+    else{
+      res.status(404).send('Not found');
+    }
+  });
+  
+  app.post('/todos', function(req,res){
+    if(req.body.title && req.body.description){
+      counter++;
+      var newObj={};
+      newObj['id']=counter;
+      newObj['title']=req.body.title;
+      newObj['description']=req.body.description;
+      //newObj['completed']=req.body.completed;
+      todos.push(newObj);
+      res.status(201).send({id:counter});
+    }
+    else{
+      res.status(404).send('Insufficient parameters');
+    }
+  });
+  
+  app.put('/todos/:id', function(req,res){
+    for(var i=0;i<todos.length;i++){
+      if(todos[i].id==req.params.id){
+        todos[i].title=req.body.title?req.body.title:todos[i].title;
+        todos[i].description=req.body.description?req.body.description:todos[i].description;
+        todos[i].completed=req.body.completed?req.body.completed:todos[i].completed;
+        res.send('Task updated successfully');
+        return;
+      }
+    }
+    res.status(404).send('Task not found');
+  });
+  
+  app.delete('/todos/:id', function(req,res){
+    for(var i=0;i<todos.length;i++){
+      if(todos[i].id==req.params.id){
+        todos.splice(i,1);
+        res.send('Item deleted successully');
+        return;
+      }
+    }
+    res.status(404).send('Not found');
+  });
+  
+  //app.listen(3000, function(){console.log('Server running on port 3000');});
+  
+  module.exports = app;
+  
