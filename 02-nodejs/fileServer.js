@@ -20,6 +20,39 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000
+// testoing
+
+app.get('/files', (req, res) => {
+  fs.readdir('./files', (err, files) => {
+    if (err) {
+      res.status(404).json({ "error": err.message })
+    }
+    res.json(files)
+  })
+})
+
+app.get('/files/:filename', (req, res) => {
+  const _filename = req.params.filename
+  fs.readdir('./files', (err, files) => {
+    if (err) {
+      res.status(404).json({ err })
+    } else {
+      fs.readFile(`./files/${_filename}`, "utf-8", (err, data) => {
+        if (err) {
+          res.status(404).json(err)
+        } else {
+          res.status(200).json({ "data": data })
+        }
+      })
+    }
+  })
+})
+
+
+app.listen(port, () => {
+  console.log(`App is listening at port no : ${port}`)
+})
 
 
 module.exports = app;
