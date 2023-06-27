@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
-    "test-todoServer": "./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
-    "test-authenticationServer": "./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
+    "test-fileServer": "node ./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
+    "test-todoServer": "node ./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
+    "test-authenticationServer": "node ./node_modules/jest/bin/jest.js ./tests/authenticationServer.test.js",
     "test-all": "./node_modules/jest/bin/jest.js ./tests/"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
     "uuid": "^9.0.0"
   }
 }
