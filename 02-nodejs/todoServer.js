@@ -42,6 +42,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ulid} = require('ulid');
+const fs = require("fs");
+const path = require("path");
 
 
 const app = express();
@@ -69,6 +71,10 @@ class Todo {
 let index = 0;
 let todos = [];
 let todoIndex = {};
+const backupDirectoryPath = path.join(__dirname, 'backups');
+const backupFilePath = path.join(backupDirectoryPath, 'backup.json');
+
+
 app.get("/todos", (req, res) => {
     return res.json(todos);
 });
@@ -113,6 +119,26 @@ app.delete("/todos/:id", (req, res) => {
     todos[todoIndex[id]] = {}
     delete todoIndex[id];
     return res.json({success: `Todo ${id} has been deleted`});
+});
+
+
+app.post('/backup', (req, res) => {
+    fs.writeFile(backupFilePath, JSON.stringify(todos), (err) => {
+        if (err) {
+            res.status(500).json({error: `Unable to save backup file`});
+        } else {
+            res.status(200).json({success: `Backup file saved`});
+        }
+    });
+});
+
+app.get('/backup', (req, res) => {
+    fs.readFile(backupFilePath, (err, data) => {
+        if (err)
+            return res.status(500).json({error: `Unable to load backup file`});
+        todos = JSON.parse(data.toString());
+        res.status(200).json({success: `Backup file loaded`});
+    });
 });
 
 module.exports = app;
