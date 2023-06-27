@@ -32,6 +32,85 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require('body-parser');
+// write your logic here, DON'T WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+let users = [];
+
+function checkUserDetails(user, users) {
+    for (let i = 0; i < users.length; i++) {
+        if(users[i].email === user.email && users[i].password === user.password) {
+            return users[i];
+        }
+    }
+    return null;
+}
+
+function checkUser(user, users) {
+    for (let i = 0; i < users.length; i++) {
+        if(users[i].email === user.email) {
+            return true;
+        }
+    }
+    return false;
+}
+app.post("/signup", (req,res) => {
+    let user = req.body;
+    const exists = checkUser(user, users);
+    if(exists) {
+        res.status(400).send("username already exists");
+    } else {
+        users.push(user);
+        res.status(201).send("Signup successful");
+    }
+});
+
+app.post("/login", (req,res) => {
+    let user = req.body;
+    const exists = checkUserDetails(user, users);
+
+    if(exists) {
+        res.json({
+            firstName : exists.firstName,
+            lastName : exists.lastName,
+            email : exists.email
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+app.get("/data", (req,res) => {
+    const email = req.headers.email;
+    const password = req.headers.password;
+    let exists = false;
+
+    for (let i = 0; i < users.length; i++) {
+        if(users[i].email === email && users[i].password === password) {
+            exists = true;
+            break;
+        }
+    }
+
+    if(exists) {
+        let userToReturn = [];
+        for (let i = 0; i < users.length; i++) {
+            userToReturn.push({
+                email : users[i].email,
+                firstName: users[i].firstName,
+                lastName: users[i].lastName,
+            });
+        }
+        res.json({
+            users
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+// app.listen(PORT);
 
 module.exports = app;
