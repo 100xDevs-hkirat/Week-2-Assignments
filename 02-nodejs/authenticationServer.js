@@ -35,16 +35,106 @@ const app = express();
 app.use(express.json())
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
-let USERS = []
+let users = []
 app.post('/signup', (req, res) => {
+  // const {username,password,lastname,firstname}=req.body;
+  const user = req.body;
   let existingUser = false;
-  const newUser = {
-    id: Math.random(Math.floor)
-    username: res.body.username,
-    password: res.body.password,
-    lastname: res.body.lastname,
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === user.email) {
+      existingUser = true;
+      break;
+    }
+  }
+  if (existingUser) {
+    res.status(400).json("user already exist")
+  } else {
+    users.push(user)
+    res.status(200).json({
+      "message": "user added successflly"
+    })
   }
 })
+
+app.post("/login", (req, res) => {
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i < users.length; i++) {
+    if (users[i].email === user.email && users[i].password === user.password) {
+      userFound = users[i];
+      break;
+    }
+  }
+
+
+  if (userFound) {
+    res.status(200).json({
+      firstname: userFound.firstname,
+      lastname: userFound.lastname,
+      email: userFound.email,
+    })
+  } else {
+    res.status(400)
+  }
+});
+
+// app.get('/data', (req, res) => {
+//   let email = req.headers.email;
+//   let password = req.headers.password;
+
+//   let userFound = false;
+
+//   for (let i = 0; i < users.length; i++) {
+//     if (users[i].email === email && users[i].password === password) {
+//       userFound = true;
+//       break;
+//     } else {
+//       res.status(400).json({
+//         message: "user invalid"
+//       })
+//     }
+
+//     if (userFound) {
+//       let usersList = []
+//       for (let i = 0; i < users.length; i++) {
+//         usersList.push({
+//           email: users[i].email,
+//           firstname: users[i].firstname,
+//           lastname: users[i].lastname
+//         })
+//       }
+//     } else {
+//       res.sendStatus(401)
+//     }
+//   }
+// })
+
+app.get('/data', (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+
+  let userFound = false;
+
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+      userFound = true;
+      break;
+    }
+  }
+
+  if (!userFound) {
+    return res.status(401).json({ message: "Unauthorized: Invalid credentials" });
+  }
+
+  const userList = users.map(user => ({
+    email: user.email,
+    firstName: user.firstname,
+    lastName: user.lastname
+  }));
+
+  res.status(200).json({ users: userList });
+});
+
 app.listen(PORT, () => {
   console.log(`App is running at port : ${PORT}`)
 })
