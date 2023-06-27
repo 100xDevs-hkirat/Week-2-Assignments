@@ -49,7 +49,7 @@ app.post('/todos', (req, res) => {
   };
   fs.readFile("todos.json", "utf8", (err, data) => {
     if (err) throw err;
-    const todos = JSON.parse(data);
+    var todos = JSON.parse(data);
     todos.push(newTodo);
     fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
       if (err) throw err;
@@ -103,4 +103,7 @@ app.use((req, res, next) => {
   res.status(404).send();
 });
 
-module.exports = app;
+// module.exports = app;
+app.listen(3000, () => {
+  console.log(`Example app listening on port 3000`)
+})
