@@ -29,9 +29,83 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express");
+  const PORT = 3002;
+  const app = express();
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  app.use(express.json());
+  const userData = [];
+  
+  app.post("/signup", (req, res) => {
+    const user = req.body;
+    let existingUser = false;
+    for (let i = 0; i < userData.length; i++) {
+      if (userData[i].email === user.email) {
+        existingUser = true;
+        break;
+      }
+    }
+  
+    if (existingUser) {
+      res.status(401).send("the user already exists");
+    } else {
+      const newUser = {
+        id: Math.floor(Math.random() * 1000000),
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        password: user.password,
+      };
+  
+      if (newUser) {
+        userData.push(newUser);
+        res.status(200).send("login successfull");
+      } else {
+        res.status(401).send("something went wrong");
+      }
+    }
+  });
+  
+  app.post("/login", (req, res) => {
+    const user = req.body;
+    if (user) {
+      const index = userData.findIndex((item) => item.email === user.email);
+      const foundUser = userData[index];
+      if (foundUser.password === user.password) {
+        const authenticationToken = Math.floor(Math.random() * 1000000);
+        res.status(200).json({
+          firstname: foundUser.firstname,
+          lastname: foundUser.lastname,
+          email: foundUser.email,
+        });
+      }
+    } else {
+      res.status(401).send("unauthorized");
+    }
+  });
+  
+  app.get("/data", (req, res) => {
+    const email = req.headers.email;
+    const password = req.headers.password;
+  
+    if (email && password) {
+      const index = userData.findIndex((item) => item.email === email);
+      const foundUser = userData[index];
+      const userArray = [];
+      if (foundUser.password === password) {
+        for (let i = 0; i < userData.length; i++) {
+          userArray.push(userData[i]);
+        }
+        res.status(201).json(userArray);
+      }
+    } else {
+      res.status(401).send("unauthorized");
+    }
+  });
+  
+  app.listen(PORT, () => {
+    console.log(`Example app listening on port ${PORT}`);
+  });
+  
+  module.exports = app;
+  
