@@ -49,7 +49,7 @@ app.get('/file/:filename',(req,res)=>{
   });
 });
 
-app.all('*',(req,res)=>{
+app.all('*',(req,res)=>{ // all undefined request response
   res.status(404).send('Route not found');
 });
 

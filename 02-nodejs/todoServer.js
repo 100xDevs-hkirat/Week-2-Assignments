@@ -41,9 +41,105 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port=3000;
 const app = express();
 
 app.use(bodyParser.json());
+var users=[];
+
+app.get('/todos',(req,res)=>{
+
+  res.status(200).json(users);
+
+
+})
+
+app.get('/todos/:id',(req,res)=>{
+ let id= req.params.id;
+ let userFound=null;
+ let userDetails={};
+
+
+ for(let i=0;i<users.length;i++){
+  if(users[i].id==id){
+
+    userFound=true;
+    userDetails={...users[i]};
+    break;
+  }
+ }
+
+
+ if(userFound){
+  res.status(200).json(userDetails);
+ }else{
+  res.status(404).send();
+ }
+})
+
+app.post('/todos',(req,res)=>{
+  let ob=req.body;
+  
+  let uid=Math.floor(Math.random()*1000000);
+  ob.id=uid;
+  users.push(ob);
+  //console.log(users);
+  res.status(201).json(ob);
+})
+
+app.put('/todos/:id',(req,res)=>{
+  let id= parseInt(req.params.id);
+  let ob=req.body;
+  let userFound=false;
+  let ansin=0;
+  for(let i=0;i<users.length;i++){
+    if(users[i].id===id){
+      ansin=i;
+      userFound=true;
+      users[i].title=ob.title;
+      users[i].description=ob.description;
+      break;
+
+    }
+  }
+  if(userFound){
+    res.json(users[ansin]);
+
+  }else{
+    res.status(404).send();
+
+  }
+
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  let uid=parseInt(req.params.id);
+  let userFound=false;
+  for(let i=0;i<users.length;i++){
+    if(users[i].id===uid){
+      userFound=true;
+      users=users.filter(obj=>obj.id!==uid);
+      break;
+    }
+  }
+  if(userFound){
+    res.status(200).send();
+  }else{
+    res.status(404).send();
+  }
+})
+
+
+
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+
+
+
+
+
 
 module.exports = app;
