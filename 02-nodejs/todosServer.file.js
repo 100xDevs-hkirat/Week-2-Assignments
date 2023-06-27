@@ -41,69 +41,120 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
-/* const PORT = 3000;
+const PORT = 3000;
 
-app.listen(PORT, () =>{
+app.listen(PORT, () => {
   console.log("Application started on port:", PORT);
 });
- */
 
-let todos = [];
+
+//let todos = [];
+let fileName = 'todos.json';
 
 app.get('/todos', (req, res) => {
-  res.json(todos);
+  fs.readFile(fileName, 'utf8', (err, data) => {
+    if (err)
+      res.status(404).send('File Not Found');
+
+    res.json(JSON.parse(data));
+  });
 });
 
-function getTodo(id){
+function getTodo(todos, id) {
   return todos.findIndex((todo) => (todo.id === parseInt(id)));
 }
 
 app.get('/todos/:id', (req, res) => {
-  let id = req.params.id;
-  let todoIndex = getTodo(id);
-  if(todoIndex === -1)
-    res.status(404).send("Not Found");
+  fs.readFile(fileName, 'utf8', (err, data) => {
+    if (err) res.status(404).send('File Not Found');
 
-  res.json(todos[todoIndex]);
+    let todos = JSON.parse(data);
+    let id = req.params.id;
+    let todoIndex = getTodo(todos, id);
+    if (todoIndex === -1)
+      res.status(404).send("Not Found");
+
+    res.json(todos[todoIndex]);
+  });
+
 });
 
 app.post('/todos', (req, res) => {
+
+  console.log(req.body);
+  console.log(req.body.title);
   const newTodo = {
     id: Math.floor(Math.random() * 10000),
     title: req.body.title,
-    description: req.body.description 
+    description: req.body.description
   }
-  todos.push(newTodo);
+  fs.readFile(fileName, 'utf8', (err, data) => {
+    if (err) res.status(404).send('File Not Found');
+    
+    let todos = JSON.parse(data);
+    todos.push(newTodo);
 
-  res.status(201).json({id: newTodo.id});
+    fs.writeFile('todos.json', JSON.stringify(todos), (err) => {
+      if (err) throw err;
+
+      res.status(201).send(newTodo);
+    });
+
+  });
 });
 
 app.put('/todos/:id', (req, res) => {
-  let id = req.params.id;
-  let todoIndex = getTodo(id);
-  if(todoIndex === -1)
-    res.status(404).send("Not Found");
-  
-  todos[todoIndex].title = req.body.title;
-  todos[todoIndex].description = req.body.description;
-  
-  res.send("OK");
-});
+  fs.readFile(fileName, 'utf8', (err, data) => {
+    if (err) res.status(404).send('File Not Found');
 
+    let todos = JSON.parse(data);
+    let id = req.params.id;
+    let todoIndex = getTodo(todos, id);
+    if (todoIndex === -1)
+      res.status(404).send("Not Found");
+
+    todos[todoIndex].title = req.body.title;
+    todos[todoIndex].description = req.body.description;
+
+    fs.writeFile('todos.json', JSON.stringify(todos), (err) => {
+      if (err) throw err;
+
+      res.send(todos[todoIndex]);
+    });
+
+  });
+});
 
 app.delete('/todos/:id', (req, res) => {
-  let id = req.params.id;
-  let todoIndex = getTodo(id);
-  if(todoIndex === -1)
-    res.status(404).send("Not Found");
+  fs.readFile(fileName, 'utf8', (err, data) => {
+    if (err) res.status(404).send('File Not Found');
 
-  todos.splice(todoIndex, 1);
-  res.send("OK");
+    let todos = JSON.parse(data);
+    let id = req.params.id;
+    let todoIndex = getTodo(todos, id);
+    if (todoIndex === -1)
+      res.status(404).send("Not Found");
+
+    todos.splice(todoIndex, 1);
+
+    fs.writeFile('todos.json', JSON.stringify(todos), (err) => {
+      if (err) throw err;
+            
+      res.json(todos);
+    });
+  });
 });
 
-module.exports = app;
+app.all('*', (req, res) => {
+  res.status(404).send("Route: "+req.url+ " is Invalid");
+})
+
+//module.exports = app;
