@@ -18,7 +18,7 @@
     
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
-    Request Body: JSON object representing the todo item.
+    Request Body: JSON object representing the todo item. 
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
@@ -39,11 +39,114 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+function findIndex(arr, id) {
+  let size = arr.length;
+  for (let i = 0; i < size; ++i) {
+    if (arr[i].id == id) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+app.get("/todos", (req, res) => {
+  fs.promises
+    .readFile("todos.json", "utf-8")
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(404).send("Unable to access the file");
+    });
+});
+
+app.get("/todos/:id", (req, res) => {
+  const idToSearch = req.params.id;
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(404).send("Unable to access the file");
+    }
+    let todos = JSON.parse(data);
+    let index = findIndex(todos, idToSearch);
+    if (index == -1) {
+      res.sendStatus(404);
+    }
+    res.send(todos[index]);
+  });
+});
+
+app.post("/todos", (req, res) => {
+  const newId = parseInt(Math.random() * 100000);
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).send("Some error with server");
+    }
+    let obj = JSON.parse(data);
+    let newObj = {
+      id: newId,
+      title: req.body.title,
+      description: req.body.description,
+      completed: req.body.completed,
+    };
+    obj.push(newObj);
+    fs.writeFile("./todos.json", JSON.stringify(obj), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.status(201).json({ id: newId });
+    });
+  });
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).send("Something wrong on server side..");
+    }
+    const obj = JSON.parse(data);
+    const index = findIndex(obj, id);
+    if (index === -1) {
+      res.sendStatus(404);
+    }
+    obj[index].title = req.body.title;
+    obj[index].description = req.body.description;
+
+    fs.writeFile("./todos.json", JSON.stringify(obj), (err) => {
+      if (err) {
+        res.status(500).send("Something wrong on server side..");
+      }
+      res.json(obj[index]);
+    });
+  });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const objects = JSON.parse(data);
+    const index = findIndex(objects, id);
+    if (index === -1) {
+      res.sendStatus(404);
+    }
+    objects.splice(index, 1);
+
+    fs.writeFile("./todos.json", JSON.stringify(objects), (err) => {
+      if (err) {
+        res.status(500).send("Something wrong on server side..");
+      }
+      res.sendStatus(200);
+    });
+  });
+});
 
 module.exports = app;
