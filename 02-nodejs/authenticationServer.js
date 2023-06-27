@@ -32,6 +32,76 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const userArr = [];
+app.post("/signup", (req,res) => {
+let body = req.body;
+const email = body.email;
+const password = body.password;
+const firstName = body.firstName;
+const lastName = body.lastName
+const user = userArr.find((element) => element.email === email);
+if(!user){
+  let obj = {
+    id: Math.floor(Math.random() * 10000),
+    email,
+    password,
+    firstName,
+    lastName,
+  }
+  userArr.push(obj);
+  console.log(obj);
+  res.status(201).send("Signup successful")
+}
+else{
+  res.status(401).send();
+}
+})
+
+app.post("/login", (req,res) => {
+  const body = req.body;
+  const email = body.email;
+  const enteredPassword = body.password;
+  const user = userArr.find((element) => element.email === email)
+  if(user){
+    console.log(user);
+    if(user.password === enteredPassword){
+      res.send(user);
+    }
+    else{
+      res.sendStatus(401);
+    }
+  }
+  else{
+    res.sendStatus(401);
+  }
+
+  
+})
+
+app.get("/data", (req,res) => {
+  const {username, password} = req.headers;
+  const user = userArr.find((element) => (element.password === password && element.username === username));
+  if(user){
+    const obj = {
+      users : userArr
+    }
+
+    res.send(obj);
+  }
+
+  else{
+    res.sendStatus(401);
+  }
+  
+})
+
+// app.get("*", (req,res) => {
+//   res.status(404).send("Route not found");
+// })
 
 module.exports = app;

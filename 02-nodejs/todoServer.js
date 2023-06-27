@@ -44,6 +44,92 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+todoData = [];
 app.use(bodyParser.json());
+
+
+
+
+app.get("/todos", (req,res) => {
+  console.log(todoData);
+  res.send(todoData);
+
+})
+
+app.get(`/todos/:id`, (req,res) => {
+
+  const ids = parseInt(req.params.id);
+  console.log(ids);
+
+  const object = todoData.find((element) => element.id === ids)
+  console.log(object);
+
+  if(object){
+    res.json(object);
+  }
+  else
+    res.status(404).send("Not Found");
+
+})
+
+
+app.post('/todos', (req,res) => {
+const body = req.body;
+const description = body.description;
+const title = body.title;
+const id = Math.floor(Math.random() * 1000000)
+let obj = {
+  id,
+  title,
+  description
+}
+todoData.push(obj);
+
+res.status(201).send({id});
+})
+
+app.put(`/todos/:id`, (req,res) => {
+
+  const id = parseInt(req.params.id);
+  const newDescription = req.body.description;
+  const newTitle = req.body.title;
+
+
+  const object = todoData.find((element) => element.id === id);
+
+  if(object){
+
+    todoData[todoData.indexOf(object)].description = newDescription;
+    todoData[todoData.indexOf(object)].title = newTitle;
+    res.status(200).send();
+
+  }
+  else
+    res.status(404).send("Error");
+
+
+})
+
+app.delete(`/todos/:id`, (req,res) => {
+
+
+  const id = parseInt(req.params.id);
+  console.log(id);
+
+  const object = todoData.find((element) => element.id === id)
+  console.log(object);
+
+  if(object){
+    todoData.splice(todoData.indexOf(object), 1);
+    res.status(200).send();
+  }
+  else
+    res.status(404).send("Error");
+
+  
+})
+
+
+
 
 module.exports = app;
