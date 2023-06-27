@@ -30,8 +30,85 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require('body-parser');
+const {ulid} = require("ulid");
+const jwt = require('jsonwebtoken');
+
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+let users = [];
+let userIndex = {};
+let index = 0;
+
+class User {
+    constructor(firstName, lastName, email, password) {
+        this.id = ulid();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+    }
+
+    getUser() {
+        return {
+            id: this.id,
+            firstName: this.firstName,
+            lastName: this.lastName,
+            email: this.email,
+            password: this.password
+        };
+    }
+}
+
+
+const generateSecretKey = () => {
+    return require('crypto').randomBytes(128).toString('hex');
+};
+
+const secretKey = generateSecretKey();
+
+app.post('/signup', (req, res) => {
+    if (req.body.email in userIndex)
+        return res.status(400).json({error: `${req.body.email} already exists`});
+    const user = new User(req.body.firstName, req.body.lastName, req.body.email, req.body.password).getUser();
+    users.push(user);
+    userIndex[user.email] = index;
+    index += 1;
+    return res.status(201).send(`Signup successful`);
+});
+
+
+app.post('/login', (req, res) => {
+    if (!(req.body.email in userIndex))
+        return res.send(400).send(`${req.body.email} does not exist`);
+    const index = userIndex[req.body.email];
+    const userDetails = users[index];
+    if (req.body.password !== userDetails.password)
+        return res.status(401).send(`Unauthorized`);
+    return res.json({
+        authToken: jwt.sign(userDetails.email, secretKey),
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+    });
+});
+
+
+app.get('/data', (req, res) => {
+    const {email, password} = req.headers;
+    if (!(email in userIndex))
+        return res.status(401).send(`Unauthorized`);
+    const index = userIndex[email];
+    const userDetails = users[index];
+    if (password !== userDetails.password)
+        return res.status(401).send(`Unauthorized`);
+    return res.json({users: users});
+});
+
+app.use((req, res) => {
+    return res.status(400).send(`Route not found`);
+});
 
 module.exports = app;
