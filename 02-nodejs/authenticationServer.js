@@ -29,9 +29,105 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require('express');
+const bodyParser = require('body-parser');
 const PORT = 3000;
+const { v4: uuidv4 } = require('uuid');
 const app = express();
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+class Users {
+	constructor() {
+		this.users = [];
+	}
+	emailExist(givenEmail) {
+		let similarUsernames = this.users.filter(user => user.email == givenEmail);
+		return similarUsernames.length > 0;
+	}
+	getUser(givenEmail) {
+		if (!this.emailExist(givenEmail)) return null;
+		let similarUsernames = this.users.filter(user => user.email == givenEmail);
+		return similarUsernames[0];
+	}
+	signUp(email, password, firstName, lastName) {
+		if (this.emailExist(email)) return false;
+		let user = {
+			id: uuidv4(),
+			email,
+			password,
+			firstName,
+			lastName,
+		};
+		this.users.push(user);
+		return true;
+	}
+	login(email, password) {
+		let user = this.getUser(email);
+		if (user && user.password == password) {
+			return {
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+			};
+		}
+		return null;
+	}
+	fetchAllData(email, password) {
+		let user = this.getUser(email);
+		if (user && user.password == password) {
+			let filteredData = this.users.map(user => {
+				return {
+					firstName: user.firstName,
+					lastName: user.lastName,
+					id: user.id,
+				};
+			});
+			return filteredData;
+		}
+		return null;
+	}
+}
+
+let users = new Users();
+
+app.post('/signup', (req, res) => {
+	const { email, password, firstName, lastName } = req.body;
+	let signedUp = users.signUp(email, password, firstName, lastName);
+	if (!signedUp) {
+		res.sendStatus(400);
+	} else {
+		res.status(201).send('Signup successful');
+	}
+});
+
+app.post('/login', (req, res) => {
+	const { email, password } = req.body;
+	const info = users.login(email, password);
+	if (!info) {
+		res.sendStatus(401);
+	} else {
+		res.status(200).send(info);
+	}
+});
+
+app.get('/all', (req, res) => {
+	res.send(users.users);
+});
+
+app.get('/data', (req, res) => {
+	const { email, password } = req.headers;
+	const allUserData = users.fetchAllData(email, password);
+	if (!allUserData) {
+		res.sendStatus(401);
+	} else {
+		res.status(200).send({ users: allUserData });
+	}
+});
+
+// handle routes not found
+app.use((req, res, next) => {
+	res.status(404).send('Route not found');
+});
 
 module.exports = app;

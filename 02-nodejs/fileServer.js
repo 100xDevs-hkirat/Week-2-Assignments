@@ -20,6 +20,51 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const fullPath = path.join(__dirname, 'files');
 
+function getFilesInDir() {
+	return new Promise((resolve, rejects) => {
+		fs.readdir(fullPath, (error, fileNames) => {
+			if (error) {
+				rejects(error);
+			}
+			resolve(fileNames);
+		});
+	});
+}
+function getFileData(fileName) {
+	return new Promise((resolve, rejects) => {
+		const filePath = path.join(fullPath, fileName);
+		fs.readFile(filePath, 'utf8', (err, data) => {
+			if (err) rejects(err);
+			else resolve(data);
+		});
+	});
+}
+
+app.get('/files', (req, res) => {
+	getFilesInDir()
+		.then(fileNames => {
+			res.status(200).send(fileNames);
+		})
+		.catch(err => {
+			res.status(500).send('Internal Server Error');
+		});
+});
+app.get('/file/:filename', (req, res) => {
+	let fileName = req.params.filename;
+	getFileData(fileName)
+		.then(fileContent => {
+			res.status(200).send(fileContent);
+		})
+		.catch(err => {
+			res.status(404).send('File not found');
+		});
+});
+
+// handle routes not found
+app.use((req, res, next) => {
+	res.status(404).send('Route not found');
+});
 
 module.exports = app;
