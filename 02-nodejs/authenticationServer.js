@@ -29,9 +29,63 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+app.listen(PORT, () => {
+  console.log(`Authentication Server listening on port ${PORT}`);
+});
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const users = [];
+app.use(express.json());
+
+app.post("/signup", (req, res) =>  {
+  const user = users.find((user) => user.email === req.body.email);
+  if(user) {
+    res.status(400).send('User already exists');
+  }
+  else {
+    users.push(req.body);
+    res.status(201).send('Signup successful');
+  }
+});
+
+app.post("/login", (req, res) => {
+  const user = users.find((user) => user.email === req.body.email && req.body.password === user.password);
+  if (user) {
+    res.json({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+    });
+  } 
+  else {
+    res.status(401).send('Invalid email and username');
+  }
+});
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  const user = users.find((user) => user.email === email && password === user.password);
+
+  if (user) {
+    let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+    }
+    res.json({
+        users
+    });
+  } 
+  else {
+    res.status(401).send('Unauthorized');
+  }
+});
 
 module.exports = app;
