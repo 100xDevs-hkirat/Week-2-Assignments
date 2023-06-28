@@ -60,24 +60,20 @@ function firsttask(req,res) {
   arr.push(obj);
   res.status(201).send("Signup successful");
 }
-function secondtask(req,res) 
-  {
-  const receivedEmail = req.body.email;
-  const receivedPassword = req.body.password;
-
-  const foundUser = arr.find((user) => user.email === receivedEmail && user.password === receivedPassword);
-
-  if (foundUser) {
-    const responseObj = {
-      firstName: foundUser.firstName,
-      lastName: foundUser.lastName,
-      email: foundUser.email
-    };
-    res.status(200).json(responseObj);
-  } else {
-    res.sendStatus(401);
+app.post('/login', (req, res) => {
+  const index = data.findIndex((x) => x.email === req.body.email && req.body.password === x.password)
+  if (index === -1) {
+    res.status(401).send();
   }
-}
+  else {
+    const user = {
+      "firstName": data[index]["firstName"],
+      "lastName": data[index]["lastName"],
+      "email": data[index]["email"],
+    }
+    res.status(200).json(user);
+  }
+})
 
 
 
@@ -87,13 +83,13 @@ function secondtask(req,res)
   const received_password=req.headers.password;
    console.log(received_username);
    console.log(received_password);
-  const  index = arr.findIndex( (t) => t.email === received_username);
+  const  index = arr.findIndex( (t) => t.email == received_username);
   
   if (index === -1){
     res.status(401).send("Unauthorized");
   }
   else{
-    if(arr[index].password === received_password){
+    if(arr[index].password == received_password){
       var TobePassedobj ={
         email :  arr[index].email,
         firstName : arr[index].firstName,
@@ -113,7 +109,7 @@ function secondtask(req,res)
 // }
 
 app.post('/signup',firsttask);
-app.post('/login',secondtask);
+//app.post('/login',secondtask);
 app.get('/data',thirdtask);
 //app.listen(PORT,demofn);
 module.exports = app;
