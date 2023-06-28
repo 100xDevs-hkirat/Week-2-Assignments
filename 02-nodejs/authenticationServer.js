@@ -29,9 +29,87 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const express = require('express');
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const port = 3000;
+
+const users = [];
+
+app.use(express.json());
+
+app.post('/signup', (req, res) => {
+  const newUser = req.body;
+  var check = false;
+  for (let i = 0; i < users.length; i++){
+    if(users.username[i]==user.username){
+      check = true;
+      break;
+    }
+  }
+  if(check){
+    res.status(400).send('Username already exists');
+  }
+  else{
+    users.push(newUser)
+    res.status(201).send('Signup successful');
+  }
+});
+
+app.post('/login', (req, res) => {
+  var user  = req.body;
+  var check= false;
+  for (let i = 0; i < users.length; i++){
+    if((users[i].username===user.username) && (users[i].password===user.password)){
+      check = true;
+      user=users[i];
+      break;
+    }
+  }
+  if(!check){
+    res.status(401).send("Invalid Credentials");
+  }
+  else{
+    res.status(200).json({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
+    });
+  }
+});
+
+app.get('/data', (req, res) => {
+  const username = req.headers.username;
+  const password = req.headers.password;
+  var user;
+  var check= false;
+  for (let i = 0; i < users.length; i++){
+    if(users[i].username===username&& users[i].password===password){
+      check = true;
+      user=users[i];
+      break;
+    }
+  }
+
+  if (!check) {
+    res.status(401).send('Unauthorized');
+  }
+  else{
+    let Return = [];
+    for (let i = 0; i<users.length; i++) {
+        Return.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            username: users[i].username
+        });
+    }
+    res.json({
+        users
+    });
+  }
+});
+
+app.all('*', (req, res) => {
+  res.status(404).send('404 Not Found');
+});
 
 module.exports = app;

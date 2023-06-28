@@ -39,11 +39,175 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+
+
+
+
+// function getAllTodos(req, res){
+//   res.send(todoList);
+// }
+
+// function getTodo(req, res){
+//   const getId=req.params.id;
+//   const todo=todoList.find(search);
+//   function search(cell){
+//     return cell.id.toString()===getId;
+//   }
+//   if(todo){
+//     res.status(200).send(todoList[getId-1]);
+//   }
+//   else{
+//     res.status(404).send("Not Found if not found.")
+//   }
+// }
+
+
+// function postTodo(req, res){
+//   const { title, description } = req.body;
+//   const id = todoList.length + 1;
+//   const obj = { id, title, description };
+//   todoList.push(obj);
+//   res.status(201).send("done");
+// }
+
+// function putTodo(req, res) {
+//   const {id} = req.params.id;
+//   const { title, description } = req.body;
+//   const todo = todoList.find(search);
+//   function search(cell){
+//     return cell.id.toString()===id;
+//   }
+//   if (todo) {
+//     const obj = { id, title, description };
+//     todoList[id-1]=obj;
+//     res.status(200).send('Updated the todo item');
+//   } else {
+//     res.status(404).send("Not Found if not found.")
+//   }
+// }
+
+// function updateTodoItem(req, res) {
+//   const { id } = req.params;
+//   const { title, description } = req.body;
+//   const todo = todoList.find(function(todo) {
+//     return todo.id.toString() === id;
+//   });
+//   if (todo) {
+//     todo.title = title || todo.title;
+//     todo.description = description || todo.description;
+//     res.status(200).json({ message: 'Todo item updated successfully' });
+//   } else {
+//     res.status(404).json({ error: 'Todo item not found' });
+//   }
+// }
+
+// function deleteTodo(req, res){
+//   var getId=req.params.id;
+//   const todo=todoList.find(search);
+//   function search(cell){
+//     return cell.getId.toString()===getId;
+//   }
+//   if(todo){
+//     todoList[getId]=null;
+//     res.status(200).send('the todo item was found and deleted');
+//   }
+//   else{
+//     res.status(404).send("Not Found if not found.")
+//   }
+// }
+
+// function deleteTodoItem(req, res) {
+//   const { id } = req.params;
+//   const index = todoList.findIndex(function(todo) {
+//     return todo.id.toString() === id;
+//   });
+//   if (index !== -1) {
+//     todoList.splice(index, 1);
+//     res.status(200).json({ message: 'Todo item deleted successfully' });
+//   } else {
+//     res.status(404).json({ error: 'Todo item not found' });
+//   }
+// }
+
+// app.get('/todos',getAllTodos);
+// app.get('/todos/:id',getTodo);
+// app.post('/todos',postTodo);
+// app.put('/todos/:id', putTodo);
+// app.delete('/todos/:id', deleteTodoItem);
+
+
+// function started() {
+//   console.log(`Example app listening on port ${port}`);
+// }
+
+// app.listen(port, started);
+
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
 
+const todoList = [];
+
+function getAllTodos(req, res) {
+  res.status(200).json(todoList);
+}
+
+function getTodoById(req, res) {
+  const { id } = req.params;
+  const todo = todoList.find(function(todo) {
+    return todo.id.toString() === id;
+  });
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.status(404).json({ error: 'Todo item not found' });
+  }
+}
+
+function createTodoItem(req, res) {
+  const { title, description } = req.body;
+  const id = todoList.length + 1;
+  const todo = { id, title, description };
+  todoList.push(todo);
+  res.status(201).json({ id });
+}
+
+function updateTodoItem(req, res) {
+  const { id } = req.params;
+  const { title, description } = req.body;
+  const todo = todoList.find(function(todo) {
+    return todo.id.toString() === id;
+  });
+  if (todo) {
+    todo.title = title || todo.title;
+    todo.description = description || todo.description;
+    res.status(200).json({ message: 'Todo item updated successfully' });
+  } else {
+    res.status(404).json({ error: 'Todo item not found' });
+  }
+}
+
+function deleteTodoItem(req, res) {
+  const { id } = req.params;
+  const index = todoList.findIndex(function(todo) {
+    return todo.id.toString() === id;
+  });
+  if (index !== -1) {
+    todoList.splice(index, 1);
+    res.status(200).json({ message: 'Todo item deleted successfully' });
+  } else {
+    res.status(404).json({ error: 'Todo item not found' });
+  }
+}
+
+app.get('/todos', getAllTodos);
+app.get('/todos/:id', getTodoById);
+app.post('/todos', createTodoItem);
+app.put('/todos/:id', updateTodoItem);
+app.delete('/todos/:id', deleteTodoItem);
 module.exports = app;
+

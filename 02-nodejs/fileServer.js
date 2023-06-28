@@ -20,6 +20,48 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port=3000;
+
+function listOfFile(req,res){
+  //  how to return list of files present in a directory in js
+
+  fs.readdir('./files/','utf8',callback);
+
+  function callback(err,files){
+    if(err){
+      res.status(404).send("Error");
+    }
+    else{
+      res.status(200).send(files);
+    }
+  }
+}
+// fileDir="./files/";
+function contentOfFile(req,res){
+  const {filename}=req.params;
+  const filePath=`./files/${filename}`;
+  fs.readFile(filePath,'utf8',(err,data)=>{
+    if(err){
+      res.status(404).send("File not found");
+    }
+    else{
+      console.log(data);
+      res.status(200).send(data);
+    }
+  });
+
+}
 
 
+app.get('/files',listOfFile);
+app.get('/file/:filename',contentOfFile);
+app.all('*',(req,res)=>{
+  res.status(404).send("Route not found");
+})
+
+// function started(){
+//   console.log("started");
+// }
+
+// app.listen(port,started);
 module.exports = app;
