@@ -3,10 +3,10 @@ name: Automated Tests
 on:
   push:
     branches:
-      - main
+      - ci_cd_workflows
   pull_request:
     branches:
-      - main
+      - ci_cd_workflows
 
 jobs:
   test:
@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
