@@ -3,10 +3,10 @@ name: Authentication Tests
 on:
   push:
     branches:
-      - test_workflows
+      - main
   pull_request:
     branches:
-      - test_workflows
+      - main
 
 jobs:
   test:
