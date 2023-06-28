@@ -1,0 +1,29 @@
+name: Todo Server Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          cd 02-nodejs 
+          pwd 
+          npm ci
+
+      - name: Run tests
+        run: |
+          pwd
+          npm run test-todoServer
+        working-directory: ./02-nodejs
