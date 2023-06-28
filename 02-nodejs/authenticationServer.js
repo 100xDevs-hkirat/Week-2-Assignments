@@ -29,9 +29,95 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const fs = require("fs");
+const path = require("path");
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
+
+const usersPath = path.resolve(__dirname, "./dbs/users.json");
+
+fs.writeFileSync(usersPath, JSON.stringify([]));
+
+const readUsers = (email = undefined, password = undefined) => {
+  try {
+    const users = JSON.parse(fs.readFileSync(usersPath));
+    if (email && password) {
+      user = users.find(
+        (userObj) => userObj.email === email && userObj.password === password
+      );
+      return user;
+    } else if (email) {
+      user = users.find((userObj) => userObj.email === email);
+      return user;
+    }
+    return users;
+  } catch (e) {
+    return email && password ? undefined : [];
+  }
+};
+
+const postUser = (user) => {
+  const users = readUsers();
+  try {
+    fs.writeFileSync(usersPath, JSON.stringify([...users, user]));
+  } catch (e) {
+    throw new Error("Bad Request");
+  }
+};
+
+app.post("/signup", async (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  const user = readUsers(email);
+  if (user) {
+    res.status(400).send("Bad Request");
+  } else {
+    if (email && password) {
+      const userCreated = {
+        id: new Date().getTime(),
+        email,
+        password,
+        firstName,
+        lastName,
+      };
+      postUser(userCreated);
+      res.status(201).send("Signup successful");
+    }
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = readUsers(email, password);
+  if (email && password && user) {
+    res.status(200).send(user);
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.get("/data", async (req, res) => {
+  const { email, password } = req.headers;
+  const user = readUsers(email, password);
+  console.log(user);
+  if (email && password && user) {
+    const users = readUsers();
+    res.status(200).send({ users });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.use((req, res) => {
+  return res.status(404).send("No route found");
+});
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+// const port = 4000;
+// app.listen(port, () => console.log(`Server has started at port ${port}`));
 
 module.exports = app;
