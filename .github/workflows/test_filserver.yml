@@ -25,5 +25,5 @@ jobs:
       - name: Run tests
         run: |
           pwd
-          npm run test-all
+          npm run test-fileServer
         working-directory: ./02-nodejs
