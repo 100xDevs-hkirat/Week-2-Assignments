@@ -43,7 +43,126 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const port = 3000;
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
 
 app.use(bodyParser.json());
+app.use(cors());
+
+// const todos = [];
+
+// The first GET request
+app.get("/todos", (req, res) => {
+  // try{
+  //   const data = fs.readFileSync('todo.txt', 'utf8');
+  //   const todos = JSON.parse(data);
+  //   res.json(todos);
+  // } catch (error) {
+  //   console.log('Error: ', error.message);
+  //   res.status(500).json({ error: 'Failed to retrive the data'})
+  // }
+
+  // soltuion by Harkirat
+  fs.readFile("todo.json", "utf-8", (err, data) => {
+    if(err) throw err;
+    res.json(JSON.parse(data));
+  });
+});
+
+// The second GET request
+app.get("/todos/:id", (req, res) => {
+  fs.readFile("todo.json", "utf-8", (err, data) => {
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    const todoIndex = todos.find(t => t.id === parseInt(req.params.id));
+    if(!todoIndex) {
+      res.status(404).send();
+    } else {
+      res.json(todos[todoIndex]);
+    }
+  });
+});
+
+// POST request
+app.post("/todos", (req, res) => {
+  const newTodo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  };
+  // store data in file
+  // const data = JSON.stringify(newTodo, null, 2);
+  // const filename = 'todo.txt';
+  // fs.writeFileSync(filename, data);
+
+  // solution by Harkirat
+  fs.readFile("todo.json", "utf8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile("todo.json", JSON.stringify(todos), (err) => {
+      if (err) throw err;
+      res.status(201).json(newTodo);
+    })
+  })
+}); 
+
+// PUT request
+app.put("/todos/:id", (req, res) => {
+  fs.readFile("todo.json", "utf-8", (err, data) => {
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      const updateTodo = {
+        id: todos[todoIndex].id,
+        title: req.body.title,
+        completed: req.body.completed,
+        description: req.body.description,
+      };
+      todos[todoIndex] = updateTodo;
+      fs.writeFile("todo.json", JSON.stringify(todos), (err) => {
+        if(err) throw err;
+        res.status(200).send(updateTodo);
+      })
+    }
+
+  })
+});
+
+// DELETE request
+app.delete("/todos/:id", (req, res) => {
+  fs.readFile("todo.json", "utf-8", (err, data) => {
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos.splice(todoIndex, 1);
+      fs.writeFile("todo.json", (JSON.stringify(todos)), (err) => {
+        if(err) throw err;
+        res.status(200).send();
+      });
+    }
+  });
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"))
+})
+
+// for all the other routes, return 404
+app.use((req,res,next) => {
+  res.status(404).send();
+});
+
+
+app.listen(port);
 
 module.exports = app;

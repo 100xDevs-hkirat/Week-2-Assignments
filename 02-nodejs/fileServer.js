@@ -21,5 +21,31 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+// GET request to fetch all the nameof files present in a specified dir
+app.get('/files', (req, res) => {
+  fs.readdir(path.join(__dirname, './files'), (err, files) => {
+    if(err) {
+      return res.status(500).json({error: 'Failed to retrive files'})
+    }
+    res.json(files);
+  })
+})
+
+// GET request to read from a specified file
+app.get('/file/:filename', (req, res) => {
+  const filePath = path.join(__dirname, './files', req.params.filename);
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if(err) {
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
+// for all the other routes, return 404
+app.all('*',(req,res) => {
+  res.status(404).send('Route not found');
+})
 
 module.exports = app;
