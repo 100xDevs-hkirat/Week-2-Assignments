@@ -1,4 +1,4 @@
-name: Automated Tests
+name: Fileserver Tests
 
 on:
   push:
