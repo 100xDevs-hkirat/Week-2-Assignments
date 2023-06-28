@@ -30,8 +30,93 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
+let arr=[];
+var user=[];
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+function firsttask(req,res) {
+  const id = Date.now().toString();
+  var obj ={
+    id: id,
+    username: req.body.username,
+    password: req.body.password,
+    email : req.body.email,
+    firstName: req.body.firstname,
+    lastName: req.body.lastName
+    
+
+  }
+  for (var i = 0; i < arr.length; i++) {
+
+    if (arr[i].username === (req.body.username) )
+    {
+      return res.status(400).send('user already exists') ;// Username exists in the array
+    }
+  }
+  arr.push(obj);
+  res.status(201).send("Signup successful");
+}
+function secondtask(req,res) 
+  {
+  const receivedEmail = req.body.email;
+  const receivedPassword = req.body.password;
+
+  const foundUser = arr.find((user) => user.email === receivedEmail && user.password === receivedPassword);
+
+  if (foundUser) {
+    const responseObj = {
+      firstName: foundUser.firstName,
+      lastName: foundUser.lastName,
+      email: foundUser.email
+    };
+    res.status(200).json(responseObj);
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+
+
+ function thirdtask(req,res) {
+
+  const received_username=req.headers.email;
+  const received_password=req.headers.password;
+   console.log(received_username);
+   console.log(received_password);
+  const  index = arr.findIndex( (t) => t.email === received_username);
+  
+  if (index === -1){
+    res.status(401).send("Unauthorized");
+  }
+  else{
+    if(arr[index].password === received_password){
+      var TobePassedobj ={
+        email :  arr[index].email,
+        firstName : arr[index].firstName,
+        lastName: arr[index].lastName
+       };
+       user.push(TobePassedobj);
+         return res.status(200).json({user});
+    }
+    res.status(401).send("Unauthorized");
+  }
+
+}
+
+// function demofn(req,res) {
+//   console.log(`Listening on port ${PORT}`);
+  
+// }
+
+app.post('/signup',firsttask);
+app.post('/login',secondtask);
+app.get('/data',thirdtask);
+//app.listen(PORT,demofn);
 module.exports = app;
+app.use((req, res, next) => {
+  res.status(404).send();
+});
