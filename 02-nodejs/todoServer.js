@@ -15,21 +15,21 @@
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
+
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -40,10 +40,95 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const bodyParser = require('body-parser');
 
 const app = express();
-
 app.use(bodyParser.json());
+
+class Todos {
+	constructor() {
+		this.todos = {};
+	}
+	todoExist(id) {
+		return id in this.todos;
+	}
+	addTodo(id, title, description, completed) {
+		let todo = {
+			id,
+			title,
+			description,
+			completed,
+		};
+		this.todos[todo.id] = todo;
+	}
+	getTodo(id) {
+		if (!this.todoExist(id)) return null;
+		return this.todos[id];
+	}
+	getAllTodos() {
+		return Object.values(this.todos);
+	}
+	updateTodo(id, todo) {
+		if (!this.todoExist(id)) return false;
+		this.todos[id].title = todo.title;
+		this.todos[id].completed = todo.completed;
+		return true;
+	}
+	deleteTodo(id) {
+		if (!this.todoExist(id)) return false;
+		delete this.todos[id];
+		return true;
+	}
+}
+const todos = new Todos();
+
+app.get('/todos', (req, res) => {
+	let allTodos = todos.getAllTodos();
+	res.status(200).send(allTodos);
+});
+
+app.get('/todos/:id', (req, res) => {
+	let id = req.params.id;
+	let todo = todos.getTodo(id);
+	if (todo) {
+		res.status(200).send(todo);
+	} else {
+		res.status(404).send('Not Found');
+	}
+});
+
+app.post('/todos', (req, res) => {
+	let { title, description, completed } = req.body;
+	const id = uuidv4();
+	todos.addTodo(id, title, description, completed);
+	res.status(201).send({ id });
+});
+
+app.put('/todos/:id', (req, res) => {
+	let id = req.params.id;
+	let { title, completed } = req.body;
+	let todoExist = todos.updateTodo(id, { title, completed });
+	if (todoExist) {
+		res.sendStatus(200);
+	} else {
+		res.sendStatus(404);
+	}
+});
+
+app.delete('/todos/:id', (req, res) => {
+	let id = req.params.id;
+	let todoDeleted = todos.deleteTodo(id);
+	if (todoDeleted) {
+		res.sendStatus(200);
+	} else {
+		res.sendStatus(404);
+	}
+});
+
+// handle routes not found
+app.use((req, res, next) => {
+	res.status(404).send('Route not found');
+});
 
 module.exports = app;
