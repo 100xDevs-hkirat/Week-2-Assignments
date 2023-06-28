@@ -32,6 +32,108 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
+const secret = 'mysecretkey';
+
+let users = [];
+
+function hashPassword(password) {
+  // Generate a salt with 10 rounds
+  const salt = bcrypt.genSaltSync(10);
+
+  // Hash the password with the salt
+  const hash = bcrypt.hashSync(password, salt);
+
+  // Return the hash
+  return hash;
+}
+
+// Define a function to generate tokens using jsonwebtoken
+function generateToken(user) {
+  // Create a payload with the user id and username
+  const payload = {
+    id: user.id,
+    username: user.username
+  };
+
+  // Sign the token with the secret key and an expiration time of 1 hour
+  const token = jwt.sign(payload, secret, { expiresIn: '1h' });
+
+  // Return the token
+  return token;
+}
+
+function comparePassword(password, hash) {
+  // Use bcrypt to compare the plain text password and the hashed password
+  console.log(password, hash);
+  return bcrypt.compare(password, hash);
+}
+
+
+app.post('/signup', (req, res) => {
+  const newUser = {
+    id: Math.floor(Math.random() * 1000000), // unique random id
+    username: req.body.username,
+    password: hashPassword(req.body.password),
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email };
+    const user = users.find(user => user.username === req.body.username);
+  if (user) {
+    res.status(400).send();
+  } else {
+    users.push(newUser);
+    res.status(201).send('Signup successful');
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const user = users.find(user => user.username === req.body.username);
+  const match = await comparePassword(req.body.password, user.password);
+  if (user && match) {
+    const token = generateToken(user);
+    const tokenObj = { token: token, ...user };
+    res.status(200).json(tokenObj);
+  } else {
+    res.status(401).send();
+  }
+});
+
+app.get('/data', async (req, res) => {
+  const token = req.headers.authorization;
+  if (req.headers.email && req.headers.password) {
+    try {
+      // const payload = jwt.verify(token, secret);
+      const user = users.find(user => user.email === req.headers.email);
+      console.log(user);
+      const match = await comparePassword(req.headers.password, user.password);
+      if (user && match) {
+        console.log(user);
+        res.json({ users: users });
+      } else {
+        res.status(401).send('Unauthorized');
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(401).send('Unauthorized');
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+});
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+// app.listen(3000);
+
 
 module.exports = app;
