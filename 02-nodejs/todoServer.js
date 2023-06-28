@@ -104,6 +104,6 @@ app.use((req, res, next) => {
 
 app.listen(port, () => {
   console.log(`Todo app listening on port ${port}`)
-})
+});
 
 module.exports = app;
