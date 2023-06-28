@@ -3,7 +3,7 @@ name: Authentication Tests
 on:
   push:
     branches:
-      - ci_cd_workflowss
+      - ci_cd_workflows
   pull_request:
     branches:
       - ci_cd_workflows
