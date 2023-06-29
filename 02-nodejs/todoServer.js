@@ -46,4 +46,26 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const todos = [];
+
+app.get('/todos', (req,res) => {
+  res.status(200).send(todos);
+})
+
+
+app.post('/todos', (req,res) => {
+  const todoBody = {
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  }
+  todos.push(todoBody)
+  res.status(200).send(todos)
+})
+
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
 module.exports = app;
