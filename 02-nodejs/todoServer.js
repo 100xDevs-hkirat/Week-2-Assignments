@@ -7,7 +7,7 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
-const toDoList = [{id:'1',todo:'eat food'},{id:'2',todo:'complete homework'}]
+const toDoList = []
 
 app.get('/todos',(req,res)=>{
   res.status(200).send(toDoList);
