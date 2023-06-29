@@ -41,9 +41,98 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const port = 3001;
 
 const app = express();
 
-app.use(bodyParser.json());
+var todoList = [];
+
+app.use(express.json());
+
+function findTodoByIndex(arr, id) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return i;
+  }
+  return -1;
+}
+
+function deleteTodoByIndex(arr, id) {
+  let newArray = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i !== id) newArray.push(arr[i]);
+  }
+  return newArray;
+}
+
+app.get('/todos', (req, res) => {
+  res.json(todoList);
+  console.log("GET: Todos List returned");
+})
+
+app.get('/todos/:id', (req, res) => {
+  const todoIndex = findTodoByIndex(todoList, req.params.id);
+  if (todoIndex === -1) {
+    res.sendStatus(404);
+    console.log("GET ID: ID Not found");
+  }
+  else {
+    console.log("GET ID: ID found and returned");
+    res.json(todoList[todoIndex]);
+  }
+})
+
+app.post('/todos', (req, res) => {
+  const uuid = uuidv4();
+  const todo = {
+    id: uuid,
+    title: req.body.title,
+    description: req.body.description,
+  };
+  todoList.push(todo);
+  console.log("POST: To Do Item Added.");
+
+  res.status(201).send({id: uuid});
+})
+
+app.put('/todos/:id', (req, res) => {
+  const index = findTodoByIndex(todoList, req.params.id);
+  if (index !== -1) {
+    if(req.body.title !== undefined){
+      todoList[index].title = req.body.title;
+    }
+    todoList[index].title = req.body.title;
+    if(req.body.description !== undefined){
+      todoList[index].description = req.body.description;
+    }
+    console.log("PUT: To Do Item found and updated.");
+    res.sendStatus(200);
+  }
+  else {
+    res.sendStatus(404);
+  }
+})
+
+app.delete('/todos/:id', (req, res) => {
+  const index = findTodoByIndex(todoList, req.params.id);
+  if (index !== -1) {
+    todoList = deleteTodoByIndex(todoList, index);
+    console.log("DELETE: To Do Item found and deleted.");
+    res.sendStatus(200);
+  }
+  else {
+    console.log("DELETE: To Do Item not found.");
+    res.sendStatus(404);
+  }
+})
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.sendStatus(404).send();
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+})
 
 module.exports = app;
