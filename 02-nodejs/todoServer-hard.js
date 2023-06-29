@@ -38,14 +38,46 @@
     - For any other route not defined in the server return 404
 
   Testing the server - run `npm run test-todoServer` command in terminal
- */
+  */
+
+const DELETE_PREVIOUS_TODOS = true;
+
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("fs");
 const app = express();
-
+let todos;
 app.use(bodyParser.json());
-
-const todos = [];
+function readTodo() {
+  return new Promise((resolve, reject) => {
+    fs.readFile("files/todos.json", "utf-8", (err, data) => {
+      if (err) reject;
+      try {
+        // console.log(data);
+        if (data !== "") {
+          todos = JSON.parse(data);
+        } else todos = [];
+      } catch (err) {
+        reject();
+      }
+      //   console.log("Reading...");
+      resolve();
+    });
+    setTimeout(reject, 500); // Auto Reject after .5 seconds
+  });
+}
+function updateTodo() {
+  return new Promise((resolve, reject) => {
+    fs.writeFile("files/todos.json", JSON.stringify(todos), (err) => {
+      if (err) {
+        console.error(err);
+        reject();
+      }
+      setTimeout(reject, 500); // Auto Reject after .5 seconds
+      resolve(todos);
+    });
+  });
+}
 
 app.get("/todos", (req, res) => {
   res.status(200).json(todos);
@@ -65,7 +97,7 @@ app.post("/todos", (req, res) => {
     description: req.body.description,
   };
   todos.push(newTodo);
-  res.status(201).json(newTodo);
+  updateTodo().then(() => res.status(201).json(newTodo));
 });
 app.put("/todos/:id", (req, res) => {
   const todoIndex = todos.findIndex(
@@ -76,7 +108,8 @@ app.put("/todos/:id", (req, res) => {
   } else {
     todos[todoIndex].title = req.body.title;
     todos[todoIndex].description = req.body.description;
-    res.status(200).json(todos[todoIndex]);
+    // res.status(200).json(todos[todoIndex]);
+    updateTodo().then((todos) => res.status(200).json(todos[todoIndex]));
   }
 });
 app.delete("/todos/:id", (req, res) => {
@@ -87,9 +120,29 @@ app.delete("/todos/:id", (req, res) => {
     res.status(404).send("NOT FOUND");
   } else {
     todos.splice(todoIndex, 1);
-    res.status(200).send("Deleted");
+    updateTodo().then(() => res.status(200).send("Deleted"));
+    // res.status(200).send("Deleted");
   }
 });
 app.use((req, res, next) => res.status(404).send());
-// app.listen(port, () => console.log(`App Started at port ${port}`));
+
+if (!DELETE_PREVIOUS_TODOS) {
+  readTodo()
+    .then(() => {
+      //   console.log("Read");
+      //   app.listen(3000, () => console.log(`App Started in port ${3000}`));
+      //   module.exports = app;
+    })
+    .catch((err) => {
+      //   console.log("Couldn't Read");
+    });
+} else {
+  todos = [];
+  updateTodo().then(
+    () => {
+      //   module.exports = app;
+    }
+    // app.listen(3000, () => console.log(`App Started in port ${3000}`))
+  );
+}
 module.exports = app;
