@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const bodyParser = require("body-parser");
+const express = require("express");
 const app = express();
+// const PORT = 3000;
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const users = [];
+const currUser = null;
+
+app.use(bodyParser.json());
+
+const signUp = (req, res) => {
+  const userBody = req.body;
+  const exists = false;
+  users.forEach((u) =>
+    u.username === userBody.username ? (exists = true) : null
+  );
+  if (exists) {
+    res.status(400).send("Username already exists");
+    return;
+  }
+  userBody.id = Date.now();
+  users.push(userBody);
+  res.status(201).send("Signup successful");
+};
+
+const login = (req, res) => {
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i < users.length; i++) {
+    if (users[i].email === user.email && users[i].password === user.password) {
+      userFound = users[i];
+      break;
+    }
+  }
+
+  userFound
+    ? res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email,
+      })
+    : res.sendStatus(401);
+};
+
+const getData = (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+      userFound = true;
+      break;
+    }
+  }
+
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i < users.length; i++) {
+      usersToReturn.push({
+        firstName: users[i].firstName,
+        lastName: users[i].lastName,
+        email: users[i].email,
+      });
+    }
+    res.json({
+      users,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+};
+
+app.post("/signup", signUp);
+app.post("/login", login);
+app.get("/data", getData);
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+// app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 module.exports = app;

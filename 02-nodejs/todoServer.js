@@ -39,11 +39,94 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+
+let todos = [];
+// { id: 1, title: "Sample todo 1", description: "", completed: false },
+// { id: 2, title: "Sample todo 2", description: "", completed: false },
+
+const express = require("express");
+const fs = require("fs");
+const bodyParser = require("body-parser");
+const PORT = 4000;
 
 const app = express();
-
+app.use(writeToFileMiddleware);
 app.use(bodyParser.json());
 
+const getTodo = (req, res) => res.status(201).send(todos);
+
+function writeToFileMiddleware(req, res, next) {
+  let oldSend = res.send;
+  res.send = function (data) {
+    fs.readFile("todoServer.txt", "utf8", (err, data) => {
+      const dataArr = JSON.parse(data);
+      if (err) return;
+      console.log("File read data: ", data);
+      if (data?.length) todos = dataArr;
+    });
+
+    fs.writeFile(
+      "todoServer.txt",
+      JSON.stringify(data),
+      (err) => err && console.log(err)
+    );
+    res.send = oldSend;
+    return res.send(data);
+  };
+  next();
+}
+
+const getTodoById = (req, res) => {
+  const todo = todos.filter((t) => t.id === Number(req.params.id))[0];
+  todo
+    ? res.status(200).send(todo)
+    : res.status(404).send({ error: "Invalid ID for todo" });
+};
+
+const postTodo = (req, res) => {
+  const { title, completed = false, description = "" } = req.body;
+  const id = Date.now();
+  if (!title)
+    return res.status(400).send({ error: "Cannot add an empty todo" });
+  todos.push({ id, title, description, completed });
+  res.status(201).send({ id });
+};
+
+const updateTodo = (req, res) => {
+  const id = Number(req.params.id);
+  const currTodo = todos.reduce(
+    (acc, curr, idx) => (curr.id === id ? (acc = [curr, idx]) : acc),
+    [false, false]
+  );
+
+  if (!currTodo[0])
+    return res.status(400).send({ error: "Invalid ID to update todo" });
+  const {
+    title = currTodo[0].title,
+    description = currTodo[0].description,
+    completed = currTodo[0].completed,
+  } = req.body;
+  todos.splice(currTodo[1], 1, { title, description, completed });
+  res.status(200).send({ message: `Updated todo with id: ${id}` });
+};
+
+const deleteTodo = (req, res) => {
+  const { id } = req.params;
+  const idx = todos.map((t) => t.id).indexOf(Number(id));
+  if (idx < 0) return res.status(400).send({ error: "Invalid ID" });
+  todos.splice(idx, 1);
+  res.status(200).send({ message: `Successfully deleted ID: ${id}` });
+};
+
+app.get("/todos", getTodo);
+app.get("/todos/:id", getTodoById);
+app.post("/todos", postTodo);
+app.put("/todos/:id", updateTodo);
+app.delete("/todos/:id", deleteTodo);
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 module.exports = app;
