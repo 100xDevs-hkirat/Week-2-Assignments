@@ -64,7 +64,7 @@ describe('API Endpoints', () => {
     test('should serve the requested file', async () => {
       const options = {
         method: 'GET',
-        path: '/file/test-file.txt'
+        path: '/files/test-file.txt'
       };
       const response = await sendRequest(options);
 
@@ -75,7 +75,7 @@ describe('API Endpoints', () => {
     test('should handle file not found', async () => {
       const options = {
         method: 'GET',
-        path: '/file/non-existing-file.txt'
+        path: '/files/non-existing-file.txt'
       };
       const response = await sendRequest(options);
 
