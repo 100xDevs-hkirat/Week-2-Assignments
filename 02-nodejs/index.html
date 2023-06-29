@@ -1,0 +1,115 @@
+<html>
+<head>
+  <title>ToDo App</title>
+  <style>
+    .tile {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+    }
+
+    .tile-title {
+      font-weight: bold;
+    }
+  </style>
+  <script>
+
+    function parsedResponse(data){
+        console.log(data);
+    }
+
+    function callback(response){
+        response.json().then(parsedResponse);
+    }
+    function handleSubmit() {
+        const form = document.getElementById('toDoForm');
+        const title = form.elements.title.value;
+        const description = form.elements.description.value;
+        fetch("http://localhost:3000/todos",{
+            method: 'POST',
+            body : JSON.stringify({
+                title : title,
+                description : description
+            }),
+            headers : {
+                "Content-type" : "application/json"
+            }
+        }).then(callback);
+    }
+
+    function deleteCallback(response){
+      console.log(response);
+    }
+
+    function deleteTodo(id){
+      fetch("http://localhost:3000/todos/"+id,{
+            method : 'DELETE'
+        }).then(deleteCallback);
+    }
+
+    function createTiles(tileData){
+        console.log(tileData);
+        const tilesContainer = document.getElementById('tiles-container');
+
+        tileData.forEach((data, index) => {
+
+        const tileElement = document.createElement('div');
+        tileElement.className = 'tile';
+
+        const titleElement = document.createElement('h4');
+        titleElement.className = 'tile-title';
+        titleElement.textContent = data.title;
+
+        // Create the description element
+        const descriptionElement = document.createElement('p');
+        descriptionElement.className = 'tile-description';
+        descriptionElement.textContent = data.description;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.innerText = 'Delete';
+        deleteButton.setAttribute("onclick","deleteTodo("+data.id+")");
+        
+        // Append the title and description elements to the tile element
+        tileElement.appendChild(titleElement);
+        tileElement.appendChild(descriptionElement);
+        tileElement.appendChild(deleteButton);
+        // Append the tile element to the tiles container
+        tilesContainer.appendChild(tileElement);
+        });
+    }
+
+    function displayToDos(response){
+        response.json().then(createTiles);   
+    }
+
+    function onload(){
+        fetch("http://localhost:3000/todos",{
+            method : 'GET'
+        }).then(displayToDos);
+    }
+
+    onload();
+
+  </script>
+</head>
+<body>
+    <h1>ToDOs Application</h1>
+  <form id = "toDoForm">
+    <label for="title">Title :</label>
+    <input type="text" id="title" name="title" placeholder="Enter ToDO title:" required>
+
+    <br><br>
+
+    <label for="description">Description :</label>
+    <input type="text" id="description" name="description" placeholder="Enter ToDo description:" required>
+
+    <br><br>
+
+    <input type="button" value="Create a ToDO !" onclick="handleSubmit()">
+  </form>
+  <br><br>
+
+  <div id="tiles-container"></div>
+  
+</body>
+</html>

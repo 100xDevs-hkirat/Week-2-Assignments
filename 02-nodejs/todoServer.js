@@ -77,6 +77,7 @@ class ToDo{
 }
 
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
@@ -84,6 +85,7 @@ const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
 var toDoList = [];
 
@@ -104,6 +106,10 @@ process.on('SIGINT', () => {
     writeToFile(toDoList);
   });
 });
+
+app.get("/",(req,res)=>{
+  res.sendFile(path.join(__dirname,"index.html"));
+})
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -165,17 +171,17 @@ function handleDeleteTodo(req, res){
 
 function writeToFile(toDoList){  
   const todos = JSON.stringify(toDoList);
-  fs.writeFile(path.join(__dirname, './files/', 'ToDo.txt'),todos, (err) => {
+  fs.writeFile(path.join(__dirname, './files/', 'ToDo.json'),todos, (err) => {
     if(err){
       console.log("Error writing to file : ", err);
     }else{
-      console.log(`ToDos saved in ToDo.txt file`);
+      console.log(`ToDos saved in ToDo.json file`);
     }
   });
 }
 
 function readToDosFromFile(){
-  fs.readFile(path.join(__dirname, './files/', 'ToDo.txt'),"utf-8",(err, data) => {
+  fs.readFile(path.join(__dirname, './files/', 'ToDo.json'),"utf-8",(err, data) => {
     if(err){
       if(err.code === 'ENOENT'){
         console.log("File not found");
@@ -185,7 +191,11 @@ function readToDosFromFile(){
       return;
     }
     if(data != ''){
-      toDoList = JSON.parse(data);
+       const jsonToDoList = JSON.parse(data);
+       jsonToDoList.forEach((jsonObj) => {
+        toDoList.push(new ToDo(jsonObj.title,jsonObj.description));
+      });
+       
     }
       
   });
