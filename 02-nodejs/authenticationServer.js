@@ -32,6 +32,77 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+app.use(express.json())
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+
+app.get("/data",(req,res)=>{
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let adminAccess = false;
+  for (i=0;i<users.length;i++){
+    if (users[i].email === email && users[i].password === password){
+      adminAccess = true
+      break
+    }
+  }
+  if (adminAccess){
+    let allUsers = []
+    for(i=0;i<users.length;i++){
+      allUsers.push({
+        "email":users[i].email,
+        "name":users[i].name,
+      })
+    }
+    res.send(allUsers)
+  }else{
+    res.sendStatus(400)
+  }
+})
+
+app.post("/login",(req,res)=>{
+  const user = req.body;
+  let alreadyExists = false;
+  let user_id;
+  for (i=0;i<users.length;i++){
+    if (users[i].email === user.email && users[i].password === user.password){
+      user_id = i
+      alreadyExists = true;
+      break;
+    }
+  }
+  if (alreadyExists){
+    let return_result = []
+    return_result.push({
+      "name":users[user_id].name,
+      "age":users[user_id].age
+    })
+    res.send(return_result)
+  }else{
+    res.sendStatus(404)
+  }
+})
+
+app.post("/signup",(req,res)=>{
+  const user = req.body;
+  let alreadyExists = false;
+  for (i=0;i<users.length;i++){
+    if (user.email === users[i].email){
+      alreadyExists = true;
+      break
+    }
+  }
+  if (alreadyExists){
+    res.status(400).send("Already existe...")
+  }else{
+    users.push(user)
+    res.send("Accout created successfully")
+  }
+})
+
+app.listen(PORT,()=>{
+  console.log("server started in port 3000")
+})
 
 module.exports = app;
