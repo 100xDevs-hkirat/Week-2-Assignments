@@ -20,7 +20,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-port = 3001;
+port = 3000;
 
 app.get('/files', (req, res) => {
   console.log('Files requested');
