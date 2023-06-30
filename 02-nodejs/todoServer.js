@@ -41,9 +41,88 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+// const { todo } = require('node:test');
 const app = express();
 
 app.use(bodyParser.json());
+let todos = [];
+app.get('/todos', (req,res)=>{
+  res.status(200).json(todos);
+})
 
+//2
+app.get('/todos/:id' , (req,res)=>{
+  var id = parseInt(req.params.id);
+  // id =id.slice(1);
+  var flag = false;
+  var index=0;
+  for ( let i=0;i<todos.length;i++){
+    if ( todos[i].id == id){
+      flag = true;
+      index = i;
+      break;
+    }
+  }
+  if ( flag == true)res.json(todos[index]);
+  else res.status(404).send();
+})
+
+
+// 3
+app.post('/todos' , (req,res)=>{
+  const  {title  , description} = req.body;
+  var item = {id: Math.floor(Math.random() * 1000000),
+  title: title , 
+  description: description
+};
+  todos.push(item);
+  res.status(201).json(item);
+})
+
+//4
+app.put('/todos/:id' , (req,res)=>{
+  var id = parseInt(req.params.id);
+  const {title , completed} = req.body;
+  var flag = false;
+  var index = 0;
+ for ( let i=0;i<todos.length;i++){
+    if ( todos[i].id == id){
+      flag = true;
+      index = i;
+      break;
+    }
+  }
+  if ( flag == false)res.status(404).send("Not found");
+  else {
+    todos[index].title = title;
+    todos[index].completed = completed;
+    res.sendStatus(200);
+  }
+})
+
+// 5
+app.delete('/todos/:id' , (req,res)=>{
+  var id  = parseInt(req.params.id);
+  var flag = false;
+  var index = 0;
+ for ( let i=0;i<todos.length;i++){
+    if ( todos[i].id == id){
+      flag = true;
+      index = i;
+      break;
+    }
+  }
+  if ( flag == false)res.status(404).send("Not found");
+  else {
+    todos.splice(index,1);
+    res.sendStatus(200);
+  }
+  app.use((req, res, next) => {
+    res.status(404).send();
+  });
+
+})
+// app.listen(3000, () => {
+//   console.log('Server is running on port 3000');
+// });
 module.exports = app;
