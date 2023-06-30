@@ -21,5 +21,45 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const PORT = 3000;
 
-module.exports = app;
+
+app.get("/files",(req,res)=>{
+    fs.readdir("./files/", (err, files) => {
+      if (err) {
+        console.error("Error reading directory:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      res.status(200).json(files);
+    });
+});
+
+
+app.get("/file/:filename", (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join("./files/", filename);
+
+  fs.readFile(filePath, "utf8", (err, fileContent) => {
+    if (err) {
+      console.error("Error reading file:", err);
+      if (err.code === "ENOENT") {
+        res.status(404).send("File not found");
+      } else {
+        res.status(500).send("Internal Server Error");
+      }
+      return;
+    }
+
+    res.status(200).send(fileContent);
+  });
+});
+
+// 404 - Not Found for any other route
+app.use((req, res) => {
+  res.status(404).send("Not Found");
+});
+
+  // app.listen(PORT, () => {
+  //     console.log(`Example app listening on port ${PORT}`);
+  //   }); 
