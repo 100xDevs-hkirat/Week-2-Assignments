@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index HTML</title>
+</head>
+<script>
+    function display(result) {
+        console.log(result);
+    }
+    function callback(resp) {
+        resp.json().then(display);
+    }
+    function add() {
+        var title = document.getElementById("title").value;
+        var description = document.getElementById("description").value;
+        console.log("title is : " + title);
+        console.log("description is : " + description);
+        fetch("http://localhost:5000/alltodo", {
+            method: "GET",
+        }).then(callback);
+        // alert("button hit");
+    }
+</script>
+
+<body>
+    <div>
+        <h1>
+            TO DO APP
+        </h1>
+        <form>
+            <label name="title">
+                <h3>Title</h3>
+            </label>
+            <input type="text" id="title" />
+            <label name="description">
+                <h3>Description</h3>
+            </label>
+            <input type="text" id="description" />
+            <button onclick="add()">Add</button>
+        </form>
+    </div>
+</body>
+
+</html>
