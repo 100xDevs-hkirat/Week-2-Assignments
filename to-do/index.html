@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <title>todo</title>
+    </head>
+    <!-- javascript scripts -->
+    <script>
+        // getting all data while loading page
+        const getData = () => {
+            fetch("http://localhost:3001/data",{
+                method:"GET"
+            }).then((resp)=>{
+                resp.json().then((data)=>{
+                    let parentElement = document.getElementById("mainContainer")
+                    for (i=0;i<data.length;i++){
+                        let new_todos_container = document.createElement("div");
+                        new_todos_container.id = "new_todo"
+                        new_todos_container.appendChild(document.createElement("h5")).innerHTML =(data[i].title)
+                        new_todos_container.appendChild(document.createElement("span")).innerHTML = data[i].status
+
+                        let child3 = document.createElement("button")
+                        child3.innerHTML = "Delete"
+                        child3.setAttribute("onclick","onPress_delete("+data[i].id+")")
+                        new_todos_container.appendChild(child3)
+                        parentElement.appendChild(new_todos_container)
+                    }
+                })
+            })
+        }
+        // calling function
+        getData()
+
+        // onClick to add new todo in list
+        const onPress = () =>{
+            let title = document.getElementById("title").value;
+            let status = document.getElementById("status").value;
+            fetch("http://localhost:3001/todo",{
+                method:"POST",
+                body:JSON.stringify({
+                    "title":title,
+                    "status":status
+                }),
+                headers:{
+                    "Content-type":"application/json"
+                }  
+            }).then((resp)=>{
+                resp.json().then((data)=>{
+                    let parentElement = document.getElementById("mainContainer")
+                    let new_todos_container = document.createElement("div")
+                    new_todos_container.id = "new_todo"
+                    new_todos_container.appendChild(document.createElement("h5")).innerHTML = data.title
+                    new_todos_container.appendChild(document.createElement("span")).innerHTML = data.status
+                    let child3 = document.createElement("button")
+                    child3.innerHTML = "Delete"
+                    child3.setAttribute("onclick","onPress_delete("+data.id+")")
+                    new_todos_container.appendChild(child3)
+                    parentElement.appendChild(new_todos_container)
+                })
+            })
+        }
+
+        // delete function to delete from list
+        function onPress_delete(id){
+            fetch("http://localhost:3001/todo/"+id,{
+                method:"DELETE",
+                headers:{
+                    "Content-type":"application/json"
+                }
+            }).then((resp)=>{
+                resp.json().then((data)=>{
+                    console.log(data)
+                })
+            })
+        }
+    </script>
+    <body>
+        <input type="text" id="title" name="title" placeholder="title"/>
+        <br>
+        <br>
+        <input type="text" id="status" name="status" placeholder="status"/>
+        <br>
+        <br>
+        <button onclick="onPress()">add</button>
+        <div id="mainContainer">
+        </div>
+            <style>
+                #new_todo{
+                    background-color: aquamarine;
+                    text-align: center;
+                    margin: 0 40% 0 40%;
+                }
+            </style>
+    </body>
+</html>
