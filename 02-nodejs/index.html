@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <script>
+    async function getData() {
+      try {
+        const res = await fetch("http://localhost:3000/todos/", {
+          method: "GET",
+        });
+        if (!res.ok) {
+          throw new Error("network response was not ok");
+        } else {
+          data = await res.json();
+          return data;
+        }
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    async function todos() {
+      try {
+        const todosList = await getData();
+        const parentElement = document.getElementById("main");
+        parentElement.innerHTML = "";
+        for (let i = 0; i < todosList.length; i++) {
+          let childDiv = document.createElement("div");
+          let childP1 = document.createElement("span");
+          childP1.innerHTML = todosList[i].title;
+          let childP2 = document.createElement("span");
+          childP2.innerHTML = todosList[i].description;
+          let button = document.createElement("button");
+          button.innerHTML = "delete";
+          button.setAttribute("onclick", "deleteTodo(" + todosList[i].id + ")");
+          childDiv.append(childP1);
+          childDiv.append(childP2);
+          childDiv.append(button);
+          parentElement.append(childDiv);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    todos();
+
+    async function postData() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      try {
+        const resp = await fetch("http://localhost:3000/todos/", {
+          method: "POST",
+          body: JSON.stringify({
+            title,
+            description,
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+        // console.log(resp);
+        if (!resp.ok) {
+          throw new Error("HTTP request failed");
+        }
+        const data = await resp.json();
+        return data;
+      } catch (err) {
+        throw err;
+      }
+    }
+    async function onPress() {
+      try {
+        const data = await postData();
+        // console.log(data);
+        todos();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+  <body>
+    <label for="title">title</label>
+    <input type="text" id="title" />
+    <label for="description">description</label>
+    <input type="text" id="description" />
+    <button onclick="onPress()">post</button>
+
+    <div id="main"></div>
+  </body>
+</html>
