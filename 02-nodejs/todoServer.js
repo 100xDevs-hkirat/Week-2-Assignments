@@ -45,5 +45,64 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.json());
+// app.use(express.json());
+let todos = [];
 
+function getAllTodos(req, res) {
+  res.json(todos);
+}
+
+function getTodo(req, res){
+  let idTodo = parseInt(req.params.id);
+  let data = todos.find(x => x.id === idTodo);
+  if(data){
+    res.json(data);
+  }
+  else {
+    res.status(404).send();
+  }
+}
+function createTodo(req, res) {
+  let todo = {
+    id: Math.floor(Math.random()*100000),
+    title: req.body.title,
+    description: req.body.description
+  }
+  todos.push(todo);
+  res.status(201).json(todo);
+}
+function updateTodo(req,res){
+  let id = parseInt(req.params.id);
+  let flagUpdateTodo = null;
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id === id){
+      flagUpdateTodo = todos[i];
+      todos[i].title = req.body.title;
+      todos[i].description = req.body.description;
+    }
+  }
+  if(flagUpdateTodo){
+    res.status(200).send(flagUpdateTodo);
+  }
+  else {
+    res.status(404).send();
+  }
+}
+
+app.get('/todos',getAllTodos);
+app.get('/todos/:id',getTodo);
+app.post('/todos',createTodo);
+app.put('/todos/:id',updateTodo);
+app.delete('/todos/:id', (req, res) => {
+  const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+app.all('*',(req,res) => {
+  res.status(404).send("Route not found")
+})
 module.exports = app;
