@@ -32,6 +32,107 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser')
+let jwt = require('jsonwebtoken');
+
+let userInfo = [];
+
+function isExistingUser(user)
+{
+  let userAlreadyExists = false;
+  for (var i = 0; i<userInfo.length; i++) {
+    if (userInfo[i].email === user.email) {
+        userAlreadyExists = true;
+        break;
+    }
+  }
+
+  return userAlreadyExists;
+}
+
+function getExistingUser(email, password)
+{
+  let existingUser = null;
+  for (var i = 0; i<userInfo.length; i++) {
+    if (userInfo[i].email === email && userInfo[i].password === password) {
+        existingUser = userInfo[i];
+        break;
+    }
+  }
+
+  return existingUser;
+}
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+function userSignUp(req, res)
+{
+  var user = req.body;
+
+  if (isExistingUser(user)) {
+    res.sendStatus(400);
+  }
+  else{
+    userInfo.push(user);
+    res.status(201).send('Signup successful');
+  }
+}
+
+function userLogin(req, res)
+{
+  var user = req.body;
+  var userFound = getExistingUser(user.email, user.password);
+
+  if(userFound){
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email
+    });
+    // let userdata = {
+    //   firstName: userFound.firstName,
+    //   lastName: userFound.lastName,
+    //   email: userFound.email
+    // };
+  
+    // jwt.sign({userdata}, 'abcdef', (err, token)=>{
+    //   res.json({token})
+    // });
+  }
+  else
+  {
+    res.status(401).send('Unauthorized');
+  }
+}
+
+function getUserData(req, res)
+{
+  email = req.headers.email;
+  password = req.headers.password;
+  
+  var userFound = getExistingUser(email, password);
+
+  if (userFound) {
+    let users = [];
+    for (let i = 0; i<userInfo.length; i++) {
+        users.push({
+            firstName: userInfo[i].firstName,
+            lastName: userInfo[i].lastName,
+            email: userInfo[i].email
+        });
+    }
+    res.json({users});
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+app.use(bodyParser.json());
+app.post('/signup', bodyParser.json(), userSignUp);
+app.post('/login', bodyParser.json(), userLogin);
+app.get('/data', getUserData);
+
+app.get('*', function (req, res) {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;
