@@ -41,19 +41,47 @@
  */
 const express = require("express");
 const bodyParser = require("body-parser");
-
 const app = express();
+const PORT = 3000;
+const fs = require("fs");
+const { error } = require("console");
+// const { error } = require("console");
+let todos = [];
+let uniqueID = 1;
 
 app.use(bodyParser.json());
 
-const todos = [];
-let uniqueID = 1;
+function writeData() {
+  const options = {
+    encoding: "utf-8",
+    mode: 0o644,
+    flag: "w",
+  };
+  const jsonData = JSON.stringify(todos);
+  fs.writeFile("./todos.json", jsonData, options, (error) => {
+    return error;
+  });
+  console.log("File written successfully");
+}
+
+function readData() {
+  fs.readFile("./todos.json", "utf-8", (error, data) => {
+    if (error) {
+      return error;
+    } else {
+      console.log(data);
+      todos = JSON.parse(data);
+      console.log(todos);
+    }
+  });
+}
 
 app.get("/todos", (req, res) => {
   try {
+    readData();
     res.status(200).json(todos);
   } catch (error) {
-    res.send("Error occurred: ", error);
+    res.send({ message: error });
   }
 });
 
@@ -64,7 +92,7 @@ app.get("/todos/:id", (req, res) => {
     if (foundTodo) {
       res.status(200).json(foundTodo);
     } else {
-      res.status(404).send("Not Found");
+      res.status(404).json({ message: "Not Found" });
     }
   } catch (error) {
     res.send("Error occurred: ", error);
@@ -81,6 +109,7 @@ app.post("/todos", (req, res) => {
       description: description,
     };
     todos.push(todo);
+    writeData();
     uniqueID++;
     res.status(201).json({ id: todo.id });
   } catch (error) {
@@ -90,18 +119,20 @@ app.post("/todos", (req, res) => {
 
 app.put("/todos/:id", (req, res) => {
   const id = req.params.id;
-  const { title, completed } = req.body;
+  const { title, completed, description } = req.body;
   try {
     const updatedTodo = todos.find((todo) => todo.id == id);
     if (updatedTodo) {
       updatedTodo.title = title;
       updatedTodo.completed = completed;
-      res.status(200).json(updatedTodo);
+      updatedTodo.description = description;
+      writeData();
+      res.status(200).json({ message: "Todo updated" });
     } else {
       res.status(404).json({ message: "Not found" });
     }
   } catch (error) {
-    res.send("Error occurred: ", error);
+    res.status(500).json({ message: error });
   }
 });
 
@@ -112,6 +143,7 @@ app.delete("/todos/:id", (req, res) => {
     if (deleteTodo) {
       const index = todos.indexOf(deleteTodo);
       todos.splice(index, 1);
+      writeData();
       res.status(200).json({ message: "Todo deleted" });
     } else {
       res.status(404).json({ message: "Not found" });
@@ -121,4 +153,8 @@ app.delete("/todos/:id", (req, res) => {
   }
 });
 
-module.exports = app;
+app.listen(PORT, () => {
+  console.log(`Todo application is listening on http://localhost:3000`);
+});
+
+// module.exports = app;
