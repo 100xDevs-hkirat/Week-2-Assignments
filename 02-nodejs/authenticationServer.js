@@ -29,9 +29,88 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
+const uuid = require("uuid");
+
 const PORT = 3000;
 const app = express();
+const USER_DB = [];
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+function authenticateUser(req, res, next) {
+  const { email, password } = req.headers;
+  if (!email || !password) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  if (validateUser(email, password) === -1) {
+    res.status(404).send("Invalid credentails.");
+    return;
+  }
+  return next();
+}
+
+function validateUser(email, password) {
+  return USER_DB.findIndex((user) => {
+    return user.email === email && user.password === password;
+  });
+}
+
+app.post("/signup", (req, res) => {
+  const { password, email, firstName, lastName } = req.body;
+  const userIndex = USER_DB.findIndex((user) => {
+    return user.email === email;
+  });
+  if (userIndex !== -1) {
+    res.status(400).send("User already exists");
+    return;
+  }
+  USER_DB.push({
+    id: uuid.v4(),
+    email,
+    password,
+    firstName,
+    lastName,
+  });
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  const userIndex = validateUser(email, password);
+  if (userIndex === -1) {
+    res.status(404).send("Invalid credentails.");
+    return;
+  }
+  res.json(USER_DB[userIndex]);
+});
+
+app.get("/data", authenticateUser, (req, res) => {
+  const { email, password } = req.headers;
+  const userIndex = validateUser(email, password);
+  if (userIndex === -1) {
+    res.status(404).send("Invalid credentails.");
+    return;
+  }
+  res.json({
+    users: USER_DB,
+  });
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("404 page not found.");
+});
+
+app.listen(PORT, () => {
+  console.log("Server is running at port: " + PORT);
+});
 
 module.exports = app;
