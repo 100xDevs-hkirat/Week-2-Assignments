@@ -39,11 +39,91 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const uuid = require("uuid");
+let todosList = [];
 
 const app = express();
+const port = 3000;
 
 app.use(bodyParser.json());
+
+app.get("/", (req, res) => {
+  res.send("On root route.");
+});
+
+app.get("/todos", (req, res) => {
+  res.json(todosList);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const searchTodoId = req.params.id;
+  const searchedTodo = todosList.filter((todo) => {
+    return todo.id === searchTodoId;
+  });
+  if (!searchedTodo.length) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+  res.json(searchedTodo);
+});
+
+app.post("/todos", (req, res) => {
+  const { title, description, completed = false } = req.body;
+  const id = uuid.v4();
+  todosList.push({
+    id,
+    title,
+    description,
+    completed,
+  });
+  res.status(201).send("Successfully created new todo");
+});
+
+app.put("/todos/:id", (req, res) => {
+  const { title, description, completed = false } = req.body;
+  const id = req.params.id;
+  const searchedTodoIndex = todosList.findIndex((todo) => {
+    return todo.id === id;
+  });
+  if (searchedTodoIndex === -1) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+  let updatedTodo = todosList[searchedTodoIndex];
+  if (title) {
+    updatedTodo = { ...updatedTodo, title };
+  }
+  if (description) {
+    updatedTodo = { ...updatedTodo, description };
+  }
+  if (completed) {
+    updatedTodo = { ...updatedTodo, completed };
+  }
+  todosList[searchedTodoIndex] = updatedTodo;
+  res.status(200).send("Successfully updated the data.");
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const filteredlist = todosList.filter((todo) => {
+    return todo.id !== id;
+  });
+  if (filteredlist.length === todosList.length) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+  todosList = filteredlist;
+  res.send("Successfully deleted the todo");
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("404, page not found");
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port: ${port}`);
+});
 
 module.exports = app;
