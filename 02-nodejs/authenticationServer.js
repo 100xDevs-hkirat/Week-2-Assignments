@@ -33,5 +33,61 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let users = [];
+
+let port = 3000;
+
+function getIndex(arr,id){
+  for(let i = 0; i<arr.length; i++){
+    if(arr[i].id == id)
+    return i;
+  }
+  return -1;
+}
+
+app.post("/signup", (req, res) => {
+  let user = req.body;
+  let foundUser = false;
+  for(let i = 0;i<users.length;i++){
+    if(users[i].email == user.email){
+      foundUser = user[i];
+      break;
+    }}
+
+  if (foundUser) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post('/login' , (req,res) => {
+  let foundUser = false;
+  let user = req.body;
+
+  for(let i = 0;i<users.length;i++){
+    if(users[i].email == user.email && users[i].password == user.password){
+      foundUser = user[i];
+      break;
+    }}
+  if (foundUser) {
+    res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email
+    });
+  } else {
+    res.sendStatus(401);
+  } 
+});
+
+app.get('/data', (req,res) => {
+  res.send(users);
+});
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
 
 module.exports = app;
