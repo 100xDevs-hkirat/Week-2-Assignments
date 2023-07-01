@@ -43,10 +43,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const fs = require("fs");
+const cors = require("cors");
 const PORT = 5000;
 
-app.use(bodyParser.json());
+app.use(cors());
 
+app.use(bodyParser.json());
 const toDos = [
   { id: 11, title: "football", description: "have to play football" },
   { id: 12, title: "cooking", description: "have to prepare food" },
@@ -71,7 +73,9 @@ app.get("/alltodo", (req, resp) => {
     }
   );
 });
-
+app.get("/all", (req, resp) => {
+  resp.send(toDos);
+});
 // get to do based on id
 app.get(`/todo/:id`, (req, resp) => {
   const index = toDos.findIndex((item) => item.id == req.params.id);
@@ -90,6 +94,7 @@ app.post("/addtodo", (req, resp) => {
     title: req.body.title,
     description: req.body.description,
   };
+  console.log(JSON.stringify(todo));
   toDos.push(todo);
   fs.appendFile(
     "/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files/a.txt",

@@ -8,20 +8,27 @@
     <title>Index HTML</title>
 </head>
 <script>
-    function display(result) {
-        console.log(result);
+    function todosCallback(data) {
+        console.log(data);
+        var parentElement = document.getElementById("todo");
+        parentElement.innerHTML = JSON.stringify(data);
     }
-    function callback(resp) {
-        resp.json().then(display);
+
+    function getDataCallback(resp) {
+        resp.json().then(todosCallback);
     }
     function add() {
-        var title = document.getElementById("title").value;
-        var description = document.getElementById("description").value;
-        console.log("title is : " + title);
-        console.log("description is : " + description);
-        fetch("http://localhost:5000/alltodo", {
+        fetch("http://localhost:5000/all", {
             method: "GET",
-        }).then(callback);
+            // body: JSON.stringify({
+            //     id: Math.random(1000) * 10000,
+            //     title: title,
+            //     description: description
+            // }),
+            // headers: {
+            //     "Content-Type": "application/json"
+            // }
+        }).then(getDataCallback);
         // alert("button hit");
     }
 </script>
@@ -42,6 +49,8 @@
             <input type="text" id="description" />
             <button onclick="add()">Add</button>
         </form>
+        <div id="todo">
+        </div>
     </div>
 </body>
 
