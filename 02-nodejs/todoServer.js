@@ -64,22 +64,25 @@ function writeData() {
   console.log("File written successfully");
 }
 
-function readData() {
-  fs.readFile("./todos.json", "utf-8", (error, data) => {
-    if (error) {
-      return error;
-    } else {
-      console.log(data);
-      todos = JSON.parse(data);
-      console.log(todos);
-    }
-  });
-}
+// function readData() {
+//   fs.readFile("./todos.json", "utf-8", (error, data) => {
+//     if (error) {
+//       return error;
+//     } else {
+//       return JSON.parse(data);
+//     }
+//   });
+// }
 
 app.get("/todos", (req, res) => {
   try {
-    readData();
-    res.status(200).json(todos);
+    fs.readFile("./todos.json", "utf-8", (error, data) => {
+      if (error) {
+        throw error;
+      } else {
+        res.status(200).json(JSON.parse(data));
+      }
+    });
   } catch (error) {
     res.send({ message: error });
   }
