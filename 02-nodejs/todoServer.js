@@ -39,11 +39,125 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
+const PORT = 3000;
+const fs = require("fs");
+const { error } = require("console");
+// const { error } = require("console");
+let todos = [];
+let uniqueID = 1;
 
 app.use(bodyParser.json());
 
-module.exports = app;
+function writeData() {
+  const options = {
+    encoding: "utf-8",
+    mode: 0o644,
+    flag: "w",
+  };
+  const jsonData = JSON.stringify(todos);
+  fs.writeFile("./todos.json", jsonData, options, (error) => {
+    return error;
+  });
+  console.log("File written successfully");
+}
+
+// function readData() {
+//   fs.readFile("./todos.json", "utf-8", (error, data) => {
+//     if (error) {
+//       return error;
+//     } else {
+//       return JSON.parse(data);
+//     }
+//   });
+// }
+
+app.get("/todos", (req, res) => {
+  try {
+    fs.readFile("./todos.json", "utf-8", (error, data) => {
+      if (error) {
+        throw error;
+      } else {
+        res.status(200).json(JSON.parse(data));
+      }
+    });
+  } catch (error) {
+    res.send({ message: error });
+  }
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  try {
+    const foundTodo = todos.find((todo) => todo.id == id);
+    if (foundTodo) {
+      res.status(200).json(foundTodo);
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const { title, completed, description } = req.body;
+  try {
+    const todo = {
+      id: uniqueID,
+      title: title,
+      completed: completed,
+      description: description,
+    };
+    todos.push(todo);
+    writeData();
+    uniqueID++;
+    res.status(201).json({ id: todo.id });
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const { title, completed, description } = req.body;
+  try {
+    const updatedTodo = todos.find((todo) => todo.id == id);
+    if (updatedTodo) {
+      updatedTodo.title = title;
+      updatedTodo.completed = completed;
+      updatedTodo.description = description;
+      writeData();
+      res.status(200).json({ message: "Todo updated" });
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  try {
+    const deleteTodo = todos.find((todo) => todo.id == id);
+    if (deleteTodo) {
+      const index = todos.indexOf(deleteTodo);
+      todos.splice(index, 1);
+      writeData();
+      res.status(200).json({ message: "Todo deleted" });
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.send("Error occurred: ", error);
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Todo application is listening on http://localhost:3000`);
+});
+
+// module.exports = app;

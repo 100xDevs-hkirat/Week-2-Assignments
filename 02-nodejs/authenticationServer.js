@@ -29,9 +29,98 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const usersArray = [];
+let uniqueID = 1;
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  try {
+    for (let i = 0; i < usersArray.length; i++) {
+      if (usersArray[i].email === email) {
+        res.status(400).json({ message: "User already exists" });
+      }
+    }
+    const newUser = {
+      id: uniqueID,
+      email: email,
+      password: password,
+      firstName: firstName,
+      lastName: lastName,
+    };
+    usersArray.push(newUser);
+    uniqueID++;
+    res.status(201).send("Signup successful");
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const validUser = usersArray.find((singleUser) => {
+      if (singleUser.email === email && singleUser.password === password) {
+        return true;
+      }
+    });
+    if (validUser) {
+      res.status(200).json({
+        firstName: validUser.firstName,
+        lastName: validUser.lastName,
+        email: validUser.email,
+      });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let userFound = false;
+  try {
+    for (let i = 0; i < usersArray.length; i++) {
+      if (
+        usersArray[i].email === email &&
+        usersArray[i].password === password
+      ) {
+        userFound = true;
+        break;
+      }
+    }
+
+    if (userFound) {
+      let usersToReturn = [];
+      for (let i = 0; i < usersArray.length; i++) {
+        usersToReturn.push({
+          firstName: usersArray.firstName,
+          lastName: usersArray.lastName,
+          email: usersArray.email,
+        });
+      }
+      res.status(200).json({ users: usersArray });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("Route not found");
+})
+
+// app.listen(PORT);
 
 module.exports = app;
