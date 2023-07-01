@@ -36,8 +36,6 @@ const app = express();
 const usersArray = [];
 let uniqueID = 1;
 const bodyParser = require("body-parser");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
 app.use(bodyParser.json());
 
@@ -46,7 +44,7 @@ app.post("/signup", (req, res) => {
   try {
     for (let i = 0; i < usersArray.length; i++) {
       if (usersArray[i].email === email) {
-        res.status(400).json({ message: "email already exists" });
+        res.status(400).json({ message: "User already exists" });
       }
     }
     const newUser = {
@@ -57,8 +55,8 @@ app.post("/signup", (req, res) => {
       lastName: lastName,
     };
     usersArray.push(newUser);
-    res.status(201).send("Signup successful");
     uniqueID++;
+    res.status(201).send("Signup successful");
   } catch (error) {
     res.send("Error occurred", error);
   }
@@ -73,28 +71,55 @@ app.post("/login", (req, res) => {
       }
     });
     if (validUser) {
-      res.status(200).send("Login successful");
+      res.status(200).json({
+        firstName: validUser.firstName,
+        lastName: validUser.lastName,
+        email: validUser.email,
+      });
     } else {
       res.status(401).send("Unauthorized");
     }
-    // for (let i = 0; i < usersArray.length; i++) {
-    //   if (
-    //     usersArray[i].email === email &&
-    //     usersArray[i].password === password
-    //   ) {
-    //     const payload = {
-    //       email: email,
-    //     };
-    //     const token = jwt.sign(payload, process.env.TOKEN_SECRET, {
-    //       expiresIn: process.env.TOKEN_EXPRATION_TIME,
-    //     });
-    //     return res.send("Success");
-    //   }
-    // }
   } catch (error) {
     res.send("Error occurred", error);
   }
 });
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let userFound = false;
+  try {
+    for (let i = 0; i < usersArray.length; i++) {
+      if (
+        usersArray[i].email === email &&
+        usersArray[i].password === password
+      ) {
+        userFound = true;
+        break;
+      }
+    }
+
+    if (userFound) {
+      let usersToReturn = [];
+      for (let i = 0; i < usersArray.length; i++) {
+        usersToReturn.push({
+          firstName: usersArray.firstName,
+          lastName: usersArray.lastName,
+          email: usersArray.email,
+        });
+      }
+      res.status(200).json({ users: usersArray });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  } catch (error) {
+    res.send("Error occurred", error);
+  }
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("Route not found");
+})
 
 // app.listen(PORT);
 
