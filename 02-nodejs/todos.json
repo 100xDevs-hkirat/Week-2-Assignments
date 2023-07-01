@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "title": "Buy groceries",
+    "description": "Milk, eggs, bread, and fruits"
+  },
+  {
+    "id": 2,
+    "title": "Complete project proposal",
+    "description": "Write a detailed proposal for the upcoming project"
+  },
+  {
+    "id": 3,
+    "title": "Schedule dentist appointment",
+    "description": "Call the dental clinic and book an appointment"
+  },
+  {
+    "id": 4,
+    "title": "Prepare presentation slides",
+    "description": "Create slides for the upcoming client meeting"
+  },
+  {
+    "id": 5,
+    "title": "Pay utility bills",
+    "description": "Clear pending electricity, water, and internet bills"
+  },
+  {
+    "id": 6,
+    "title": "Go for a morning jog",
+    "description": "Run for 30 minutes to stay fit and active"
+  },
+  {
+    "id": 7,
+    "title": "Read a new book",
+    "description": "Start reading 'The Alchemist' by Paulo Coelho"
+  },
+  {
+    "id": 8,
+    "title": "Attend yoga class",
+    "description": "Join the evening yoga session at the local studio"
+  },
+  {
+    "id": 9,
+    "title": "Call mom",
+    "description": "Catch up with mom and share the latest updates"
+  },
+  {
+    "id": 10,
+    "title": "Plan weekend getaway",
+    "description": "Research and decide on a destination for the upcoming weekend trip"
+  }
+]
