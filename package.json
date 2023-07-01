@@ -1,0 +1,12 @@
+{
+  "name": "week-2-assignments",
+  "version": "1.0.0",
+  "description": "Each assignment has its respective instructions for the setup, running, testing and submitting it.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

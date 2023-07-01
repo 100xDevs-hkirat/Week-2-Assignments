@@ -18,7 +18,7 @@
     
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
-    Request Body: JSON object representing the todo item.
+    Request Body: JSON object representing the todo item.3
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000;
 
 const app = express();
 
+let todos =  [];
+
+function findIndex(arr,id){
+  for(let i=0;i<arr.length;i++){
+    if(arr[i].id == id)
+     return i;
+  }
+  return -1;
+} 
+function removeAtIndex(arr, index) {
+  let newArray = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i !== index) newArray.push(arr[i]);
+  }
+  return newArray;
+}
+
+
+let id = Math.random() * 100;
+
 app.use(bodyParser.json());
+
+
+app.get('/todos', (req,res) => {
+  console.log("Printing all the todos");
+  res.status(200).json(todos);
+});
+
+
+app.get('/todos/:id',(req,res) => {
+  console.log(req.params);
+  let indexx = findIndex(todos,parseInt(req.params.id));
+  if (indexx === -1)
+    res.status(404).send();
+   else 
+    res.json(todos[indexx]);
+});
+
+app.post('/todos',(req,res) => {
+  let newItem = {
+    id: Math.floor(Math.random() * 100),
+    title: req.body.title,
+    description: req.body.description
+  };
+  todos.push(newItem);
+  res.status(201).json(todos);
+})
+
+app.put('/todos/:id', (req,res) => {
+  let indexx = findIndex(todos,parseInt(req.params.id));
+  if(indexx == -1)
+  res.status(400).send();
+  else {
+    todos[indexx].title = req.body.title;
+    todos[indexx].description = req.body.description;
+    res.status(201).json(todos[indexx]);
+  }
+});
+
+app.delete('/todos/:id', (req, res) => {
+  const todoIndex = findIndex(todos, parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos = removeAtIndex(todos, todoIndex);
+    res.status(200).send();
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 
 module.exports = app;
