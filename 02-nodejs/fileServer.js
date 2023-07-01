@@ -16,10 +16,54 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+const { resolveSoa } = require('dns');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port=3000;
 
+
+app.get("/file/:filename",(req,res)=>{
+  let fileName=req.params.filename;
+  console.log('Filename is '+fileName);
+  fs.readFile('./files/'+fileName,(err,data)=>{
+    if(err){
+      console.log("Couldn't read the file "+fileName,err);
+      res.statusCode=404;
+      res.send(`File not found`);
+    }
+    else{
+      res.send(data);
+    }
+  })
+})
+
+app.get("/files",(req,res)=>{
+fs.readdir("./files",(err,files)=>{
+  if(err){
+    console.log("Couldn't read the files directory",err);
+    res.statusCode=500;
+    res.send(err);
+  }
+  else{
+    console.log(files);
+    res.send(JSON.stringify(files));
+
+  }
+})
+
+//  console.log(typeof(fileList));
+})
+
+
+app.use((req,res,next)=>{
+  res.status(404).send('Route not found');
+})
+
+
+// app.listen(port,()=>{
+//   console.log("Listening on port "+port);
+// })
 
 module.exports = app;
