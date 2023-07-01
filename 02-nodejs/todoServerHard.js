@@ -43,21 +43,33 @@
 
 // Server Boilerplate
 const express = require('express');
+const fs = require('fs')
 const app = express();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
-// const port = 3001;
+// const port = 3000;
 // app.listen(port, console.log("Listening"))
 
 // Global
-let todoLists = [];
 
-let idGenerator = 1;
+function getTodoList(){
+  const rawData = fs.readFileSync('./todoList.json', 'utf8');
+  const toReturn = JSON.parse(rawData);
+  return toReturn;
+}
+
+function writeTodoList(content){
+  fs.writeFileSync('./todoList.json', content);
+  return;
+}
+
+let idGenerator = 4;
 
 // GET all
 function getTodos(req, res){
+  let todoLists = getTodoList();
   res.json(todoLists)
 }
 app.get('/todos', getTodos)
@@ -65,6 +77,7 @@ app.get('/todos', getTodos)
 // GET by id
 function getTodoByID(req, res){
   const searchId = Number(req.params.id);
+  let todoLists = getTodoList();
   const foundTodo = todoLists.find(todo => todo.id === searchId)
   if (foundTodo) {
     res.json(foundTodo)
@@ -76,9 +89,11 @@ app.get('/todos/:id', getTodoByID)
 
 // POST 
 function addTodo(req, res){
+  let todoLists = getTodoList();
   const newTodo = req.body;
   newTodo.id = idGenerator++;
   todoLists.push(newTodo)
+  writeTodoList(JSON.stringify(todoLists))
   res.status(201).json(newTodo);
 
 }
@@ -89,12 +104,14 @@ app.post('/todos', addTodo)
 
 function updateTodo(req, res){
   const searchId = Number(req.params.id);
+  let todoLists = getTodoList();
   const foundIndex = todoLists.findIndex(todo => todo.id === searchId)
   if (foundIndex !== -1) {
     const updateData = req.body;
     for(let property in updateData){
       todoLists[foundIndex][property] = updateData[property]
     }
+    writeTodoList(JSON.stringify(todoLists));
     res.send("Updated")
   } else {
     res.status(404).send()
@@ -106,9 +123,11 @@ app.put('/todos/:id', updateTodo)
 // DELETE by id
 function deleteTodo(req, res){
   const searchId = Number(req.params.id);
+  let todoLists = getTodoList();
   const foundIndex = todoLists.findIndex(todo => todo.id === searchId)
   if (foundIndex !== -1) {
     todoLists.splice(foundIndex, 1)
+    writeTodoList(JSON.stringify(todoLists))
     res.send("Deleted")
   } else {
     res.status(404).send("Doesn't Exit")
