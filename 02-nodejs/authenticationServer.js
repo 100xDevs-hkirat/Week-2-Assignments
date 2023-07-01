@@ -29,9 +29,70 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(express.json());
+
+const users = [];
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  const userAlreadyExists = users.find((user) => user.email === email);
+  if (userAlreadyExists) {
+    res.status(400).json({ message: "User already exists" });
+  } else {
+    users.push({ email, password, firstName, lastName });
+    res.status(201).json({ message: "Signup was successful" });
+  }
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const userFound = users.find(
+    (user) => user.email === email && user.password === password
+  );
+  if (userFound) {
+    const authToken = email + "auth";
+    res.status(200).json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email,
+      authToken,
+    });
+  } else {
+    res.status(401).json({ message: "User not found" });
+  }
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+  const userFound = users.find(
+    (user) => user.email === email && user.password === password
+  );
+  if (userFound) {
+    const info = [];
+    users.forEach((user) => {
+      info.push({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      });
+    });
+    res.status(200).json({ data: info });
+  } else {
+    res.status(401).json({ message: "User not found" });
+  }
+});
+
+app.all("*", (req, res) => {
+  res.status(404).json({ message: "Requested route was not found" });
+});
+
+// app.listen(PORT, () => {
+//   console.log(`Auth Server app listening on PORT ${PORT}`);
+// });
 
 module.exports = app;

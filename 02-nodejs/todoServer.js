@@ -39,11 +39,77 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const PORT = 3000;
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todos = [];
+
+app
+  .route("/todos")
+  .get((req, res) => {
+    res.status(200).json(todos);
+  })
+  .post((req, res) => {
+    const { title, description } = req.body;
+    if (!title || !description) {
+      res
+        .status(400)
+        .json({ message: "Title or description missing for the todo" });
+    } else {
+      const newTodo = {
+        id: uuidv4(),
+        title: title,
+        description: description,
+      };
+      todos.push(newTodo);
+      res.status(201).json({ message: "Todo added successfully" });
+    }
+  });
+
+app
+  .route("/todos/:id")
+  .get((req, res) => {
+    const todo = todos.find((todo) => todo.id === req.params.id);
+    if (!todo) {
+      res.status(404).json({ message: "Todo with the given id was not found" });
+    } else {
+      res.status(200).json(todo);
+    }
+  })
+  .put((req, res) => {
+    const todoInd = todos.findIndex((todo) => todo.id === req.params.id);
+    if (todoInd === -1) {
+      res.status(404).json({ message: "Todo with the given id was not found" });
+    } else {
+      let modifiedTodo = {
+        id: todos[todoInd].id,
+        title: req.body.title || todos[todoInd].title,
+        description: req.body.description || todos[todoInd].description,
+      };
+      todos[todoInd] = modifiedTodo;
+      res.status(201).json({ message: "Todo modified successfully" });
+    }
+  })
+  .delete((req, res) => {
+    const todoInd = todos.findIndex((todo) => todo.id === req.params.id);
+    if (todoInd === -1) {
+      res.status(404).json({ message: "Todo with the given id was not found" });
+    } else {
+      todos.splice(todoInd, 1);
+      res
+        .status(201)
+        .json({ message: "Todo with the given id removed successfully" });
+    }
+  });
+
+// app.listen(PORT, () => {
+//   console.log(`Todo app listening on PORT ${PORT}`);
+// });
 
 module.exports = app;
