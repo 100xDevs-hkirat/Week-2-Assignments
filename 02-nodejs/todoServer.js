@@ -41,9 +41,12 @@
  */
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("fs");
+const path = require("path");
 const todos = require("./todos.json");
 const app = express();
 
+const todosFile = path.join(__dirname, "todos.json");
 const PORT = 5000;
 
 app.use(bodyParser.json());
@@ -65,6 +68,38 @@ app.get("/todos/:id", (req, res) => {
 
   if (todo.length > 0) res.status(200).json(todo);
   else res.sendStatus(404);
+});
+
+app.post("/todos", (req, res) => {
+  const { description, title, completed } = req.body;
+
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error reading todos file");
+    }
+
+    let todos = JSON.parse(data);
+    console.log("Existing Todos:", todos);
+
+    let todo = {
+      id: todos.length + 1,
+      title,
+      description,
+    };
+    todos.push(todo);
+    console.log(todos);
+    todos = JSON.stringify(todos);
+    console.log("Updated Todos (Stringified):", todos);
+
+    const jsonData = JSON.stringify(todos);
+
+    fs.writeFile("./todos.json", jsonData, (error) => {
+      return error;
+    });
+    console.log("File written successfully");
+    res.sendStatus(201);
+  });
 });
 
 app.listen(PORT, () => {
