@@ -46,20 +46,20 @@ const app = express();
 
 app.use(bodyParser.json());
 
-var todoList=[
-  {
-    id : 1,
-    title:'Learn React',
-    description:'React is very cool framework for frontend development'
+var todoList=[];
+  // {
+  //   id : 1,
+  //   title:'Learn React',
+  //   description:'React is very cool framework for frontend development'
     
-  },
-  {
-    id : 2,
-    title:'Learn javascript',
-    description:'JavaScript is very important language for frontend as well as backend development'
+  // },
+  // {
+  //   id : 2,
+  //   title:'Learn javascript',
+  //   description:'JavaScript is very important language for frontend as well as backend development'
     
-  }
-]
+  // }
+
 
 function printAlltodos(req,res){
   res.json(todoList);
@@ -67,36 +67,36 @@ function printAlltodos(req,res){
  
 function printIDtodo(req,res){
   const todoId=parseInt(req.params.id);
-  console.log(todoId);
-  const todo=todoList.find((todo)=>{if(todo.id===todoId)return todo});
- if(!todo){
+  // console.log(todoId);
+  const todoIndex=todoList.findIndex((todo)=>todo.id===todoId);
+ if(todoIndex===-1){
   res.status(404).send('error: Todo not found');
  }
-res.status(200).send(todo);
+res.status(200).json(todoList[todoIndex]);
 }
 
 function createTodo(req,res){
   var newTodoId=todoList.length+1;
-  var newTodo={
+  const newTodo={
     id:newTodoId,
     title: req.body.title,
     description : req.body.description
-  }
+  };
   todoList.push(newTodo);
-  res.send(todoList);
+  res.status(201).json(newTodo);
 }
 
 function updateIDtodo(req,res){
   const todoId=parseInt(req.params.id);
-  var todo=todoList.find((todo)=>{if(todo.id===todoId)return todo});
+  var todoIndex=todoList.findIndex((todo)=>todo.id===todoId);
   // var todo=todoList.find((todo)=>todo.title===todoId);
 
-  if(!todo){
+  if(todoIndex===-1){
   res.status(404).send('error: Todo not found');
   }
-  todo.title=req.body.title;
-  todo.description=req.body.description;
-  res.status(200).send(todoList);
+  todoList[todoIndex].title=req.body.title;
+  todoList[todoIndex].description=req.body.description;
+  res.status(200).json(todoList[todoIndex]);
 }
 
 function deleteTodo(req,res){
@@ -109,7 +109,7 @@ function deleteTodo(req,res){
   for(let i=0;i<todoList.length;i++){
     todoList[i].id=i+1;
   }
-  res.status(200).send(todoList);
+  res.status(200).send();
 }
 
 app.get('/todos',printAlltodos)
