@@ -29,9 +29,84 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const { request } = require("http");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
+
+const usersData = [{ id : 12345678 , username : "abhi4u" , password : "adhvheww" ,firstname : "abhimanyu" ,lastname :"2233" , email:"@gmial.com"}]
+
+// user = { id : "" , username : " " , password : "" ,firstname : "" ,lastname :"""}
+
+function newId(){
+  return Math.floor(Math.random() * 100000000)
+}
+
+app.get('/data',(req,res)=>{
+  
+  const {email , password} = req.headers 
+  let isValid = false;
+
+  for (let i = 0; i < usersData.length; i++) {
+    if(email === usersData[i].email && password === usersData[i].password){
+         isValid = true;
+         break;
+    }  
+  }
+
+  if(isValid) res.status(200).send(usersData)
+
+  else res.status(401).send("Unauthorized")
+
+
+})
+
+app.post("/signup",(req,res)=>{
+     const userId = newId();
+
+     const {username, password ,firstname ,lastname ,email} = req.body
+     if(usersData.length > 0){
+      for (let i = 0; i <= usersData.length-1; i++) {
+        if(username === usersData[i].username){
+             res.sendStatus(400)
+        }
+       }
+      }
+    
+     if(username && password && firstname && lastname && email){
+      usersData.push({id : userId ,username : username, email : email , password : password, firstname : firstname , lastname : lastname})
+         res.status(201).send("Signup successful")
+     }
+     else{
+      res.sendStatus(400)
+     }
+
+})
+
+app.post("/login",(req,res)=>{
+
+  const {username , password} = req.body
+
+  let isExist = false;
+
+  for(let i = 0 ; i < usersData.length ; i++) {
+    
+    if(usersData[i].username === username && usersData[i].password === password){
+      isExist = true;
+      break;
+    }  
+  }
+
+  if(isExist) {res.json({firstname : usersData[i].firstname, lastname : usersData[i].lastname , id : usersData[i].id})}
+
+  else {res.sendStatus(401)}
+})
+
+app.all('*',(req,res)=>{
+  res.sendStatus(404)
+})
 
 module.exports = app;
