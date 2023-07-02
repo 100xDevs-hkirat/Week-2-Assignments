@@ -40,10 +40,75 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-const bodyParser = require('body-parser');
+
+const fs = require('fs')
+const path = require('path');
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
+
+const todoList = []
+
+app.get('/todos',(req,res)=>{
+   res.json(todoList)
+})
+
+app.get('/todos/:id',(req, res)=>{
+     const todoId = parseInt(req.params.id)
+
+     for (let i = 0; i < todoList.length; i++) {
+      if(todoId === todoList[i].id){
+        res.json(todoList[i])
+      }
+     }
+      res.sendStatus(404)
+  
+})
+
+app.post('/todos',(req,res)=>{
+   const todoData = req.body
+   
+   const newId = Math.floor(Math.random() *1000)
+
+   todoData.id = newId
+
+   todoList.push(todoData)
+
+   res.status(201).json(todoData)
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const userId = parseInt(req.params.id);
+
+  for(let i = 0; i < todoList.length; i++){
+    if(todoList[i].id === userId){
+        todoList.push(todoList[i])
+        res.status(200).send('found and updated')
+    }
+  }
+  res.sendStatus(404)
+
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const userId = parseInt(req.params.id);
+
+  for(let i = 0; i < todoList.length; i++){
+    if(todoList[i].id === userId){
+        todoList.splice(i,1)
+        res.status(200).send('found and updated')
+    }
+  }
+  res.sendStatus(404)
+})
+
+app.all('*',(req,res)=>{
+  res.sendStatus(404)
+})
+
+// app.listen(2001,(req,res)=>{
+//   console.log('server started')
+// })
 
 module.exports = app;
