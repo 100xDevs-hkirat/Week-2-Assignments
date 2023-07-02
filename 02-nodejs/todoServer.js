@@ -40,8 +40,9 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const path = require("path")
 const bodyParser = require('body-parser');
-
+const fs = require("fs");
 const app = express();
 
 todoData = [];
@@ -52,7 +53,11 @@ app.use(bodyParser.json());
 
 app.get("/todos", (req,res) => {
   console.log(todoData);
-  res.send(todoData);
+  fs.readFile("a.json", "utf-8", (err,data) =>{
+    if(err) throw err;
+    res.send(JSON.parse(data))
+  })
+  // res.send(todoData);
 
 })
 
@@ -61,14 +66,21 @@ app.get(`/todos/:id`, (req,res) => {
   const ids = parseInt(req.params.id);
   console.log(ids);
 
-  const object = todoData.find((element) => element.id === ids)
-  console.log(object);
+  fs.readFile("a.json", "utf-8", (err,data) =>{
+    if(err) throw err;
 
-  if(object){
-    res.json(object);
-  }
-  else
-    res.status(404).send("Not Found");
+    const object = JSON.parse(data).find((element) => element.id === ids)
+    console.log(object);
+  
+    if(object){
+      res.json(object);
+    }
+    else
+      res.status(404).send("Not Found");
+
+  })
+
+
 
 })
 
@@ -83,9 +95,18 @@ let obj = {
   title,
   description
 }
-todoData.push(obj);
+fs.readFile("a.json", "utf-8", (err, data) => {
+  if (err) throw err;
+  const todos = JSON.parse(data);
+  todos.push(obj);
+  fs.writeFile("a.json", JSON.stringify(todos), (err) => {
+    if(err) throw err;
+    res.status(201).send({id,title,description});
+  } )
+})
 
-res.status(201).send({id});
+
+
 })
 
 app.put(`/todos/:id`, (req,res) => {
@@ -95,17 +116,29 @@ app.put(`/todos/:id`, (req,res) => {
   const newTitle = req.body.title;
 
 
-  const object = todoData.find((element) => element.id === id);
+  fs.readFile("a.json", "utf-8", (err,data) =>{
+    if(err) throw err;
+    dataSet = JSON.parse(data)
+    const object = dataSet.find((element) => element.id === id);
 
-  if(object){
+    if(object){
+  
+      dataSet[dataSet.indexOf(object)].description = newDescription;
+      dataSet[dataSet.indexOf(object)].title = newTitle;
+      fs.writeFile("a.json", JSON.stringify(dataSet), (err) => {
+        if(err) throw err;
+        res.status(200).send();
+      } )
+  
+    }
+    else
+      res.status(404).send("Error");
 
-    todoData[todoData.indexOf(object)].description = newDescription;
-    todoData[todoData.indexOf(object)].title = newTitle;
-    res.status(200).send();
+  })
 
-  }
-  else
-    res.status(404).send("Error");
+
+
+
 
 
 })
@@ -116,20 +149,31 @@ app.delete(`/todos/:id`, (req,res) => {
   const id = parseInt(req.params.id);
   console.log(id);
 
-  const object = todoData.find((element) => element.id === id)
-  console.log(object);
+  fs.readFile("a.json", "utf-8", (err,data) =>{
+    if(err) throw err;
+    dataSet = JSON.parse(data)
+    const object = dataSet.find((element) => element.id === id);
 
-  if(object){
-    todoData.splice(todoData.indexOf(object), 1);
-    res.status(200).send();
-  }
-  else
-    res.status(404).send("Error");
+    if(object){
+      dataSet.splice(dataSet.indexOf(object), 1);
+ 
+      fs.writeFile("a.json", JSON.stringify(dataSet), (err) => {
+        if(err) throw err;
+        res.status(200).send();
+      } )
+  
+    }
+    else
+      res.status(404).send("Error");
+
+  })
+
 
   
 })
 
+app.get("/", (req,res) => {
+  res.sendFile(path.join(__dirname + "/index.html"))
+})
 
-
-
-module.exports = app;
+app.listen(3000);

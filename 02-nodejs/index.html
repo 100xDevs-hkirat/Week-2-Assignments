@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    
+<label>Todo Title:</label>
+<input placeholder="enter the title" type="text" id = "title">
+<br><br>
+
+<label>Todo description:</label>
+<input placeholder="enter the description" type="text" id = "description">
+<br><br>
+<button onclick="onPress()" >Submit</button>
+
+<div id = "mainArea"></div>
+
+
+<script>
+     deleteButton = document.getElementById("deleteTodo");
+     let mainArea = document.getElementById("mainArea");
+
+    //  deleteButton.addEventListner("click", () => {
+    //         deleteTodo();
+    //     })
+    const getData = () => {
+        fetch("http://localhost:3000/todos", {
+            method: "GET",
+        }).then((resp) => {
+            resp.json().then((data) => {
+                console.log(data);
+                // mainArea.innerHTML = JSON.stringify(data);
+                for(let i = 0; i < data.length; ++i){
+                    let childElement = document.createElement("div");
+
+                    let grandChileElement1 = document.createElement("span");
+                    let grandChileElement2 = document.createElement("span");
+                    let grandChileElement3 = document.createElement("button");
+
+                    grandChileElement1.innerHTML = data[i].title + " ";
+                    grandChileElement2.innerHTML = data[i].description + " ";
+                    grandChileElement3.innerText = "Delete"
+                    grandChileElement3.setAttribute("onclick", "deleteTodoItem(" + data[i].id +")")
+                    childElement.setAttribute("class", "_" + data[i].id);
+                    childElement.append(grandChileElement1,grandChileElement2,grandChileElement3);
+                mainArea.appendChild(childElement);
+                }
+
+            })
+        })
+    }
+    getData();
+
+    const onPress = () => {
+        let title = document.getElementById("title");
+       
+        let description = document.getElementById("description");
+        fetch("http://localhost:3000/todos", {
+            method : "POST",
+            body : JSON.stringify({
+                title: title.value,
+                description: description.value
+            }),
+            headers: {
+                "Content-Type" : "application/json"
+            }
+        }).then((resp) => {
+            resp.json().then((data) => {
+                console.log(data);
+                let childElement = document.createElement("div");
+
+                let grandChileElement1 = document.createElement("span");
+                let grandChileElement2 = document.createElement("span");
+                let grandChileElement3 = document.createElement("button");
+
+                grandChileElement1.innerHTML = data.title + " ";
+                grandChileElement2.innerHTML = data.description + " ";
+                grandChileElement3.innerText = "Delete"
+                grandChileElement3.setAttribute("onclick", "deleteTodoItem(" + data.id +")")
+                childElement.setAttribute("class", "_" + data.id);
+                childElement.append(grandChileElement1,grandChileElement2,grandChileElement3);
+                mainArea.appendChild(childElement);
+                
+                title.value = "";
+                description.value = "";
+                
+            })
+
+        })
+    }
+
+
+    const deleteTodoItem = (num) => {
+       fetch(`http://localhost:3000/todos/${num}`, {
+        method : "DELETE",
+        headers : {
+                "Content-Type" : "application/json"
+            }
+       }).then(() => {
+        let element = document.querySelector("._"+ num);
+        mainArea.removeChild(element);
+        console.log("delete done");
+       })
+
+    }
+</script>
+
+</body>
+</html>
