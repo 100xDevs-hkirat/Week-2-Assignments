@@ -41,12 +41,30 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 const port=3000;
 const app = express();
 
 app.use(bodyParser.json());
 
 var todoList=[];
+function writetoFile(data){
+  var data=JSON.stringify(data);
+ fs.writeFileSync('./files/todoList.json',data,'utf8');
+  
+}
+
+function readFromfile(){
+  try{
+  var data=fs.readFileSync('./files/todoList.json','utf8');
+    return JSON.parse(data);
+  }
+  catch (err) {
+    // If the file doesn't exist or there's an error reading it, return an empty array
+    return [];
+  }
+}
+
   // {
   //   id : 1,
   //   title:'Learn React',
@@ -62,32 +80,36 @@ var todoList=[];
 
 
 function printAlltodos(req,res){
-  res.json(todoList);
+  const todos = JSON.parse(readFromfile());
+  res.json(todos);
 }
- 
+
 function printIDtodo(req,res){
   const todoId=parseInt(req.params.id);
-  // console.log(todoId);
-  const todoIndex=todoList.findIndex((todo)=>todo.id===todoId);
+  const todos=JSON.parse(readFromfile());
+  const todoIndex=todos.findIndex((todo)=>todo.id===todoId);
  if(todoIndex===-1){
   res.status(404).send('error: Todo not found');
  }
-res.status(200).json(todoList[todoIndex]);
+res.status(200).json(todos[todoIndex]);
 }
 
 function createTodo(req,res){
-  var newTodoId=todoList.length+1;
+  const todos=JSON.parse(readFromfile());
+  var newTodoId=todos.length+1;
   const newTodo={
     id:newTodoId,
     title: req.body.title,
     description : req.body.description
   };
-  todoList.push(newTodo);
+  todos.push(newTodo);
+  writetoFile(JSON.stringify(todos));
   res.status(201).json(newTodo);
 }
 
 function updateIDtodo(req,res){
   const todoId=parseInt(req.params.id);
+  const todoList=JSON.parse(readFromfile());
   var todoIndex=todoList.findIndex((todo)=>todo.id===todoId);
   // var todo=todoList.find((todo)=>todo.title===todoId);
 
@@ -96,11 +118,13 @@ function updateIDtodo(req,res){
   }
   todoList[todoIndex].title=req.body.title;
   todoList[todoIndex].description=req.body.description;
+  writetoFile(JSON.stringify(todoList));
   res.status(200).json(todoList[todoIndex]);
 }
 
 function deleteTodo(req,res){
   let todoId=parseInt(req.params.id);
+  const todoList=JSON.parse(readFromfile());
   const index=todoList.findIndex((todo)=>todoId===todo.id);
   if(index===-1){
   res.status(404).send('error: Todo not found');
@@ -109,6 +133,7 @@ function deleteTodo(req,res){
   for(let i=0;i<todoList.length;i++){
     todoList[i].id=i+1;
   }
+  writetoFile(JSON.stringify(todoList));
   res.status(200).send();
 }
 
