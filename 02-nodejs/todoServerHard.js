@@ -42,11 +42,13 @@
 const express = require("express");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
+const cors = require("cors");
 const app = express();
 const PORT = 3000;
 var allTodos = [];
 
 app.use(express.json());
+app.use(cors());
 
 function checkId(id, allTodos) {
   for (let a = 0; a < allTodos.length; a++) {
@@ -71,16 +73,27 @@ app.post("/todos", (req, res) => {
   const completed = req.body.completed;
   const description = req.body.description;
   const id = uuidv4();
-
-  allTodos.push({
-    id: id,
-    title: title,
-    description: description,
-    completed: completed,
-  });
-  fs.writeFile("todos.json", JSON.stringify(allTodos), (err) => {
+  fs.readFile("todos.json", { encoding: "utf-8" }, (err, data) => {
     if (!err) {
-      res.status(201).json({ id: id });
+      var allTodos = JSON.parse(data);
+      allTodos.push({
+        id: id,
+        title: title,
+        description: description,
+        completed: completed,
+      });
+      fs.writeFile("todos.json", JSON.stringify(allTodos), (err) => {
+        if (!err) {
+          res
+            .status(201)
+            .json({
+              id: id,
+              title: title,
+              description: description,
+              completed: completed,
+            });
+        }
+      });
     }
   });
 });
@@ -163,6 +176,10 @@ app.put("/todos/:id", (req, res) => {
       }
     }
   });
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
 
 app.use((req, res, next) => {
