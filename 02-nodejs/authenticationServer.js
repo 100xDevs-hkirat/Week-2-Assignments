@@ -28,10 +28,96 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
-
-const express = require("express")
-const PORT = 3000;
-const app = express();
+let id = 1
+const express = require('express')
+const PORT = 3000
+const app = express()
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(express.json())
+let USERS = []
 
-module.exports = app;
+app.post('/signup', (req, res) => {
+  const { email, password, firstName, lastName } = req.body
+
+  if (!email || !password) {
+    return res.status(401).json({ msg: 'Please provide email and password' })
+  }
+
+  const emailExist = USERS.find((user) => {
+    return email === user.email
+  })
+
+  if (emailExist) {
+    return res.status(400).json({ msg: 'Email already exist' })
+  }
+
+  const newUser = {
+    id: id,
+    email: email,
+    password: password,
+    firstName: firstName,
+    lastName: lastName,
+  }
+  USERS.push(newUser)
+  id = id + 1
+
+  return res.status(201).send('Signup successful')
+})
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ msg: 'Please provide email and password' })
+  }
+
+  const user = USERS.find((user) => {
+    return email === user.email
+  })
+
+  if (user && password === user.password) {
+    const { id, email, firstName, lastName } = user
+    const userData = { id, email, firstName, lastName }
+    return res.status(200).send(userData)
+  } else if (!user) {
+    return res.status(401).json({ msg: 'email does not exist, please signup' })
+  } else if (password !== user.password) {
+    return res.status(401).json({ msg: 'Invalid password' })
+  }
+})
+
+app.get('/data', (req, res) => {
+  const email = req.headers.email
+  const password = req.headers.password
+
+  if (!email || !password) {
+    return res.status(401).send('Unauthorized')
+  }
+
+  const user = USERS.find((user) => {
+    return email === user.email
+  })
+
+  const users = {
+    users: USERS.map(({ id, email, firstName, lastName }) => {
+      return {
+        id,
+        email,
+        firstName,
+        lastName,
+      }
+    }),
+  }
+
+  if (user) {
+    return res.status(200).send(users)
+  } else {
+    return res.status(401).send('Unauthorized')
+  }
+})
+
+// app.listen(PORT, () => {
+//   console.log(`server started at port ${PORT}`)
+// })
+
+module.exports = app

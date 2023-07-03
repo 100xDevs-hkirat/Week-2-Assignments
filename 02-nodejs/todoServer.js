@@ -39,11 +39,84 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
 
-const app = express();
+const app = express()
 
-app.use(bodyParser.json());
+app.use(express.json())
 
-module.exports = app;
+let todos = []
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(todos)
+})
+
+app.get('/todos/:id', (req, res) => {
+  const { id } = req.params
+  const todo = todos.find((todo) => {
+    return todo.id === Number(id)
+  })
+
+  if (todo) {
+    res.status(200).json(todo)
+  } else {
+    res.status(404).send()
+  }
+})
+
+app.post('/todos', (req, res) => {
+  const id = Math.floor(Math.random() * 1000000)
+  const { title, description } = req.body
+  if (!title || !description) {
+    res.status(401).json({ msg: 'Please provide title and description' })
+  }
+
+  let newTodo = {
+    id: id,
+    title: title,
+    completed: false,
+    description: description,
+  }
+
+  todos.push(newTodo)
+
+  res.status(201).json({ id })
+})
+
+app.put('/todos/:id', (req, res) => {
+  const { id } = req.params
+  const todoIndex = todos.findIndex((todo) => {
+    return todo.id === Number(id)
+  })
+
+  if (todoIndex !== -1) {
+    todos[todoIndex].title = req.body.title
+    todos[todoIndex].completed = req.body.completed
+    todos[todoIndex].description = req.body.description
+
+    res.status(200).json({ msg: 'todo updated' })
+  } else {
+    res.status(404).send()
+  }
+})
+
+app.delete('/todos/:id', (req, res) => {
+  const { id } = req.params
+  const todoIndex = todos.findIndex((todo) => {
+    return todo.id === Number(id)
+  })
+
+  if (todoIndex !== -1) {
+    todos.splice(todoIndex, 1)
+    res.status(200).json({ msg: 'todo deleted' })
+  } else {
+    res.status(404).send()
+  }
+})
+
+app.use((req, res, next) => {
+  res.status(404).send()
+})
+
+app.listen(3001)
+module.exports = app
