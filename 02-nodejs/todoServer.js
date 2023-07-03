@@ -46,4 +46,68 @@ const app = express();
 
 app.use(bodyParser.json());
 
+// const port = 3000;
+// const todoArr = [
+//   { "id": 123, "title": "Buy choc", "completed": false, description: "I should buy choc" },
+//   {"id": 456, title: 'New Todo', description: 'A new todo item',},
+//   {"id": 789, title: 'Old Todo',"completed": false, description: 'A Old todo item',}
+
+// ]
+const todoArr = [];
+app.get('/todos', (req, res) => {
+  res.status(200).json(todoArr)
+})
+
+app.get('/todos/:id', (req, res) => {
+  const todoItem = todoArr.find(t => t.id === parseInt(req.params.id));
+  if(!todoItem){
+    res.status(404).send()
+  } else {
+    res.status(200).json(todoItem);
+  }
+});
+
+app.post('/todos', (req,res) => {
+  const {
+    title, completed, description } = req.body
+
+  const newTodo = {
+    "id": Math.floor(Math.random() * 1000000),
+    "title": title,
+    "description": description
+  };
+  todoArr.push(newTodo);
+  res.status(201).json(newTodo);
+})
+
+app.put('/todos/:id', (req,res) => {
+  const {title, completed} = req.body
+  const { id } = req.params
+  if(todoArr.some(e => e.id == id)){
+    const updIndex = todoArr.findIndex((t => t.id == id));
+    todoArr[updIndex].title = title;
+    todoArr[updIndex].completed = completed;
+    res.status(200).json(todoArr[updIndex]);
+  }else{
+    res.status(404).json({error: "id Not found to update"})
+  }
+})
+
+app.delete('/todos/:id', (req,res) => {
+  const { id } = req.params;
+  if(todoArr.some(e => e.id == id)){
+    const deleIndex = todoArr.findIndex((t => t.id == id));
+    todoArr.splice(deleIndex, 1);
+    res.status(200).send();
+  }else{
+    res.status(404).json({error: "ID not found to delete"})
+  }
+})
+
+app.use((req,res,next) => {
+  res.status(404).send()
+})
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
 module.exports = app;

@@ -30,8 +30,62 @@
  */
 
 const express = require("express")
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+const users = []
+app.post('/signup', (req,res) => {
+  const { email, password, firstName, lastName } = req.body;
+  const emailIndex = users.findIndex(t => t.email == email);
+  if(emailIndex === -1){
+    const newUser = {
+      id: Math.floor(Math.random()*10000),
+      email: email,
+      password: password,
+      firstName:firstName,
+      lastName: lastName
+    }
+    users.push(newUser);
+    res.status(201).send("Signup successful");
+  }else{
+    res.sendStatus(400)
+  }
+})
+app.post('/login', (req,res) => {
+  const { email, password } = req.body;
+  const user = users.find((item) => item.email === email && item.password ===password)
+    if(user){
+      const token = "fakeToken"
+      res.status(200).json({
+        token: token, 
+        email: user.email, 
+        firstName: user.firstName,
+        lastName: user.lastName
+      })
+    }else{
+      res.status(401).send("Unautharized");
+    }
+});
 
+app.get('/data', (req,res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let authenticateUser = users.find(item => item.email === email && item.password ===password)
+  if(authenticateUser){
+    const returnData = []
+    users.forEach((item) => {
+      let user = {
+        email: item.email,
+        firstName: item.firstName,
+        lastName: item.lastName
+      }
+      returnData.push(user);
+  })
+  res.status(200).json({ users });
+}else{
+  res.sendStatus(401);
+}  
+})
 module.exports = app;
