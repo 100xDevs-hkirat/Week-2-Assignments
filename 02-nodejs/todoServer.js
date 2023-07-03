@@ -46,4 +46,92 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const todosFilePath = path.join(__dirname, 'todos.json');
+  let todos = loadTodos();
+  
+  // Helper function to load todos from file
+  function loadTodos() {
+    try {
+      const todosData = fs.readFileSync(todosFilePath, 'utf8');
+      return JSON.parse(todosData) || [];
+    } catch (error) {
+      return [];
+    }
+  }
+  
+  // Helper function to save todos to file
+  function saveTodos() {
+    fs.writeFileSync(todosFilePath, JSON.stringify(todos), 'utf8');
+  }
+  
+  // Endpoint for retrieving all todo items
+  app.get('/todos', (req, res) => {
+    return res.status(200).json(todos);
+  });
+  
+  // Endpoint for retrieving a specific todo item by ID
+  app.get('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const todo = todos.find(todo => todo.id === id);
+  
+    if (!todo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+  
+    return res.status(200).json(todo);
+  });
+  
+  // Endpoint for creating a new todo item
+  app.post('/todos', (req, res) => {
+    const { title, description } = req.body;
+    const id = String(todos.length + 1);
+  
+    const newTodo = { id, title, description, completed: false };
+    todos.push(newTodo);
+    saveTodos();
+  
+    return res.status(201).json({ id });
+  });
+  
+  // Endpoint for updating an existing todo item by ID
+  app.put('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description, completed } = req.body;
+  
+    const todo = todos.find(todo => todo.id === id);
+  
+    if (!todo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+  
+    todo.title = title || todo.title;
+    todo.description = description || todo.description;
+    todo.completed = completed !== undefined ? completed : todo.completed;
+  
+    saveTodos();
+  
+    return res.status(200).json({ message: 'Todo updated successfully' });
+  });
+  
+  // Endpoint for deleting a todo item by ID
+  app.delete('/todos/:id', (req, res) => {
+    const { id } = req.params;
+  
+    const index = todos.findIndex(todo => todo.id === id);
+  
+    if (index === -1) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+  
+    todos.splice(index, 1);
+    saveTodos();
+  
+    return res.status(200).json({ message: 'Todo deleted successfully' });
+  });
+  
+  // Handle 404 Not Found
+  app.use((req, res) => {
+    return res.status(404).json({ error: 'Not Found' });
+  });
+
 module.exports = app;
