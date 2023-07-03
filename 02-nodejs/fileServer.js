@@ -20,6 +20,40 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const filesDirectory = path.join(__dirname, 'files');
+
+// Endpoint for listing files
+app.get('/files', (req, res) => {
+  fs.readdir(filesDirectory, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    return res.status(200).json({ files });
+  });
+});
+
+// Endpoint for reading a file
+app.get('/file/:filename', (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(filesDirectory, filename);
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).send('File not found');
+      }
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    return res.status(200).send(data);
+  });
+});
+
+// Handle 404 Not Found
+app.use((req, res) => {
+  return res.status(404).json({ error: 'Not Found' });
+});
 
 
 module.exports = app;
