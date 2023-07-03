@@ -135,7 +135,9 @@ describe('Todo API', () => {
   });
 
   test('should return 404 for a non-existent todo item', (done) => {
+
     http.get(`${baseUrl}/todos/${uuidv4()}`, (res) => {
+      
       expect(res.statusCode).toBe(404);
       done();
     });
