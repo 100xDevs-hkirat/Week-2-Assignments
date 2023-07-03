@@ -33,5 +33,83 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+// Array to store user accounts
+  const users = [];
+  
+  // Endpoint for user signup
+  app.post('/signup', (req, res) => {
+    const { username, password, firstName, lastName } = req.body;
+  
+    // Check if the username already exists
+    const existingUser = users.find(user => user.username === username);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+  
+    // Generate a unique id for the new user
+    const userId = generateUserId();
+  
+    // Create a new user object
+    const newUser = {
+      id: userId,
+      username,
+      password,
+      firstName,
+      lastName
+    };
+  
+    // Add the new user to the array
+    users.push(newUser);
+  
+    // Return a successful response
+    return res.status(201).json({ message: 'User created successfully' });
+  });
+  
+  // Endpoint for user login
+  app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+  
+    // Find the user with the matching username and password
+    const user = users.find(user => user.username === username && user.password === password);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+  
+    // Return user details
+    return res.status(200).json({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName
+    });
+  });
+  
+  // Endpoint for fetching protected data
+  app.get('/data', (req, res) => {
+    // Fetch username and password from request headers
+    const { username, password } = req.headers;
+  
+    // Find the user with the matching username and password
+    const user = users.find(user => user.username === username && user.password === password);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid username or password' });
+    }
+  
+    // Return the protected data
+    const userData = users.map(user => ({ id: user.id, firstName: user.firstName, lastName: user.lastName }));
+    return res.status(200).json({ users: userData });
+  });
+  
+  // Handle 404 Not Found
+  app.use((req, res) => {
+    return res.status(404).json({ error: 'Not Found' });
+  });
+  
+  // Helper function to generate a unique user id
+  function generateUserId() {
+    return users.length + 1;
+  }
+  
 
+
+module.exports = app;
 module.exports = app;
