@@ -29,9 +29,124 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const { v4: uuidv4 } = require("uuid");
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+// middleware
+app.use(express.json());
+var users = [];
+
+// home
+app.get("/", (req, res) => {
+  res.status(200).send("Home");
+});
+
+// signup
+app.post("/signup", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+
+  if (email && password && firstName && lastName) {
+    var emailList = [];
+    for (let a = 0; a < users.length; a++) {
+      emailList.push(users[a].email);
+    }
+
+    if (emailList.includes(email)) {
+      res.status(400).json({
+        status: "failed",
+        message: "email already exists",
+      });
+    } else {
+      const id = uuidv4();
+      users.push({
+        id: id,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+      });
+
+      res.status(201).send("Signup successful");
+    }
+  } else {
+    res.status(400).json({
+      status: "failed",
+      message: "please enter all fields",
+    });
+  }
+});
+
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  var userFound = false;
+  if (email && password) {
+    for (let a = 0; a < users.length; a++) {
+      if (email == users[a].email && password == users[a].password) {
+        userFound = true;
+        res.status(200).json({
+          status: "success",
+          message: "user found",
+          email: users[a].email,
+          firstName: users[a].firstName,
+          lastName: users[a].lastName,
+        });
+      }
+    }
+    if (!userFound) {
+      res.status(401).json({
+        status: "failed",
+        message: "incorrect email or password",
+      });
+    }
+  } else {
+    res.status(401).json({
+      status: "failed",
+      message: "email and password is required",
+    });
+  }
+});
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  var userFound = false;
+  for (let a = 0; a < users.length; a++) {
+    if (email == users[a].email && password == users[a].password) {
+      userFound = true;
+    }
+  }
+  var usersToSend = [];
+  for (let a = 0; a < users.length; a++) {
+    usersToSend.push({
+      id: users[a].id,
+      firstName: users[a].firstName,
+      lastName: users[a].lastName,
+    });
+  }
+
+  if (userFound) {
+    res.status(200).json({
+      users: usersToSend,
+    });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send("Not Found");
+});
+
+// app.listen(PORT, () => {
+//   console.log(`Listening on http://localhost:${PORT}`);
+// });
 
 module.exports = app;

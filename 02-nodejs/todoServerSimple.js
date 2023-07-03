@@ -39,11 +39,105 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
 const app = express();
+const PORT = 3000;
+var allTodos = [];
 
-app.use(bodyParser.json());
+app.use(express.json());
+
+function checkId(id, allTodos) {
+  for (let a = 0; a < allTodos.length; a++) {
+    if (id == allTodos[a].id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getTodoFromId(id, allTodos) {
+  for (let a = 0; a < allTodos.length; a++) {
+    if (allTodos[a].id == id) {
+      return a;
+    }
+  }
+  return null;
+}
+
+app.post("/todos", (req, res) => {
+  const title = req.body.title;
+  const completed = req.body.completed;
+  const description = req.body.description;
+  const id = uuidv4();
+
+  allTodos.push({
+    id: id,
+    title: title,
+    description: description,
+    completed: completed,
+  });
+
+  res.status(201).json({ id: id });
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  if (checkId(id, allTodos)) {
+    var index = getTodoFromId(id, allTodos);
+    res.status(200).json(allTodos[index]);
+  } else {
+    res.status(404).send("Not Found");
+  }
+});
+
+app.get("/todos", (req, res) => {
+  res.status(200).send(allTodos);
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  if (checkId(id, allTodos)) {
+    var index = getTodoFromId(id, allTodos);
+    allTodos.splice(index, 1);
+    res.status(200).send("Deleted");
+  } else {
+    res.status(404).send("Not Found");
+  }
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  if (checkId(id, allTodos)) {
+    var index = getTodoFromId(id, allTodos);
+
+    const title = req.body.title;
+    const description = req.body.description;
+    const completed = req.body.completed;
+    const oldTodo = allTodos[index];
+
+    if (title) {
+      oldTodo.title = title;
+    }
+    if (description) {
+      oldTodo.description = description;
+    }
+    if (completed) {
+      oldTodo.completed = completed;
+    }
+
+    res.status(200).send("updated");
+  } else {
+    res.status(404).send("Not Found");
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send("Not Found");
+});
+
+// app.listen(PORT, () => {
+//   console.log(`Listening on http://localhost:${PORT}`);
+// });
 
 module.exports = app;
