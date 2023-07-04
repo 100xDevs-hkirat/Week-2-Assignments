@@ -45,5 +45,73 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.json());
+var todos=[]
+var Randid=1
+
+app.use(bodyParser.json());
+app.get('/todos',(req,res)=>{
+  res.json(todos)
+})
+//Get to do by id
+app.get('/todos/:id',(req,res)=>{
+  var findid=parseInt(req.params.id)
+  var foundId=false
+  for(var i=0;i<todos.length;i++){
+    if(todos[i].id===findid){
+      foundId=true;
+      res.json(todos[i])
+      break
+    }
+  }
+  if(!foundId) res.status(404).send("Not Found")
+})
+//create a new todo
+app.post('/todos',(req,res)=>{
+  var todo={
+    id:Randid++,
+    title:req.body.title,
+    description:req.body.description
+  }
+  todos.push(todo)
+  res.status(201).json(todo)
+  
+})
+//update a specific todo
+app.put('/todos/:id',(req,res)=>{
+  var findid=parseInt(req.params.id)
+  var data=null
+  for(var i=0;i<todos.length;i++){
+    if(todos[i].id===findid){
+      data=todos[i]
+      todos[i].title=req.body.title
+      todos[i].description=req.body.description
+      break
+    }
+  }
+  if(data){
+    res.status(200).json(data)
+  }
+  else{
+    res.status(404).send()
+  }
+  
+})
+//delete a specific todo
+app.delete('/todos/:id',(req,res)=>{
+  var findid=parseInt(req.params.id)
+  var Exists=false
+  for(var i=0;i<todos.length;i++){
+    if(todos[i].id===findid){
+      Exists=true
+      todos.splice(i,1);
+      res.sendStatus(200)
+      break
+    }
+  }
+  if(!Exists) res.sendStatus(404)
+})
+app.all('*',(req,res)=>{
+  res.status(404).send("Route Not Found")
+})
 
 module.exports = app;

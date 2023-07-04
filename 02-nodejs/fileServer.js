@@ -20,6 +20,34 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+let FileList=[]
+function getListOfFiles(req,res){
+  fs.readdir('./files/',(err,files)=>{
+    if(err) throw err;
+    for(var file in files){
+      FileList.push(file)
+    }
+    res.json(FileList)
+  })
+}
+function GetContent(req,res){
+  var fileName=req.params.filename;
+  fs.readFile(path.join(__dirname, 'files/', fileName),'utf-8',(err,data)=>{
+    if(err){
+      res.status(404).send("File not found")
+    }
+    //console.log(data)
+    res.send(data)
+  })
+}
+//to get list of files present
+app.get('/files',getListOfFiles)
+//to get content of a file
+app.get('/file/:filename',GetContent)
+//other Routes
+app.all('*',(req,res)=>{
+  res.status(404).send("Route not found")
+})
 
 
 module.exports = app;
