@@ -40,10 +40,82 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs=require('fs');
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
 
+const todos=[];
+let id=0;
+
+app.get('/todos',(req,res)=>{
+  res.status(200).send(todos);
+})
+
+app.get('/todos/:id',(req,res)=>{
+  const id=req.params.id;
+  const todo=todos.find(todo=>todo.id==id);
+  if(todo){
+    res.status(404).send("not found");
+  }
+})
+
+
+app.post('/todos',(req,res)=>{
+    const id=id+1;
+    const title=re.body.title;
+    const completed=req.body.completed;
+    const description=req.body.description;
+    const obj={id,title,completed,description};
+    todos.push(obj);
+    fs.writeFile('./files/todos.json',todos,(err)=>{
+      console.log("error in writing")
+    })
+    res.status(201).send(obj);
+
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const id=req.params.id;
+  const todo=todos.find(todo=>todo.id==id);
+  if(todo){
+    const updatedTodo=req.body;
+  const updatedObj={
+    id:id,
+    title:updatedTodo.title,
+    completed:updatedTodo.completed,
+    description:updatedTodo.description
+  }
+  const indexOfTodo=todos.findIndex(todo=>todo.id==id);
+  todos[indexOfTodo]=updatedObj;
+  fs.writeFile('./files/todos.json',todos,(err)=>{
+    console.log("error in writing")
+  })
+    res.status(200).end();
+  }
+  else{
+    res.status(404).end();
+  }
+  
+
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const id=req.params.id;
+  const todoIndex=todos.findIndex(todo=>todo.id==id);
+  if(todoIndex){
+    todos.splice(todoIndex,1);
+    res.status(200).end()
+  }
+  else{
+    res.status(404).end();
+  }
+  
+})
+
+app.use((req, res) => {
+  res.status(404).end();
+});
 module.exports = app;

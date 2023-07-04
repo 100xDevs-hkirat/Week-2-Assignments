@@ -30,8 +30,56 @@
  */
 
 const express = require("express")
+const jwt = require('jsonwebtoken');
+
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const users=[];
+let id=0;
+
+app.post('/signup',(req,res)=>{
+  const {username,password,firstName,lastName}=req.body;
+  const user=users.find(user=>user.username==username);
+  if(user)  res.status(400).end();
+  else{
+    id+=1;
+    users.push({id,username,password,firstName,lastName});
+    res.status(201).end();
+  }
+})
+
+app.post('/login',(req,res)=>{
+  const {username,password}=req.body;
+  const user=users.find(user=>user.username==username && user.password==user.password);
+  if(user){
+    const authToken = generateAuthToken(username);
+    res.status(200).send({authToken})
+  }
+  else{
+    res.status(401).end();
+  }
+})
+app.get('/data',(req,res)=>{
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let isUser = users.find(u => {
+    return (u.email === email && u.password === password)
+  })
+  if (isUser != undefined) {
+    let usersArr = []
+    users.forEach(user => {
+      usersArr.push({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user.id
+      })
+    })
+    res.status(200).json({ users: usersArr })
+
+
+  } else res.sendStatus(401)
+})
 module.exports = app;
