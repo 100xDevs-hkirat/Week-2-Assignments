@@ -34,4 +34,69 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+let userInfo = [];
+app.use(express.json());
+
+app.post('/signup', (req, res) => {
+  let obj = {
+    id: Math.floor(Math.random() * 100000),
+    email: req.body.email,
+    password: req.body.password,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName
+  }
+
+  let check = userInfo.find(value => value.email == req.body.email);
+  if (check) {
+    res.status(400).send();
+  } else {
+    userInfo.push(obj);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post('/login', (req, res) => {
+  let user = null;
+  for (let i = 0; i < userInfo.length; i++) {
+    if (userInfo[i].email === req.body.email && userInfo[i].password === req.body.password) {
+      user = userInfo[i];
+      break;
+    }
+  }
+
+  if (!user) {
+    res.status(401).send();
+  } else {
+    let obj = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email
+    }
+    res.json(obj);
+  }
+});
+
+app.get('/data', (req, res) => {
+  let users = userInfo.find(ele => ele.email === req.headers.email && ele.password === req.headers.password);
+  if (users) {
+    let userToreturn = [];
+    for (let i = 0; i < userInfo.length; i++) {
+      userToreturn.push({
+        firstName: userInfo[i].firstName,
+        lastName: userInfo[i].lastName,
+        email: userInfo[i].email,
+      });
+    }
+    res.json({
+      users: userToreturn
+    })
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 module.exports = app;
