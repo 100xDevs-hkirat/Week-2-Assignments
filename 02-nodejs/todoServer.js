@@ -41,9 +41,67 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+//const mp = require('./mp')
+const {v4: uuid} = require('uuid')
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const mp = new Map();
+
+app.get('/todos', (req, res) => {
+    let arr = [];
+    for(let x of mp.values()){
+        arr.push(x);
+    }
+    res.json(arr);
+});
+
+app.get('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    if(mp.has(id)){
+        let val = mp.get(id);
+        res.json(val);
+    }
+    else res.status(404).send();
+});
+
+app.post('/todos', (req, res) => {
+    let newTodo = req.body;
+    const id = uuid();
+    newTodo.id = id;
+    mp.set(id, newTodo);
+    console.log(mp.get(id));
+    res.status(201).json(newTodo);
+});
+
+
+app.put('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    if(mp.has(id)){
+        let key = mp.get(id);
+        console.log(mp.get(id));
+        key.title = req.body.title;
+        key.completed = req.body.completed;
+        console.log(mp.get(id));
+        res.json(key);
+    }
+    else{
+        res.status(404).send();
+    }
+
+});
+
+
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    if(mp.has(id)){
+        mp.delete(id);
+        res.status(200).send();
+    }
+    else res.status(404).send();
+});
+
 
 module.exports = app;
