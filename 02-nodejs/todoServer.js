@@ -41,9 +41,112 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const uuid = require('uuid');
+const fs = require('fs');
+const path = require('path')
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const DB_PATH = path.join(__dirname, 'todo.json')
+
+const getTodoList = () => JSON.parse(fs.readFileSync(DB_PATH)) 
+
+const postTodoList = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data))
+
+const filterTodoList = (id) => getTodoList().filter((todo) => todo.id === id);
+
+app.post('/todos', (req, res) => {
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        res.status(400).send('Bad Request');
+    } else {
+        const todo = {
+            id: uuid.v4(),
+            title: title,
+            description: description,
+        };
+
+        const todoList = getTodoList()
+        todoList.push(todo);
+
+        postTodoList(todoList)
+        res.status(201).send(todo);
+    }
+});
+
+app.get('/todos', (req, res) => {
+    res.send(getTodoList());
+});
+
+app.get('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const filteredList = filterTodoList(id);
+
+    if (filteredList.length > 0) {
+        res.send(filteredList[0]);
+    } else {
+        res.status(404).send('Not Found');
+    }
+});
+
+app.put('/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        res.status(400).send('Bad Request');
+    } else {
+        const updatedTodo = {
+            id: id,
+            title: title,
+            description: description,
+        };
+
+        let todoFound = false;
+
+        const todoList = getTodoList().reduce((acc, curr) => {
+            if (curr.id === id) {
+                todoFound = true;
+            } else {
+                acc.push(curr);
+            }
+            return acc;
+        }, []);
+
+        if (todoFound) {
+            const updatedList = [...todoList, updatedTodo]
+            postTodoList(updatedList);
+
+            res.status(200).send('OK');
+        } else {
+            res.status(404).send('Not Found');
+        }
+    }
+});
+
+app.delete('/todos/:id', (req, res) => {
+    const { id } = req.params;
+
+    let todoFound = false;
+
+    const todoList = getTodoList().reduce((acc, curr) => {
+        if (curr.id === id) {
+            todoFound = true;
+        } else {
+            acc.push(curr);
+        }
+        return acc;
+    }, []);
+
+    if (todoFound) {
+        postTodoList(todoList)
+        res.status(200).send('OK');
+    } else {
+        res.status(404).send('Not Found');
+    }
+});
 
 module.exports = app;
