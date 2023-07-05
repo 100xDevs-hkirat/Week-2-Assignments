@@ -46,4 +46,54 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos = [];
+
+app.get('/todos', (req, res)=>{
+    res.json(todos);
+});
+
+app.get('/todos/:id',(req, res)=>{
+  const task = todos.find(t => t.id === parseInt(req.params.id));
+  if(!task){
+    res.status(404).send();
+  }else{
+    res.json(task);
+  }
+});
+
+app.post('/todos', (req, res)=>{
+  const newTask = {
+  id: Math.floor(Math.random() * 1000000),
+  title: req.body.title,
+  description: req.body.description
+  };
+  todos.push(newTask);
+  res.status(201).json(newTask);
+});
+
+app.put('/todos/:id',(req, res)=>{
+  const taskId = todos.findIndex(t => t.id === parseInt(req.params.id));
+  if(taskId === -1){
+    res.status(404).send();
+  }else{
+    todos[taskId].title = req.body.title;
+    todos[taskId].description = req.body.description;
+    res.json(todos[taskId]);
+  }
+});
+
+app.delete('/todos/:id', (req, res) => {
+  const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 module.exports = app;
