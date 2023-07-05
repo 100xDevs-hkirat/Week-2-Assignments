@@ -29,9 +29,63 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const { v4: uuid } = require("uuid");
+var bodyParser = require("body-parser");
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+let userData = [];
+
+app.post("/signup", (req, res) => {
+  let newUser = req.body;
+  let id = uuid();
+  newUser.id = id;
+
+  const existingUser = userData.find((user) => user.username === newUser.username);
+  if (existingUser) {
+    return res.status(400).json({ error: "Username already exists" });
+  }
+
+  userData.push(newUser);
+  res.status(201).send("Signup successful");
+});
+
+
+app.post("/login", (req, res) => {
+  let userCredentials = req.body;
+  let token = uuid();
+
+  const existingUser = userData.find((user) => user.username === userCredentials.username);
+  if (!existingUser) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const { password, ...userDetails } = existingUser;
+  res.status(200).send(userDetails);
+});
+
+
+
+app.get("/data", (req, res) => {
+  userCredentials = req.headers;
+
+  let usernamePresent = userData.find((user) => user.username === userCredentials.username);
+  let passwordPresent = userData.find((user) => user.password === userCredentials.password);
+
+  if (usernamePresent && passwordPresent) {
+    const userDetails = { users: userData.map(({ firstname, lastname, id }) => ({ firstname, lastname, id })) };
+    res.status(200).send(userDetails);
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+// function started() {
+//   console.log(`Example app listening on port ${PORT}`);
+// }
+
+// app.listen(PORT, started);
 
 module.exports = app;
