@@ -42,67 +42,105 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { v4: uuid } = require("uuid");
+const fs = require("fs");
 
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
 
-let todoList = [];
 
 app.get("/todos", (req, res) => {
-  res.json(todoList);
+  fs.readFile("todoServer.json", { encoding: "utf-8" }, (err, data) => {
+    res.json(JSON.parse(data));
+  });
 });
 
 app.post("/todos", (req, res) => {
   let newTodo = req.body;
   let id = uuid();
   newTodo.id = id;
-  todoList.push(newTodo);
-  res.status(201).json(newTodo);
+  let todoList = [];
+  fs.readFile("todoServer.json", { encoding: "utf-8" }, (err, data) => {
+    todoList = JSON.parse(data);
+    todoList.push(newTodo);
+
+    fs.writeFile(
+      "todoServer.json",
+      JSON.stringify(todoList),
+      "utf-8",
+      (err) => {
+        res.status(201).json(newTodo);
+      }
+    );
+  });
 });
 
 app.get("/todos/:id", (req, res) => {
   let id = req.params.id;
 
-  for (var i = 0; i < todoList.length; i++) {
-    if (todoList[i].id === id) {
-      res.json(todoList[i]);
+  fs.readFile("todoServer.json", { encoding: "utf-8" }, (err, data) => {
+    let todoList = JSON.parse(data);
+    for (var i = 0; i < todoList.length; i++) {
+      if (todoList[i].id === id) {
+        res.json(todoList[i]);
+      }
     }
-  }
-  res.status(404).send();
+    res.status(404).send();
+  });
 });
+
 
 app.put("/todos/:id", (req, res) => {
   let id = req.params.id;
   let updatedTodo = req.body;
 
-  for (var i = 0; i < todoList.length; i++) {
-    if (todoList[i].id === id) {
-      todoList[i].title = updatedTodo.title;
-      todoList[i].completed = updatedTodo.completed;
-      res.status(200).json(todoList[i]);
-    }
-  }
-  res.status(404).send();
+  fs.readFile("todoServer.json", { encoding: "utf-8" }, (err, data) => {
+    let todoList = JSON.parse(data);
+    for (var i = 0; i < todoList.length; i++) {
+        if (todoList[i].id === id) {
+          todoList[i].title = updatedTodo.title;
+          todoList[i].completed = updatedTodo.completed;
+        fs.writeFile(
+            "todoServer.json",
+            JSON.stringify(todoList),
+            "utf-8",
+            (err) => {
+                res.status(200).json(todoList[i]);
+            }
+          );
+        }
+      }
+  });
+
 });
 
 app.delete("/todos/:id", (req, res) => {
   let id = req.params.id;
 
-  for (var i = 0; i < todoList.length; i++) {
-    if (todoList[i].id === id) {
-      todoList.splice(i, 1);
-      res.status(200).json(todoList);
-    }
-  }
-  res.status(404).send();
+  fs.readFile("todoServer.json", { encoding: "utf-8" }, (err, data) => {
+    let todoList = JSON.parse(data);
+    for (var i = 0; i < todoList.length; i++) {
+        if (todoList[i].id === id) {
+          todoList.splice(i, 1);
+        fs.writeFile(
+            "todoServer.json",
+            JSON.stringify(todoList),
+            "utf-8",
+            (err) => {
+                res.status(200).json(todoList[i]);
+            }
+          );
+        }
+      }
+  });
+
 });
 
-// function started() {
-//   console.log(`Example app listening on port ${port}`);
-// }
+function started() {
+  console.log(`Example app listening on port ${port}`);
+}
 
-// app.listen(port, started);
+app.listen(port, started);
 
 module.exports = app;

@@ -95,7 +95,7 @@ describe('API Tests', () => {
     expect(response.statusCode).toBe(200);
 
     const responseBody = JSON.parse(response.body);
-    console.log(responseBody);
+    // console.log(responseBody);
     expect(responseBody.users.length).toBe(1);
   });
 });
