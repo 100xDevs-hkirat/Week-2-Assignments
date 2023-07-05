@@ -64,7 +64,7 @@ app.get('/todos/:id', (req, res) => {
 app.post('/todos', (req, res) => {
   const newTodo = {
     id: Math.floor(Math.random() * 1000000), // unique random id
-    title: req.body.title,
+    title: req.body.title, 
     description: req.body.description
   };
   todos.push(newTodo);
@@ -87,7 +87,7 @@ app.delete('/todos/:id', (req, res) => {
   if (todoIndex === -1) {
     res.status(404).send();
   } else {
-    todos.splice(todoIndex, 1);
+    todos.splice(todoIndex, 1);  
     res.status(200).send();
   }
 });
