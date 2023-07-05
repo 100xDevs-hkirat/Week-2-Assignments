@@ -41,9 +41,95 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000;
+const path = require('path');
+const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
+
+app.get("/todos",function(req,res){
+  fs.readFile("todo.json","utf8",(err,data) => {
+    if (err) throw err;
+    res.status(200).json(JSON.parse(data));
+  })
+})
+
+
+app.get("/todos/:id", function(req,res){
+  fs.readFile("todo.json","utf8",(err,data) => {
+    if (err) throw err;
+    const id = req.params.id;
+    const todos = JSON.parse(data);
+    const todoItem = todos.find(t => t.id === parseInt(id));
+    if (!todo) {
+      res.status(404).json({
+        message: "Todos not found"
+      })
+    } else {
+      res.status(200).json(todoItem)
+    }
+  })
+
+})
+
+app.post("/todos",function(req,res){
+
+  const newTodo = {
+    id : Math.floor(Math.random() * 1000),
+    title: "Go to the gym",
+    description: " Let's get started!"
+  }
+
+  fs.readFile("todo.json","utf8",(err,data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile("todo.json",JSON.stringify(todos),(err) => {
+      if (err) throw err;
+      res.status(201).json(newTodo)
+    })
+  })
+})
+
+
+app.put("/todos/:id",function(req,res){
+  const id = req.params.id;
+  const {title,description,completed} = req.body;
+  const todoItem = todos.find(item => item.id === id)
+
+  if (!todoItem) {
+    res.status(404).json({error: 'Todo item not found'})
+  } else {
+    todoItem.title = title,
+    todoItem.description = description,
+    todoItem.completed = completed
+
+    res.status(200).json({message: "Todo item updated succesfully"})
+  }
+})
+
+app.delete("/todos/:id",function(req,res){
+  const id = req.params.id;
+  const index = todos.findIndex(i => i.id === parseInt(id))
+
+  if (index === -1){
+    res.status(404).json({error: "Todo item not found"})
+  } else {
+    todos.splice(index,1);
+    res.status(200).json({message:"Todo item deleted successfully!"})
+  }
+})
+
+// app.get("/",(req,res) => {
+//   res.sendFile(path.join(__dirname,"index.html"))
+// })
+
+app.listen(port, () => {
+  console.log(`Example app listening on the ${port}`)
+})
 module.exports = app;
