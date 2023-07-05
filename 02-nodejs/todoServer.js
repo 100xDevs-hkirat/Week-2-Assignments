@@ -40,6 +40,8 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -51,6 +53,48 @@ app.listen(3000, () => {
 })
 
 var todolist = [];
+
+const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read/todos.json"
+fs.readFile(file_name, 'utf-8', (err, data) => {
+  if(err){
+    console.log(err);
+  }
+  console.log(data);
+  todolist = JSON.parse(data);
+  
+})
+
+app.get("/files/:filename", (req, res) => {
+  const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read/"+req.params.filename;
+  fs.readFile(file_name, 'utf-8', (err, data) => {
+    if(err){
+      console.log(err);
+      return res.status(200).send("404 Not Found");
+    }
+  
+    console.log(data);
+    res.status(200).send(data);
+})
+})
+
+
+app.post("/files/:filename", (req, res) => {
+  const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/Week-2-Assignments/02-nodejs/files/"+req.params.filename;
+  console.log(file_name);
+  //var jsonObj = JSON.parse(req.body);
+  //console.log(jsonObj);
+  var jsonContent = JSON.stringify(req.body)
+  console.log("I am a Json String: " + jsonContent);
+  fs.writeFile(file_name, jsonContent, 'utf8',  (err) => {
+    if(err){
+      console.log(err);
+      return res.status(200).send("404 Not Found");
+    }
+  
+    res.status(200).send(jsonContent);
+})
+})
+
 
 app.get("/todos" , (req, res)=> {
     console.log(todolist);
@@ -69,6 +113,13 @@ app.get("/todos/:id", (req, res) => {
 
 app.post("/todos", (req, res) => {
     todolist.push([todolist.length==0?0:todolist[todolist.length -1][0]+1, {"title": req.body.title, "description": req.body.description, "completed" :"False"}]);
+    console.log(todolist);
+    fs.writeFile(file_name, JSON.stringify(todolist), 'utf8',  (err) => {
+      if(err){
+        console.log(err);
+        return res.status(200).send("404 Not Found");
+      }    
+  })
     res.status(201).json({id : todolist[todolist.length -1][0]})
     console.log(todolist.indexOf(todolist[todolist.length -1]))
 })
@@ -79,6 +130,9 @@ app.put("/todos/:id", (req, res) => {
       todolist[i][1].title= req.body.title!==undefined?req.body.title:todolist[i][1].title
       todolist[i][1].description= req.body.description!==undefined?req.body.description:todolist[i][1].description
       todolist[i][1].completed= req.body.completed!==undefined?req.body.completed:todolist[i][1].completed
+      fs.writeFile(file_name, JSON.stringify(todolist), (err) => {
+        if (err) throw err;
+      });
       return res.status(200).send("Task has been successfully updated")
     }
   }
@@ -90,6 +144,9 @@ app.delete('/todos/:id', (req,res) => {
     if(req.params.id==todolist[i][0]){
       todolist.splice(i, 1);
       console.log(todolist);
+      fs.writeFile(file_name, JSON.stringify(todolist), (err) => {
+        if (err) throw err;
+      });
       return res.status(200).send("Task has been found & Deleted");
     }
   }

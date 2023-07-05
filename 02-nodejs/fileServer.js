@@ -18,7 +18,7 @@
  */
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
+//const path = require('path');
 const app = express();
 
 //For Windows the "\" has to be replaced with "/""
@@ -59,6 +59,36 @@ app.get("/files/:filename", (req, res) => {
     console.log(data);
     res.status(200).send(data);
 })
+})
+
+// app.post("/files/:filename", (req, res) => {
+//   const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read/"+req.params.filename;
+//   const data_body=req.body;
+//   console.log(req);
+//   fs.writeFile(file_name, data_body, (err, data) => {
+//     if(err){
+//       console.log(err);
+//       return res.status(200).send("404 Not Found");
+//     }
+  
+//     console.log(data);
+//     res.status(200).send(data);
+// })
+// })
+
+app.post("/files/:filename", (req, res) => {
+  const file_name="C:/Users/Admin/OneDrive - White Cap/Desktop/projects/files_read/"+req.params.filename;
+  const data_body=req.body;
+  console.log(data_body);
+
+    if(!data_body){
+      console.log("body not found");
+      return res.status(200).send("404 Not Found");
+    }
+  
+    console.log(data_body);
+    res.status(200).send(data_body);
+
 })
 
 
