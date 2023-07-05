@@ -13,7 +13,7 @@ describe('API Tests', () => {
       if (globalServer) {
         globalServer.close();
       }
-    globalServer = server.listen(3000);
+    globalServer = server.listen(9000);
     done()
   });
 
@@ -24,7 +24,7 @@ describe('API Tests', () => {
   it('should allow a user to sign up', async () => {
     const requestBody = JSON.stringify({ email, password, firstName, lastName });
 
-    const options = {
+    const options = { 
       method: 'POST',
       path: '/signup',
       headers: {

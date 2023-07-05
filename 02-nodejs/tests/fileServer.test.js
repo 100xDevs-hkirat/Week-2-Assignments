@@ -9,7 +9,7 @@ describe('API Endpoints', () => {
     if (globalServer) {
         globalServer.close();
     }
-    globalServer = server.listen(3000);
+    globalServer = server.listen(9500);
     done()
   });
 

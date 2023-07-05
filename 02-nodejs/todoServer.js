@@ -40,10 +40,67 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const port = 8000;
 const bodyParser = require('body-parser');
-
 const app = express();
 
 app.use(bodyParser.json());
+var todos = [];
+
+app.post('/todos', (req, res) => {
+
+  const newTodo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description
+  };
+
+  todos.push(newTodo);
+  res.status(201).json(newTodo)
+  console.log(todos)
+
+})
+
+app.put('/todos/:id' , (req,res)=>{
+  const todoIndex = todos.findIndex(t=>t.id===parseInt(req.params.id));
+  if(todoIndex === -1){
+    res.status(404).send();
+  }
+  else{
+    todos[todoIndex].title=req.body.title;
+    todos[todoIndex].description=req.body.description;
+    res.json(todos[todoIndex]);
+  }
+
+})
+
+app.get('/todos', (req, res) => {
+  res.json({
+    todos
+  })
+})
+
+app.delete('/todos/:id', (req,res)=>{
+const todoIndex = todos.findIndex(t=>t.id===  parseInt(req.params.id));
+if(todoIndex === -1){
+  res.status(404).send();
+}else {
+  todos.splice(todoIndex ,1);
+  res.status(200).send();
+}
+
+
+})
+
+
+app.use((req,res,next)=>{
+  res.status(404).send();
+})
+
+
+
+app.listen(port, () => {
+  console.log("server runing successfully")
+})
 
 module.exports = app;
