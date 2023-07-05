@@ -30,8 +30,84 @@
  */
 
 const express = require("express")
+
 const PORT = 3000;
 const app = express();
+app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let usernameList=[];
+let id=0;
+app.post('/signup',(req,res)=>{
+      let {email,password,firstName,lastName}=req.body;
+      //let body=req.body;
+      let userInfo={
+          id:id++,
+          username:email,
+          password:password,
+          firstName:firstName,
+          lastName:lastName
+      }
+       let usernameExists=false;
+       usernameList.forEach((user)=>{ 
+         if(user.username===email){
+          res.sendStatus(400);
+          usernameExists=true;
+         }
+         if(usernameExists)return;
+       })
+       if(!usernameExists){
+         usernameList.push(userInfo);
+         console.log(usernameList)
 
+         res.status(201).send("Signup successful");
+       }
+ })
+
+app.post('/login',(req,res)=>{
+  let {email,password}=req.body;
+  //let body=req.body;
+  let userLoggedIn=false;
+  usernameList.forEach((user)=>{
+    if(user.username===email && user.password===password){
+      res.json({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.username
+     })
+     userLoggedIn=true;
+     }
+     if(userLoggedIn)return;
+    })
+    if(!userLoggedIn)
+     res.sendStatus(401);
+})
+app.get('/data',(req,res)=>{
+  var {email,password} = req.headers;
+  let userFound = false;
+  let listOfUsers=[];
+  usernameList.forEach((user)=>{
+    if(user.username===email && user.password===password){
+       userFound=true;
+     }
+     listOfUsers.push({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+     })
+     
+    })
+  if (userFound) {
+    res.json({
+        users:listOfUsers
+    });
+  } else {
+    res.sendStatus(401);
+  }
+})
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 module.exports = app;
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`)
+// })
