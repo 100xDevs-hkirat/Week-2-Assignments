@@ -39,68 +39,70 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-// const { v4: uuidv4 } = require("uuid");
-// const express = require("express");
-// const bodyParser = require("body-parser");
-// const PORT = 3000; // extra to check on localhost
-// const app = express();
-// app.use(bodyParser.json());
+const { v4: uuidv4 } = require("uuid");
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const PORT = 3000; // extra to check on localhost
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
 
-// let todos = [];
+let todos = [];
 
-// function findTodoById(id) {
-//   // find the todo item by id
-//   return todos.find((todo) => todo.id === id);
-// }
+function findTodoById(id) {
+  // find the todo item by id
+  return todos.find((todo) => todo.id === id);
+}
 
-// app.get("/todos", (req, res) => {
-//   res.status(200).json(todos);
-// });
+app.get("/todos", (req, res) => {
+  res.status(200).json(todos);
+});
 
-// app.get("/todos/:id", (req, res) => {
-//   const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
-//   if (todo) {
-//     // if so returns the todo item
-//     res.status(200).json(todo);
-//   } else {
-//     res.status(404).send("Item not found");
-//   }
-// });
+app.get("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
+  if (todo) {
+    // if so returns the todo item
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
 
-// app.post("/todos", (req, res) => {
-//   const todo = req.body; // request the item to be added from the body
-//   todo.id = uuidv4();
-//   todos.push(todo);
-//   res.status(201).json({ id: todo.id });
-// });
+app.post("/todos", (req, res) => {
+  const todo = req.body; // request the item to be added from the body
+  todo.id = uuidv4();
+  todos.push(todo);
+  res.status(201).json({ id: todo.id });
+});
 
-// app.put("/todos/:id", (req, res) => {
-//   const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
-//   if (todo) {
-//     todo.title = req.body.title; // replaces the title and description with the new ones
-//     todo.description = req.body.description;
-//     res.status(200).json(todo);
-//   } else {
-//     res.status(404).send("Item not found");
-//   }
-// });
+app.put("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
+  if (todo) {
+    todo.title = req.body.title; // replaces the title and description with the new ones
+    todo.description = req.body.description;
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
 
-// app.delete("/todos/:id", (req, res) => {
-//   const todo = findTodoById(req.params.id);
-//   if (todo) {
-//     todos.splice(todos.indexOf(todo), 1); // deletes the item from the array
-//     res.status(200).json({ message: "Todo item deleted successfully" });
-//   } else {
-//     res.status(404).send("Item not found");
-//   }
-// });
+app.delete("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id);
+  if (todo) {
+    todos.splice(todos.indexOf(todo), 1); // deletes the item from the array
+    res.status(200).json({ message: "Todo item deleted successfully" });
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
 
-// app.listen(PORT, () => {
-//   //extra to check on localhost
-//   console.log(`Server listening on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  //extra to check on localhost
+  console.log(`Server listening on port ${PORT}`);
+});
 
-// module.exports = app;
+module.exports = app;
 
 //// new week 3 updates backend with frontend also at localhost:3000//
 
