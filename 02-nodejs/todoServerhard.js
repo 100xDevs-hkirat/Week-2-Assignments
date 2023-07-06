@@ -4,9 +4,9 @@ const fs = require("fs");
 
 
 const app = express();
-app.listen(3000,()=>{
-  console.log("Example app listening on port 3000");
-});
+// app.listen(3000,()=>{
+//   console.log("Example app listening on port 3000");
+// });
 
 app.use(bodyParser.json());
 
@@ -14,8 +14,12 @@ app.get('/todos', (req, res)=>{
     fs.readFile("./todos.json","utf-8",(err, data)=>{
         if(err){
             res.status(404).send();
-        }else{
+        }else{          
+          if(!data || JSON.stringify(data) === "{}"){
+            res.json([]);
+          }else{
             res.json(JSON.parse(data));
+          }
         }
     });
 });
@@ -23,7 +27,10 @@ app.get('/todos', (req, res)=>{
 app.get('/todos/:id',(req, res)=>{
     fs.readFile("./todos.json", "utf-8", (err, data) => {
         if (err) throw err;
-        const todos = JSON.parse(data);
+        if(!data){
+          res.status(404).send();
+        }
+        const todos = (JSON.parse(data));
         const task = todos.find(t => t.id === parseInt(req.params.id));
         if(!task){
             res.status(404).send();
@@ -41,8 +48,13 @@ app.post('/todos', (req, res) => {
     };
     fs.readFile("./todos.json", "utf-8", (err, data) => {
       if (err) throw err;
-      const todos = JSON.parse(data);
+      let todos =[];
+      if(!data){
+        todos.push(newTodo);
+      }else{
+      todos=(JSON.parse(data));
       todos.push(newTodo);
+      }
       fs.writeFile("./todos.json", JSON.stringify(todos), (err) => {
         if (err) throw err;
         res.status(201).json(newTodo);
@@ -53,6 +65,9 @@ app.post('/todos', (req, res) => {
   app.put('/todos/:id',(req, res)=>{
     fs.readFile("./todos.json", "utf-8", (err, data) => {
     if(err) throw err;
+    if(!data){
+      res.status(404).send();
+    }else{
     const todos = JSON.parse(data);
     const taskId = todos.findIndex(t => t.id === parseInt(req.params.id));
     if(taskId === -1){
@@ -64,13 +79,17 @@ app.post('/todos', (req, res) => {
         if (err) throw err;
         res.json(todos[taskId]);
       });      
-    }       
+    }
+  }       
   });
 });
   
   app.delete('/todos/:id', (req, res) => {
     fs.readFile("todos.json", "utf-8", (err, data) => {
     if(err) throw err;
+    if(!data){
+      res.status(404).send();
+    }else{
     const todos = JSON.parse(data);
     const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
     if (todoIndex === -1) {
@@ -83,6 +102,7 @@ app.post('/todos', (req, res) => {
       });
       
     }
+  }
   });
 });
   
