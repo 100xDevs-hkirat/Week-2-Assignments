@@ -40,10 +40,88 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-const bodyParser = require('body-parser');
-
 const app = express();
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+app.use(express.json());
 
-app.use(bodyParser.json());
+let database=[];
+try
+{
+  const rawdata=fs.readFileSync(__dirname+'/mydb.json','utf-8');
+  database=JSON.parse(rawdata);
+}
+catch(err)
+{
+  console.error("Error occured while retriving the data.\n",err);
+}
+
+//1
+app.get('/todos', (req,res) =>{
+  res.send(database);
+})
+
+//2
+app.get('/todos/:id', (req,res) =>{
+  let reqdata=database.find(it=>it.id===req.params.id);
+  if(reqdata)
+    res.status(200).send(reqdata);
+  else
+    res.status(404).send("Not Found");
+})
+
+//3
+app.post('/todos',(req,res) =>{
+  let newdata={
+    id : uuidv4(),
+    title : req.body.title,
+    description : req.body.description
+  };
+  database.push(newdata);
+  // fs.writeFileSync(__dirname+'/mydb.json',JSON.stringify(database));
+  fs.writeFile(__dirname+'/mydb.json',JSON.stringify(database),'utf-8', (err) =>{
+    if(err)
+      console.error("Error occured while retriving the data.\n",err);
+  })
+  res.status(201).send({id:newdata.id});
+})
+
+//4
+app.put('/todos/:id',(req,res) =>{
+  let reqdata=database.find(it=>it.id===req.params.id);
+  if(reqdata)
+  {
+    reqdata.title=req.body.title;
+    reqdata.description=req.body.description;
+    fs.writeFile(__dirname+'/mydb.json',JSON.stringify(database),'utf-8', (err) =>{
+      if(err)
+        console.error("Error occured while retriving the data.\n",err);
+    })
+    res.status(200).send("OK");  
+  }
+  else
+    res.status(404).send("Not Found");
+})
+
+//5
+app.delete('/todos/:id',(req,res) =>{
+  let reqdata=database.find(it=>it.id===req.params.id);
+  if(reqdata)
+  {
+    let element_index=database.indexOf(reqdata);
+    database.splice(element_index,1);
+    fs.writeFile(__dirname+'/mydb.json',JSON.stringify(database),'utf-8', (err) =>{
+      if(err)
+        console.error("Error occured while retriving the data.\n",err);
+    })
+    res.status(200).send("OK");
+  }
+  else
+    res.status(404).send("Not Found");
+})
+
+// app.listen(3001,()=>{
+//   console.log("server is now live");
+// })
 
 module.exports = app;
