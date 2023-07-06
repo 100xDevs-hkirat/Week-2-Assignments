@@ -32,6 +32,71 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const { v4: uuidv4 } = require('uuid');
+app.use(express.json());
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let database=[];
+
+app.post('/signup',(req,res)=>{
+  let check=database.find((user)=>{
+    return user.email===req.body.email;
+  })
+  if(check === undefined)
+  {
+    let newuser={
+      id : uuidv4(),
+      email : req.body.email,
+      password : req.body.password,
+      firstName : req.body.firstName,
+      lastName : req.body.lastName
+    }
+    database.push(newuser);
+    res.status(201).send("Signup successful");
+  }
+  else
+    res.status(400).send("Bad Request");
+})
+
+app.post('/login',(req,res)=>{
+  let check=database.find((user)=>{
+    return (user.email===req.body.email&&user.password===req.body.password);
+  })
+  if(check === undefined)
+    res.status(401).send("Unauthorized");
+  else
+    res.send(check);
+})
+
+app.get('/data',(req,res)=>{
+  let check=database.find((user)=>{
+    return (user.email===req.headers.email&&user.password===req.headers.password);
+  })
+  if(check === undefined)
+    res.status(401).send("Unauthorized");
+  else
+  {
+    let allusers=[];
+    for(let user of database)
+    {
+      let data={
+        id:user.id,
+        firstName : req.body.firstName,
+        lastName : req.body.lastName
+      }
+      allusers.push(data);
+    }
+    let senddata={users : allusers};
+    res.send(senddata);
+  }
+})
+
+app.all('*',(rq,res)=>{
+  res.status(404).send("Not found");
+})
+
+// app.listen(3003,()=>{
+//   console.log("Server is now live.")
+// })
 
 module.exports = app;
