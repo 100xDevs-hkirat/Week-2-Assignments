@@ -29,9 +29,81 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+
+app.post("/signup", (req, resp) => {
+  let data = req.body;
+
+  let hasUsername = false;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].username == data.username) {
+      hasUsername = true;
+    }
+  }
+
+  if (hasUsername) {
+    resp.status(400).send("User Alrady Exists.");
+  } else {
+    users.push(data);
+  }
+
+  resp.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, resp) => {
+  let user = req.body;
+
+  let userFound = null;
+
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email == user.email && users[i].password == user.password) {
+      userFound = users[i];
+      break;
+    }
+  }
+
+  if (userFound) {
+    resp.json({
+      firstname: userFound.firstname,
+      lastname: userFound.lastname,
+      email: userFound.email,
+    });
+  } else {
+    resp.status(401);
+  }
+});
+
+app.get("/data", (req, resp) => {
+  let email = req.headers.email;
+  let password = req.headers.password;
+
+  let userFound = null;
+
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email == email && users[i].password == password) {
+      userFound = users[i];
+      break;
+    }
+  }
+
+  if (userFound) {
+    let user = [];
+
+    for (let i = 0; i < users.length; i++) {
+      user.push({
+        firstname: users[i].firstname,
+        lastname: users[i].lastname,
+        email: users[i].email,
+      });
+    }
+  }
+});
+
+app.listen;
 
 module.exports = app;
