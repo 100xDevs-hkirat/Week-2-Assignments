@@ -28,7 +28,7 @@
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
-    Request Body: { "title": "Buy groceries", "completed": true }
+     Request Body: { "title": "Buy groceries", "completed": true }
     
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
@@ -40,10 +40,99 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-const bodyParser = require('body-parser');
-
+//const bodyParser = require('body-parser');
 const app = express();
+const port = 3500
+const uuid = require('uuid')
+app.use(express.json());
 
-app.use(bodyParser.json());
+let tasks = [
+  {
+    id : 1,
+    title : "webinar",
+    description : " watch webinar at 9'O clock "
+  },
+{
+  id : 2,
+  title : "webinar2",
+  description : " 2watch webinar at 9'O clock "
+}
+]
+
+//// 1.GET TODOS ///
+app.get('/todos',(req, res) => {
+  res.status(200).json(tasks)
+})
+
+////// 2.GET TODO WITH ID /////
+app.get('/todos/:id',(req, res) => {
+  const reqId = req.params.id
+  const found = tasks.some((task) => task.id === parseInt(reqId))
+  if(found)
+    {
+       res.status(200 ).json(tasks.filter((task) => task.id === parseInt(reqId)))
+    }
+  else {
+    res.status(404).send()
+  }
+
+})
+
+//// 3. POST /todos - Create a new todo item ///////
+app.post('/todos',(req, res) => {
+  const obj = {
+    id : uuid.v4(),
+    title : req.body.title,
+    description : req.body.description
+  }
+  if( obj.title || obj.description)
+  {
+    tasks.push(obj)
+    res.status(201).json(obj)  
+  }
+  else {
+    res.status(404).send()
+  }
+})
+
+//////// 4. PUT /todos/:id - Update an existing todo item by ID
+app.put('/todos/:id', (req,res) => {
+  const reqId = req.params.id
+  const found = tasks.some((task) => task.id === parseInt(reqId))
+  if(found){
+    tasks.forEach((task) =>{
+      if(task.id === parseInt(reqId)){
+        task.title = req.body.title ? req.body.title : task.title
+        task.description = req.body.description ? req.body.description : task.description
+        res.status(200).json(task)
+      }
+    })
+  }
+  else {
+    res.status(404).send()
+  }
+})
+
+////////  DELETE /todos/:id - Delete a todo item by ID ////
+app.delete('/todos/:id', (req,res) => {
+  const reqId = req.params.id
+  const found = tasks.some((task) => task.id === parseInt(reqId))
+  if(found){
+    tasks = tasks.filter((task) => task.id !== parseInt(reqId))
+    res.status(200).send()
+  }
+  else {
+    res.status(404).send()
+  }
+})
+
+//// if route not found 
+app.use((req, res, next) => {
+  res.status(404).send()
+});
+///// PORT INIT ///////
+/*app.listen(port,() => {
+  console.log(`port started at ${port}`)
+})*/
 
 module.exports = app;
