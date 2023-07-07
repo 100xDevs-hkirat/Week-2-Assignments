@@ -43,7 +43,76 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const port = 3001
+const allTodos = []
+let genid = 0;
+
 
 app.use(bodyParser.json());
+
+
+
+app.get('/todos', (req, res) => {
+  res.json(allTodos)
+})
+
+app.get('/todos/:id', (req, res) => {
+  let id = req.params.id
+  let requiredTodo = allTodos.find(obj => obj.id == id)
+  if (requiredTodo) {
+    res.status(200).json(requiredTodo)
+  }
+  else res.sendStatus(404)
+})
+
+// app.post('/todos', (req, res) => {
+//   let item = req.body;
+//   newItem = generateId(item);
+//   let id = newItem.id;
+//   allTodos.push(newItem)
+//   res.status(201).send({"id":id})
+// })
+
+app.post('/todos', (req, res) => {
+  const newTodo = {
+    id : Math.random()*100000,
+    title : req.body.title,
+    completed : req.body.completed,
+    description : req.body.description
+  }
+  allTodos.push(newTodo)
+  res.status(201).json(newTodo)
+})
+
+app.put('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let item  = req.body;
+  let requiredTodo = allTodos.find(obj => obj.id == id)
+  if (requiredTodo) {
+    for (let keys of Object.keys(item)) {
+      requiredTodo[keys] = item[keys]
+    }
+    res.status(200).send('OK')
+  }
+  else res.status(404).send('Not Found')
+})
+
+app.delete('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let index = 0;
+  
+  for (let i=0; i<allTodos.length; i++) {
+    if (allTodos[i].id == id) {
+      index = i;
+      break
+    }
+  }
+  allTodos.splice(index, 1)
+  res.status(200).send('OK')
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 module.exports = app;
