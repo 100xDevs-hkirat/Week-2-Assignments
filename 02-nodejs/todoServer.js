@@ -39,11 +39,158 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
+// const todos = [];
+
+/*
+Task o1: get all todos
+*/
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    // const todos = JSON.parse(data) || [];
+    let todos;
+    try {
+      todos = JSON.parse(data);
+    } catch (error) {
+      todos = [];
+    }
+    res.json(todos);
+  });
+});
+
+/*
+Task 02: get specified todo
+*/
+app.get("/todos/:id", (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    // const todos = JSON.parse(data) || [];
+    let todos;
+    try {
+      todos = JSON.parse(data);
+    } catch (error) {
+      todos = [];
+    }
+    const retrievedId = Number(req.params.id);
+    let requestedTodo = null;
+    for (let i = 0; i < todos.length; i++) {
+      if (todos[i].id === retrievedId) {
+        requestedTodo = todos[i];
+        break;
+      }
+    }
+    if (requestedTodo) {
+      res.json(requestedTodo);
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+/*
+Task 03: add todo
+*/
+app.post("/todos", (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    // const todos = JSON.parse(data) || [];
+    let todos;
+    try {
+      todos = JSON.parse(data);
+    } catch (error) {
+      todos = [];
+    }
+    const newTodo = req.body;
+    const newTodoId = todos.length + 1;
+    newTodo["id"] = newTodoId;
+    todos.push(newTodo);
+    fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+      if (err) throw err;
+      res.status(201).json(newTodo);
+    });
+  });
+});
+
+/*
+Task 04: update todo
+*/
+app.put("/todos/:id", (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    // const todos = JSON.parse(data) || [];
+    let todos;
+    try {
+      todos = JSON.parse(data);
+    } catch (error) {
+      todos = [];
+    }
+    const updateTodoId = Number(req.params.id);
+    const updateTodoData = req.body;
+    let todoFound = false;
+    for (let i = 0; i < todos.length; i++) {
+      if (updateTodoId === todos[i].id) {
+        todoFound = true;
+        break;
+      }
+    }
+    if (todoFound) {
+      updateTodoData["id"] = updateTodoId;
+      const index = updateTodoId - 1;
+      todos[index] = updateTodoData;
+      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.status(200).json(todos[index]);
+      });
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+/*
+Task 05: delete todo
+*/
+app.delete("/todos/:id", (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    // const todos = JSON.parse(data) || [];
+    let todos;
+    try {
+      todos = JSON.parse(data);
+    } catch (error) {
+      todos = [];
+    }
+    const deleteTodoId = Number(req.params.id);
+    if (todos.length >= deleteTodoId) {
+      const deleteIndex = deleteTodoId - 1;
+      todos.splice(deleteIndex, 1);
+      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.sendStatus(200);
+      });
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+/*
+Task 06: other routes
+*/
+app.all("*", (req, res) => {
+  res.sendStatus(404);
+});
+
+/**/
+// app.listen(80, () => {
+//   console.log("server at 80");
+// });
 
 module.exports = app;
