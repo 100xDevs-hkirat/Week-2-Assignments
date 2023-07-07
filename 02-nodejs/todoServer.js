@@ -73,7 +73,8 @@ app.post("/todos", (req, res) => {
   const todo = req.body; // request the item to be added from the body
   todo.id = uuidv4();
   todos.push(todo);
-  res.status(201).json({ id: todo.id });
+  // res.status(201).json({ id: todo.id });
+  res.status(201).json(todo);
 });
 
 app.put("/todos/:id", (req, res) => {
