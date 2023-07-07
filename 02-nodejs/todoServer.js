@@ -74,7 +74,7 @@ app.post("/todos", (req, res) => {
   todo.id = uuidv4();
   todos.push(todo);
   // res.status(201).json({ id: todo.id });
-  res.status(201).json(todo);
+  res.status(200).json(todo);
 });
 
 app.put("/todos/:id", (req, res) => {
