@@ -85,7 +85,7 @@ app.delete('/todos/:id', (req, res) => {
   if (index === -1) {
     res.status(404).send();
   } else {
-    todosList.slice(index, 1);
+    todosList.splice(index, 1);
     res.status(200).send();
   }
 });
