@@ -30,8 +30,72 @@
  */
 
 const express = require("express")
+const uuid = require('uuid')
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
+let users = []
+app.use(express.json())
+// POST /signup - User Signup
+app.post('/signup', (req, res) => {
+  const input = req.body;
+  var userPresent = false;
+  users.forEach((user) => {
+    if(user.email === input.email){
+      userPresent = true;
+    }
+  })
+    if(userPresent){
+      res.sendStatus(400);
+    }
+    else {
+      users.push(input)
+      res.status(200).json(users)
+    }
+  
+})
+//POST /login - User Login
+app.post('/login',(req, res) => {
+  input = req.body;
+  var userFind = null ;
+  users.forEach((user) => {
+    if(user.email === input.email && user.password === input.password)
+    {
+      userFind = user
+    }
+  }) 
+  if(userFind){
+    res.status(200).json([{firstName : userFind.firstName,lastName : userFind.lastName}])
+  }
+  else{
+    res.sendStatus(401)
+  }
+})
+//GET /data - Fetch all user's names and ids from the server (Protected route)
+app.get('/data',(req, res) => {
+  input = req.headers;
+  console.log("got it headers")
+  var userFind = false ;
+  var obj = []
+  users.forEach((user) => {
+    if(user.email === input.email && user.password === input.password)
+    {
+      userFind = true;
+    } 
+    obj.push({
+        firstName:user.firstName,
+        lastName:user.lastName
+    })
+    })
+    if(userFind){
+      res.status(200).json(obj)
+    }
+    else {
+      res.sendStatus(400)
+    }
+  })
+// port
+app.listen(PORT,()=> {
+  console.log("hi iam server bro")
+})
 module.exports = app;
