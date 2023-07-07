@@ -29,9 +29,112 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const express = require("express");
+const PORT = 80;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+app.use(express.json());
+
+/*
+task 01 : signup
+*/
+app.post("/signup", (req, res) => {
+  const user = req.body;
+  let userExist = false;
+  for (let i = 0; i < users.length; i++) {
+    if (user.email === users[i].email && user.username === users[i].username) {
+      userExist = true;
+      break;
+    }
+  }
+  if (!userExist) {
+    user["id"] = users.length + 1;
+    users.push(user);
+    res.status(201).send("Signup successful");
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+/*
+task 02 : login
+*/
+app.post("/login", (req, res) => {
+  const user = req.body;
+  let userFound = null;
+  for (let i = 0; i < users.length; i++) {
+    if (
+      user.username === users[i].username &&
+      user.password === users[i].password
+    ) {
+      userFound = users[i];
+      break;
+    }
+  }
+  if (userFound) {
+    res.status(200).json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      id: userFound.id,
+      email: userFound.email,
+    });
+  } else {
+    res.status(401).json({
+      message: "invalid credentials",
+    });
+  }
+});
+
+/*
+task 03 : data
+*/
+app.get("/data", (req, res) => {
+  const userEmail = req.headers.email;
+  const userPassword = req.headers.password;
+  let userAuthorized = false;
+  for (let i = 0; i < users.length; i++) {
+    if (userEmail === users[i].email && userPassword === users[i].password) {
+      userAuthorized = true;
+      break;
+    }
+  }
+  if (userAuthorized) {
+    // let allUsers = [];
+    // for (let i = 0; i < users.length; i++) {
+    //   allUsers.push({
+    //     firstName: users[i].firstName,
+    //     lastName: users[i].lastName,
+    //     email: users[i].email,
+    //     id: users[i].id,
+    //   });
+    // }
+    let allUsers = users.map((user) => {
+      return {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user.id,
+      };
+    });
+    res.json({
+      users: allUsers,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+/*
+all other routes
+*/
+app.all("*", (req, res) => {
+  res.sendStatus(404);
+});
+
+app.listen(PORT, () => {
+  console.log("server running at port 3000");
+});
 
 module.exports = app;
