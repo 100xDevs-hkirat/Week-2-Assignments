@@ -44,6 +44,61 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+const todos = [];
+
+
 app.use(bodyParser.json());
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(todos);
+});
+
+
+app.get("/todos/:id", (req, res) => {
+  let id = parseInt(req.params.id);
+  const todo = todos.find(t => t.id === id);
+  if(todo){
+    res.status(200).json(todo);
+  }else{
+    res.status(404).send("<h1>404 not found</h1>");
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const todo = {
+    id: todos.length,
+    title: req.body.title,
+    description: req.body.description,
+    completed: false
+  };
+  todos.push(todo);
+  res.status(201).json(todo.id);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (id < 0 || id >= todos.length){
+    res.status(404).send();
+  }else {
+    todos[id].title = req.body.title;
+    todos[id].description = req.body.description;
+    todos[id].completed = req.body.completed;
+    res.status(200).send();
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (id < 0 || id >= todos.length){
+    res.status(404).send();
+  }else {
+    todos.splice(id, 1);
+    res.status(200);
+  };
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
 
 module.exports = app;
