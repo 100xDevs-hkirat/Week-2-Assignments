@@ -1,11 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require("fs");
-
+const path = require('path');
+const port = 3000;
 const app = express();
-
+const cors = require("cors");
 app.use(bodyParser.json());
-
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
 function findIndex(arr, id) {
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].id === id) return i;
@@ -53,7 +55,7 @@ app.post('/todos', (req, res) => {
     todos.push(newTodo);
     fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
       if (err) throw err;
-      res.status(201).json(newTodo);
+      res.status(201).json(newTodo);         
     });
   });
 });
@@ -81,10 +83,9 @@ app.put('/todos/:id', (req, res) => {
 });
 
 app.delete('/todos/:id', (req, res) => {
-
   fs.readFile("todos.json", "utf8", (err, data) => {
     if (err) throw err;
-    const todos = JSON.parse(data);
+    let todos = JSON.parse(data);
     const todoIndex = findIndex(todos, parseInt(req.params.id));
     if (todoIndex === -1) {
       res.status(404).send();
@@ -98,9 +99,14 @@ app.delete('/todos/:id', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // for all other routes, return 404
 app.use((req, res, next) => {
   res.status(404).send();
 });
-
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});

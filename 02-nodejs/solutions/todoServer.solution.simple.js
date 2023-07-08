@@ -1,10 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port = 3000;
 const app = express();
+const cors = require('cors');
 
 app.use(bodyParser.json());
-
+app.use(cors());
 let todos = [];
 
 function findIndex(arr, id) {
@@ -70,5 +71,8 @@ app.delete('/todos/:id', (req, res) => {
 app.use((req, res, next) => {
   res.status(404).send();
 });
-
+console.log(todos);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 module.exports = app;
