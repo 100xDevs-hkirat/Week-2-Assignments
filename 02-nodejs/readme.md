@@ -19,3 +19,9 @@ Recommended order of attempting the assignments.
 1. Install the dependencies used by running `npm install` command in your terminal.
 2. We used `18.x.y` Node.js version, if anything doesn't work then please consider upgrading your node installation.
 
+
+![todoserver js_pass](https://github.com/Swarajballal/Week-2-Assignments/assets/86348862/4a0cd0ad-e006-481c-ae38-a7f671c95594)
+![fileserver js_pass](https://github.com/Swarajballal/Week-2-Assignments/assets/86348862/46dcc96d-6ef3-49fd-98a2-b61ffd649be7)
+![authentication js_pass](https://github.com/Swarajballal/Week-2-Assignments/assets/86348862/b25a97d4-f312-4c27-a211-139e4b87357d)
+![alltestcase](https://github.com/Swarajballal/Week-2-Assignments/assets/86348862/9d17ea47-57d3-4113-83fe-241fcc2f1670)
+

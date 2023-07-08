@@ -29,7 +29,7 @@
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -39,11 +39,185 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const { v4: uuidv4 } = require("uuid");
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const PORT = 3000; // extra to check on localhost
 const app = express();
-
+app.use(cors());
 app.use(bodyParser.json());
 
+let todos = [];
+
+function findTodoById(id) {
+  // find the todo item by id
+  return todos.find((todo) => todo.id === id);
+}
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
+  if (todo) {
+    // if so returns the todo item
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const todo = req.body; // request the item to be added from the body
+  todo.id = uuidv4();
+  todos.push(todo);
+  // res.status(201).json({ id: todo.id });
+  res.status(200).json(todo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id); // checks if id is present using findTodoById function
+  if (todo) {
+    todo.title = req.body.title; // replaces the title and description with the new ones
+    todo.description = req.body.description;
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const todo = findTodoById(req.params.id);
+  if (todo) {
+    todos.splice(todos.indexOf(todo), 1); // deletes the item from the array
+    res.status(200).json({ message: "Todo item deleted successfully" });
+  } else {
+    res.status(404).send("Item not found");
+  }
+});
+
+app.listen(PORT, () => {
+  //extra to check on localhost
+  console.log(`Server listening on port ${PORT}`);
+});
+
 module.exports = app;
+
+//// new week 3 updates backend with frontend also at localhost:3000//
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const fs = require("fs");
+// const PORT = 3000;
+// const path = require("path");
+// const app = express();
+
+// app.use(bodyParser.json());
+
+// function findIndex(arr, id) {
+//   for (let i = 0; i < arr.length; i++) {
+//     if (arr[i].id === id) return i;
+//   }
+//   return -1;
+// }
+
+// function removeAtIndex(arr, index) {
+//   let newArray = [];
+//   for (let i = 0; i < arr.length; i++) {
+//     if (i !== index) newArray.push(arr[i]);
+//   }
+//   return newArray;
+// }
+
+// app.get("/todos", (req, res) => {
+//   fs.readFile("todos.json", "utf8", (err, data) => {
+//     if (err) throw err;
+//     res.json(JSON.parse(data));
+//   });
+// });
+
+// app.get("/todos/:id", (req, res) => {
+//   fs.readFile("todos.json", "utf8", (err, data) => {
+//     if (err) throw err;
+//     const todos = JSON.parse(data);
+//     const todoIndex = findIndex(todos, parseInt(req.params.id));
+//     if (todoIndex === -1) {
+//       res.status(404).send();
+//     } else {
+//       res.json(todos[todoIndex]);
+//     }
+//   });
+// });
+
+// app.post("/todos", (req, res) => {
+//   const newTodo = {
+//     id: Math.floor(Math.random() * 1000000), // unique random id
+//     title: req.body.title,
+//     description: req.body.description,
+//   };
+//   fs.readFile("todos.json", "utf8", (err, data) => {
+//     if (err) throw err;
+//     const todos = JSON.parse(data);
+//     todos.push(newTodo);
+//     fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+//       if (err) throw err;
+//       res.status(201).json(newTodo);
+//     });
+//   });
+// });
+
+// app.put("/todos/:id", (req, res) => {
+//   fs.readFile("todos.json", "utf8", (err, data) => {
+//     if (err) throw err;
+//     const todos = JSON.parse(data);
+//     const todoIndex = findIndex(todos, parseInt(req.params.id));
+//     if (todoIndex === -1) {
+//       res.status(404).send();
+//     } else {
+//       const updatedTodo = {
+//         id: todos[todoIndex].id,
+//         title: req.body.title,
+//         description: req.body.description,
+//       };
+//       todos[todoIndex] = updatedTodo;
+//       fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+//         if (err) throw err;
+//         res.status(200).json(updatedTodo);
+//       });
+//     }
+//   });
+// });
+
+// app.delete("/todos/:id", (req, res) => {
+//   fs.readFile("todos.json", "utf8", (err, data) => {
+//     if (err) throw err;
+//     var todos = JSON.parse(data);
+//     const todoIndex = findIndex(todos, parseInt(req.params.id));
+//     if (todoIndex === -1) {
+//       res.status(404).send();
+//     } else {
+//       todos = removeAtIndex(todos, todoIndex);
+//       fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+//         if (err) throw err;
+//         res.status(200).send();
+//       });
+//     }
+//   });
+// });
+
+// // for all other routes, return 404
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "index.html"));
+// });
+
+// app.use((req, res, next) => {
+//   res.status(404).send();
+// });
+
+// app.listen(PORT, () => {
+//   console.log("Server listening on port 3000");
+// });
+
+// module.exports = app;
