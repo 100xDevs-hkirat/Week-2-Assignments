@@ -20,6 +20,76 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
+const url = require('url');
+
+let trimmedPath
+
+function seperatePath(req,res,next)
+{
+  let parseUrl = req.url;
+  let path = parseUrl.pathname;
+
+  let slash = parseUrl.lastIndexOf('/');
+   trimmedPath = parseUrl.slice(slash);
+   console.log(`path is ${parseUrl}`);
+ // trimmedPath = path.replace(/^\/+|\/+$/g,'');
+  console.log(req.url);
+  console.log(typeof(req.url))
+
+  next();
+}
+
+
+app.use(seperatePath);
+
+app.get('/files', (req,res) =>{
+
+ let fileNames =  fs.readdirSync(`.${trimmedPath}`);
+
+console.log(typeof(fileNames))
+let fileList =[];
+ console.log(`List of FileNames are :`);
+ fileNames.forEach((file)=>{
+
+  fileList.push({File:file})
+
+  console.log(`File: ${file}`);
+ })
+
+ res.send(JSON.parse(JSON.stringify(fileList)));
+
+console.log('http server is on')
+})
+
+function readFileContents(req,res){
+
+  let file = req.params.fileName;
+
+ let fileData = fs.readFile(`./files/${file}`,'utf-8',(err,data)=>{
+
+    res.send(data);
+    console.log(data);
+
+  })
+console.log(fileData)
+}
+
+app.get('/file/:fileName',readFileContents)
+
+app.get('/Test',(req,res)=>{
+console.log(`inside test`)
+})
+
+
+
+app.listen(port,()=>{
+
+  console.log(`Listening to port ${port}`)
+})
+
+
+
 
 
 module.exports = app;
