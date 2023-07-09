@@ -175,26 +175,23 @@ function deleteToDo(req,res)
    let updatedText = JSON.stringify(data);
 
    fs.writeFile('./files/a.txt',updatedText,(err)=>{
+  
     if(err!=null)
     {
+      
+    res.status(404).send(`Error occured !`);
       console.log(err);
     }
+    else {
+      
+    console.log(`Data is written in the file`);
+  
+    res.status(200).send('item has  deleted')
+  }
    })
 
 //  fs.writeFile('./files/a.txt',updatedText,(err)=>{
 
-  if(err!=null)
-  {
-    
-  res.status(404).send(`Error occured !`);
-    console.log(err);
-  }
-  else {
-    
-  console.log(`Data is written in the file`);
-
-  res.status(200).send('item has been deleted')
-}
 
 //  })
 

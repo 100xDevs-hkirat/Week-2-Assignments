@@ -51,27 +51,36 @@
                 res.json()).then(d=>{
 
                     let parentElement = document.getElementById('mainArea');
-                    let childElement1 = document.createElement('span');
-            childElement1.innerHTML = d.title;
+                    
+            let childElement = document.createElement('div');
+            childElement.setAttribute("id",d.id)
+            
 
-            let childElement2 = document.createElement('span');
-            childElement2.innerHTML=d.description;
+            let grandChildElement1 = document.createElement('span');
+            grandChildElement1.innerHTML = d.title;
 
-            let childElement3 = document.createElement('span');
-            childElement3.innerHTML = d.completed;
+            let grandChildElement2 = document.createElement('span');
+            grandChildElement2.innerHTML=d.description;
 
-            let childElement4 = document.createElement('button');
-            childElement4.innerHTML = 'Delete';
+            let grandChildElement3 = document.createElement('span');
+            grandChildElement3.innerHTML = d.completed;
 
-        
+            let grandChildElement4 = document.createElement('button');
+            grandChildElement4.innerHTML = 'Delete';
 
-            let childElement5 = document.createElement('br');
+            grandChildElement4.setAttribute('onclick',"deleteTodo("+d.id+")");
 
-            parentElement.appendChild(childElement1);
-            parentElement.appendChild(childElement2);
-            parentElement.appendChild(childElement3);
-            parentElement.appendChild(childElement4);
-            parentElement.appendChild(childElement5);
+
+            let grandChildElement5 = document.createElement('br');
+
+            childElement.appendChild(grandChildElement1);
+            childElement.appendChild(grandChildElement2);
+            childElement.appendChild(grandChildElement3);
+            childElement.appendChild(grandChildElement4);
+            childElement.appendChild(grandChildElement5);
+
+            parentElement.appendChild(childElement);
+            
                 })
             .catch((data)=>console.log(data));
         }
@@ -80,7 +89,7 @@
 
 </head>
 
-<body onload="loading()">
+<body>
 <h1>ToDos App</h1>
 
 <label for = "title">Enter Title</label>
@@ -101,14 +110,41 @@
 
 </body>
 <script>
+   function deleteDone(id)
+    {
+        
+        let parentElement = document.getElementById('mainArea');
+
+console.log(`parent element ${parentElement}`);
+
+let removedElement = document.getElementById(String(id));
+
+removedElement.parentNode.removeChild(removedElement);
+
+
+console.log(`printing the removed element value`,removedElement)
+    }
 
 function deleteTodo(id)
 {
+    console.log(typeof(id));
     console.log(`Request to Delete id ${id} is triggered`);
-    fetch("http://localhost:3000/todos/id",{
-        method : 'DELETE'
+    fetch("http://localhost:3000/todos/"+id,{
+        method : 'DELETE',
+        headers :{
+            "Content-Type" : "application/json"
+        }
     }).then(res=>{
+       // loading();
+       if(res.ok)
+       {
         console.log(res);
+       deleteDone(id);
+       }
+       else
+       {
+        console.log(res);
+       }
     })
 }
 
@@ -132,28 +168,36 @@ function loading(){
             console.log(d[key]);
           //  d[key]=JSON.stringify(d[key])
             console.log(d[key].title)
-            let childElement1 = document.createElement('span');
-            childElement1.innerHTML = d[key].title;
 
-            let childElement2 = document.createElement('span');
-            childElement2.innerHTML=d[key].description;
+            let childElement = document.createElement('div');
+            childElement.setAttribute("id",d[key].id)
+            
 
-            let childElement3 = document.createElement('span');
-            childElement3.innerHTML = d[key].completed;
+            let grandChildElement1 = document.createElement('span');
+            grandChildElement1.innerHTML = d[key].title;
 
-            let childElement4 = document.createElement('button');
-            childElement4.innerHTML = 'Delete';
+            let grandChildElement2 = document.createElement('span');
+            grandChildElement2.innerHTML=d[key].description;
 
-            childElement4.setAttribute('onclick',"deleteTodo("+d[key].id+")");
+            let grandChildElement3 = document.createElement('span');
+            grandChildElement3.innerHTML = d[key].completed;
+
+            let grandChildElement4 = document.createElement('button');
+            grandChildElement4.innerHTML = 'Delete';
+
+            grandChildElement4.setAttribute('onclick',"deleteTodo("+d[key].id+")");
+    
 
 
-            let childElement5 = document.createElement('br');
+            let grandChildElement5 = document.createElement('br');
 
-            parentElement.appendChild(childElement1);
-            parentElement.appendChild(childElement2);
-            parentElement.appendChild(childElement3);
-            parentElement.appendChild(childElement4);
-            parentElement.appendChild(childElement5);
+            childElement.appendChild(grandChildElement1);
+            childElement.appendChild(grandChildElement2);
+            childElement.appendChild(grandChildElement3);
+            childElement.appendChild(grandChildElement4);
+            childElement.appendChild(grandChildElement5);
+
+            parentElement.appendChild(childElement);
         }
 //let childElement = document.createElement('h1')
 
@@ -162,12 +206,11 @@ function loading(){
 // childElement.innerText = incomingData;
 
 //parentElement.appendChild(childElement)
-
     });
     
 }
 
-//loading();
+loading();
 
 
     
