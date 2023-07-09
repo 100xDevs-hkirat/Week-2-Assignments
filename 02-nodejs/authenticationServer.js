@@ -22,7 +22,7 @@
     Description: Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
     The users username and password should be fetched from the headers and checked before the array is returned
     Response: 200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
-    Example: GET http://localhost:3000/data
+    Example: GET http://localhost:3000/dat
 
   - For any other route not defined in the server return 404
 
@@ -33,5 +33,81 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require('body-parser')
+const users = []
+
+app.use(bodyParser.json())
+
+app.post('/signup', (req, res) => {
+  if (!checkValidUserName(req)) {
+    res.status(400).send('Bad Request')
+    return
+  }
+  const user = {
+    id : Math.random()* 10000,
+    email : req.body.email,
+    password : req.body.password,
+    firstName : req.body.firstName,
+    lastName : req.body.lastName
+  };
+  users.push(user);
+  res.status(201).send('Signup successful')
+  
+})
+
+app.post('/login', (req, res) => {
+  let email = req.body.email
+  let pwd = req.body.password
+
+  let userFound = userVerification(email, pwd);
+  if (userFound) {
+    res.json({
+      email : userFound.email,
+      firstName : userFound.firstName,
+      lastName : userFound.lastName
+    })
+    return
+  }
+  res.sendStatus(401)
+})
+
+app.get('/data', (req, res) => {
+  let email = req.headers.email
+  let pwd = req.headers.password
+
+  if (userVerification(email, pwd)) {
+    let response = {users : users}
+    res.json(response)
+    return
+  }
+  else {
+    res.sendStatus(401);
+  }
+
+})
+
+function checkValidUserName(req) {
+  let email = req.body.username;
+  for (let i=0; i<users.length; i++){
+    if (users[i].email === email) {
+      return false;
+    }
+  }
+  return true
+}
+
+function userVerification(email, pwd) {
+  
+  for (let i=0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === pwd) {
+      return users[i];
+    }
+  }
+  return false
+}
+
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`)
+// })
 
 module.exports = app;
