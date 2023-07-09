@@ -1,0 +1,175 @@
+<html>
+
+
+
+<head>
+    <title>
+            ToDo App
+    </title>
+    <script>
+        //     let incomingData;
+
+        // function loading(){
+
+        //     fetch("http://localhost:3000/todos",{
+        //         method :'GET',
+        //         // headers : {
+                    
+        //         //     'Content-Type' : 'application/jsonn;charset=utf-8'
+
+        //         // },
+        //     }).then(res=>res.json()).then(d=>incomingData = d);
+            
+        // }
+
+        // //loading();
+
+        // let parentElement = document.querySelector('#mainArea2');
+        // let childElement = document.createElement('h1')
+        // childElement.innerHTML = incomingData;
+
+        // parentElement.appendChild(childElement)
+
+        function submitData()
+        {
+            let title = document.querySelector('#title').value;
+            let description = document.querySelector("#description").value;
+
+            newToDod = {
+                title : title,
+                completed: false,
+                description : description
+            }
+
+            fetch('http://localhost:3000/todos',{
+                method : 'POST',
+                headers : {
+                    'Content-Type' : 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(newToDod
+            )}).then(res=>
+                res.json()).then(d=>{
+
+                    let parentElement = document.getElementById('mainArea');
+                    let childElement1 = document.createElement('span');
+            childElement1.innerHTML = d.title;
+
+            let childElement2 = document.createElement('span');
+            childElement2.innerHTML=d.description;
+
+            let childElement3 = document.createElement('span');
+            childElement3.innerHTML = d.completed;
+
+            let childElement4 = document.createElement('button');
+            childElement4.innerHTML = 'Delete';
+
+        
+
+            let childElement5 = document.createElement('br');
+
+            parentElement.appendChild(childElement1);
+            parentElement.appendChild(childElement2);
+            parentElement.appendChild(childElement3);
+            parentElement.appendChild(childElement4);
+            parentElement.appendChild(childElement5);
+                })
+            .catch((data)=>console.log(data));
+        }
+            
+    </script>
+
+</head>
+
+<body onload="loading()">
+<h1>ToDos App</h1>
+
+<label for = "title">Enter Title</label>
+
+    <input type = "text" name = "text" id ="title"/>
+    <br>
+    <br>
+
+<label for = "description">Enter Description</label>    
+
+    <input type = "text" name = "text" id="description" />
+
+    <button onclick="submitData()">submit</button>
+
+    <div id = "mainArea">
+        
+</div>
+
+</body>
+<script>
+
+function deleteTodo(id)
+{
+    console.log(`Request to Delete id ${id} is triggered`);
+    fetch("http://localhost:3000/todos/id",{
+        method : 'DELETE'
+    }).then(res=>{
+        console.log(res);
+    })
+}
+
+     let incomingData;
+
+function loading(){
+
+    fetch("http://localhost:3000/todos",{
+        method :'GET',
+        // headers : {
+            
+        //     'Content-Type' : 'application/jsonn;charset=utf-8'
+
+        // },
+    }).then(res=>res.json()).then(d=>{incomingData = d;
+    
+        let parentElement = document.querySelector('#mainArea');
+
+        for(let key=0; key<d.length;key++)
+        {
+            console.log(d[key]);
+          //  d[key]=JSON.stringify(d[key])
+            console.log(d[key].title)
+            let childElement1 = document.createElement('span');
+            childElement1.innerHTML = d[key].title;
+
+            let childElement2 = document.createElement('span');
+            childElement2.innerHTML=d[key].description;
+
+            let childElement3 = document.createElement('span');
+            childElement3.innerHTML = d[key].completed;
+
+            let childElement4 = document.createElement('button');
+            childElement4.innerHTML = 'Delete';
+
+            childElement4.setAttribute('onclick',"deleteTodo("+d[key].id+")");
+
+
+            let childElement5 = document.createElement('br');
+
+            parentElement.appendChild(childElement1);
+            parentElement.appendChild(childElement2);
+            parentElement.appendChild(childElement3);
+            parentElement.appendChild(childElement4);
+            parentElement.appendChild(childElement5);
+        }
+//let childElement = document.createElement('h1')
+
+// incomingData = JSON.stringify(incomingData)
+// console.log(incomingData)
+// childElement.innerText = incomingData;
+
+//parentElement.appendChild(childElement)
+
+    });
+    
+}
+
+//loading();
+
+
+    
+</script>
+</html>

@@ -41,9 +41,214 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
 const app = express();
+const cors = require('cors');
+
 
 app.use(bodyParser.json());
+
+
+let data =  [];
+
+function fillDataFromFile(req,res,next)
+{
+  // fs.readFile('./files/a.txt','utf-8',(err,dataFromFile)=>{
+  //    data = JSON.parse(dataFromFile);
+  //    console.log(data);
+  // })
+  next();
+}
+
+app.use(cors());
+//app.use(fillDataFromFile);
+port = 3000;
+
+let count = 0;
+
+function getAllTodos(req,res)
+{
+  fs.readFile('./files/a.txt','utf-8',(err,dataFromFile)=>{
+    data = JSON.parse(dataFromFile);
+    console.log(data);
+ })
+
+   let textData = JSON.stringify(data);
+
+  res.setHeader('Content-Type','application/json')
+  res.end(textData);
+  console.log(`Inside the get all todos - ${textData}`)
+  
+}
+
+function createToDos(req,res)
+{
+
+  let ID = Math.floor((Math.random()*1000));
+
+  //count++;
+   data.push({id : ID,title : req.body.title,completed:req.body.completed, description : req.body.description});
+   let textFile = JSON.stringify(data);
+   fs.writeFile('./files/a.txt',textFile,(err,data)=>{
+    console.log('data has been written in file')
+   })
+   console.log(data);
+   res.status(201).send({id : ID,title : req.body.title,completed:req.body.completed, description : req.body.description})
+}
+
+function getToDobyId(req,res)
+{
+   let ID =req.params.id;
+   let flag = false;
+  console.log(req.id);
+  for(let i =0 ;i<data.length;i++)
+  {
+    if(ID == data[i].id)
+    {
+      flag = true;
+      res.send(data[i]);
+    }
+
+  }
+  if(flag==false)
+  {
+  res.status(404).send('Data not found');
+  }
+}
+
+function updateData(req,res)
+{
+  let ID =req.params.id;
+   let flag = false;
+   let flag1=false;
+  console.log(req.body.id);
+  for(let i =0 ;i<data.length;i++)
+  {
+    if(ID == data[i].id)
+    {
+      flag = true;
+      if(req.body.title != null)
+      {
+        data[i].title = req.body.title;
+        flag1 = true;
+      }
+      if(req.body.completed != null)
+      {
+        data[i].completed = req.body.completed;
+        flag1 = true;
+      }
+      if(flag1)
+      {
+        res.status(201).send('Data update successfully');
+      }
+      
+    }
+
+  }
+  if(flag==false)
+  {
+  res.status(404).send('Data not found');
+  }
+}
+
+function deleteToDo(req,res)
+{
+  console.log(`Inside the delete function`)
+
+    fs.readFile('./files/a.txt','utf-8',(err,dataFromFile)=>{
+
+      console.log(dataFromFile)
+    data = JSON.parse(dataFromFile)
+    console.log(typeof(data));
+
+    let indexToBeDeleted;
+
+
+    indexToBeDeleted=data.findIndex((findData)=>{
+      return findData.id==id;
+   })
+ 
+   data.splice(indexToBeDeleted,1);
+ 
+   console.log(data);
+
+   let updatedText = JSON.stringify(data);
+
+   fs.writeFile('./files/a.txt',updatedText,(err)=>{
+    if(err!=null)
+    {
+      console.log(err);
+    }
+   })
+
+//  fs.writeFile('./files/a.txt',updatedText,(err)=>{
+
+  if(err!=null)
+  {
+    
+  res.status(404).send(`Error occured !`);
+    console.log(err);
+  }
+  else {
+    
+  console.log(`Data is written in the file`);
+
+  res.status(200).send('item has been deleted')
+}
+
+//  })
+
+
+});
+  let id = req.params.id;
+  console.log('the id is',id);
+
+
+  
+
+  // for(let i = 0; i<data.length;i++)
+  // {
+  //   if(id == data[i].id)
+  //   {
+  //     indexToBeDeleted = i;
+  //     console.log(indexToBeDeleted);
+  //   }
+  // }
+
+  
+//   console.log(data.splice(indexToBeDeleted-1,1));
+
+//  let updatedText = JSON.stringify(data);
+
+//  fs.writeFile('./files/a.txt',updatedText,(err)=>{
+
+//   if(err!=null)
+//   {
+    
+//   res.status(404).send(`Error occured !`);
+//     console.log(err);
+//   }
+//   else {
+    
+//   console.log(`Data is written in the file`);
+
+//   res.status(200).send('item has been deleted')
+// }
+
+//  })
+
+
+
+ // res.status(200).send('item has been deleted')
+}
+
+app.get('/todos',getAllTodos)
+app.post('/todos',createToDos)
+app.get('/todos/:id',getToDobyId)
+//app.put('/todos/:id',updateData)
+app.delete('/todos/:id',deleteToDo)
+app.listen(port,()=>{
+  console.log(`listening on port ${port}`);
+})
 
 module.exports = app;
