@@ -16,10 +16,40 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+
+/* 
+  What is use of "path"
+  Why if-else should be used when doing "res.send()"
+*/
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get("/:directory", (req, res) => {
+  if (!fs.existsSync(`./${req.params.directory}`)) {
+    res.status(404).json({data: "Route not found"})
+  } else {
+    fs.readdir(`./${req.params.directory}`, (err, files) => {
+      if (err) {
+        res.status(500).json({data: err.message})
+      } else {
+        res.send({data: files})
+      }
+    })
+  }
+})
+
+app.get("/:directory/:filename", (req, res) => {
+  fs.readFile(`./${req.params.directory}/${req.params.filename}`, "utf-8", (err, content) => {
+    if (err) {
+      res.status(404).json({data: "File not found"})
+    } else {
+      res.json({data: content})
+    }
+  })
+})
+
+// app.listen(3000)
 
 module.exports = app;

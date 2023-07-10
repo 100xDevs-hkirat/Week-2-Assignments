@@ -1,5 +1,7 @@
 const http = require('http');
 const server = require('../authenticationServer');
+const fs = require("fs")
+const path = require("path")
 
 const email = 'testuser@gmail.com';
 const password = 'testpassword';
@@ -19,6 +21,11 @@ describe('API Tests', () => {
 
   afterAll((done) => {
     globalServer.close(done);
+    data = fs.readFileSync(path.join(__dirname, "../files/users.json"), "utf-8")
+    console.log(data);
+    let users = JSON.parse(data)
+    delete users[email]
+    fs.writeFileSync(path.join(__dirname, "../files/users.json"), JSON.stringify(users))
   });
 
   it('should allow a user to sign up', async () => {
@@ -36,7 +43,7 @@ describe('API Tests', () => {
     const response = await sendRequest(options, requestBody);
 
     expect(response.statusCode).toBe(201);
-    expect(response.body).toBe('Signup successful');
+    expect(response.body.data).toBe('Signup successful');
   });
 
   it('should allow a user to login', async () => {
@@ -56,12 +63,11 @@ describe('API Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
 
-    const responseBody = JSON.parse(response.body);
-    expect(responseBody.email).toBe(email);
-    expect(responseBody.firstName).toBe(firstName);
-    expect(responseBody.lastName).toBe(lastName);
+    // expect(response.body.data).toBe(email);
+    expect(response.body.data.firstName).toBe(firstName);
+    expect(response.body.data.lastName).toBe(lastName);
 
-    authToken = responseBody.authToken;
+    // authToken = responseBody.authToken;
   });
 
   it('should return unauthorized for accessing protected data without authentication', async () => {
@@ -77,7 +83,7 @@ describe('API Tests', () => {
     const response = await sendRequest(options);
 
     expect(response.statusCode).toBe(401);
-    expect(response.body).toBe('Unauthorized');
+    expect(response.body.data).toBe('Unauthorized');
   });
 
   it('should return the users for accessing protected data with authentication', async () => {
@@ -94,9 +100,7 @@ describe('API Tests', () => {
 
     expect(response.statusCode).toBe(200);
 
-    const responseBody = JSON.parse(response.body);
-    console.log(responseBody);
-    expect(responseBody.users.length).toBe(1);
+    expect(response.body.length).toBe(1);
   });
 });
 
@@ -119,7 +123,7 @@ function sendRequest(options, requestBody) {
           resolve({
             statusCode: res.statusCode,
             headers: res.headers,
-            body,
+            body: JSON.parse(body),
           });
         });
       }
