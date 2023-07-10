@@ -29,9 +29,85 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+let users = [];
+//  1. POST /signup - User Signup
+
+app.use(express.json()); // turns incoming data into js objects
+
+app.post("/signup", (req, res) => {
+  const user = req.body;
+
+  // some() method checks if any array elements pass a test
+  const userAlreadyExists = users.some((existingUser) => {
+    return existingUser.email === user.email;
+  });
+
+  if (userAlreadyExists) {
+    return res.sendStatus(400);
+  }
+
+  users.push(user);
+  res.status(201).send("Signup successful");
+});
+
+//  2. POST /login
+
+app.post("/login", (req, res) => {
+  const user = req.body;
+
+  // unlike some() which returns a boolean , find() returns the element in the array
+  const userFound = users.find(
+    (existingUser) =>
+      existingUser.email === user.email &&
+      existingUser.password === user.password
+  );
+
+  if (userFound) {
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+//   3. GET /data
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+
+  const user = users.find(
+    (existingUser) =>
+      existingUser.email === email && existingUser.password === password
+  );
+
+  if (user) {
+    // map() creates a new array
+    const usersToReturn = users.map((user) => {
+      const { firstName, lastName, email } = user;
+
+      return {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      };
+    });
+
+    res.json({
+      users: usersToReturn,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.listen(3000);
 module.exports = app;

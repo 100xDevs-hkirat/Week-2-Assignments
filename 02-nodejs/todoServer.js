@@ -39,11 +39,101 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
 
+// Enable CORS for all routes
+app.use(cors());
+
+// Body-parser middleware - parse application/json
 app.use(bodyParser.json());
+
+let todos = [];
+
+// 1. GET /todos
+app.get("/todos", (req, res) => {
+  // Recommended to send response in JSON format
+  res.json(todos);
+});
+
+// 2. GET /todos/:id
+app.get("/todos/:id", (req, res) => {
+  // Params are always strings, convert them to int as per use case
+  const todoIndex = findIndex(todos, parseInt(req.params.id));
+
+  if (todoIndex === -1) {
+    // Send empty response as default
+    res.status(404).send();
+  } else {
+    res.json(todos[todoIndex]);
+  }
+});
+
+// 3. POST /todos
+app.post("/todos", (req, res) => {
+  const todo = {
+    id: Math.round(Math.random() * 1000),
+    title: req.body.title,
+    description: req.body.description,
+  };
+
+  todos.push(todo);
+  // When handling an HTTP request in Express.js, it is essential to send a response back to the client to complete the request-response cycle.
+  // Failing to send a response will leave the client waiting indefinitely, as it expects a response from the server.
+  res.status(201).json(todos); // Chaining methods
+});
+
+// 4. PUT /todos/:id
+app.put("/todos/:id", (req, res) => {
+  const todoIndex = findIndex(todos, parseInt(req.params.id));
+
+  if (todoIndex === -1) {
+    // Send empty response as default
+    res.status(404).send();
+  } else {
+    todos[todoIndex].title = req.body.title;
+    todos[todoIndex].description = req.body.description;
+    res.json(todos[todoIndex]);
+  }
+});
+
+// 5. DELETE /todos/:id
+app.delete("/todos/:id", (req, res) => {
+  const todoIndex = findIndex(todos, parseInt(req.params.id));
+
+  if (todoIndex === -1) {
+    // Send empty response as default
+    res.status(404).send();
+  } else {
+    todos = removeAtIndex(todos, todoIndex);
+    res.status(200).send();
+  }
+});
+
+app.listen(3000, () => {
+  console.log("listening on http://localhost:3000");
+});
+
+let findIndex = (arr, id) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+let removeAtIndex = (arr, index) => {
+  let newArr = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i != index) {
+      newArr.push(arr[i]);
+    }
+  }
+  return newArr;
+};
 
 module.exports = app;
