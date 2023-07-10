@@ -29,9 +29,67 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
+// username, password, firstName, lastName
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+app.use(express.json());
+var users = [];
+
+app.post("/signup", (req, res) => {
+  const user = req.body;
+  var userAlreadyExists = users.find(e => e.email === user.email)
+  if (userAlreadyExists) {
+    return res.status(400).send("username already exists");
+  }
+  let id = users.length + 1;
+  users.push({ id, ...user });
+  console.table(users);
+  res.status(201).send("Signup successful")
+})
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  let user;
+  var userAlreadyExists = users.find((e) => {
+    if (e.email === email && e.password === password) {
+      user = e;
+      return true;
+    }
+  })
+  if (!userAlreadyExists) {
+    return res.status(401).send("Unauthorized");
+  }
+  res.status(200).json({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email
+  });
+})
+
+app.get("/data", (req, res) => {
+  let email = req.headers.email;
+  let password = req.headers.password;
+
+  var userAlreadyExists = users.find(e => (e.email === email && e.password === password));
+  if (!userAlreadyExists) {
+    // console.log(email, password);
+    return res.status(401).send("Unauthorized");
+  }
+  const userData = users.map((e) => {
+    let { firstName, lastName, email } = e;
+    return { firstName, lastName, email };
+  })
+  res.json({users});
+})
+
+
+app.all('*', (req, res) => {
+  res.status(404).send("Route not found");
+})
+
+
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+// app.listen(PORT);
 module.exports = app;
