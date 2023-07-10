@@ -48,33 +48,31 @@ const app = express();
 // Enable CORS for all routes
 app.use(cors());
 
-// Body-parser middleware  - parse application/json
+// Body-parser middleware - parse application/json
 app.use(bodyParser.json());
 
 let todos = [];
 
-////  1. GET /todos
-//app.METHOD(PATH, HANDLER)
+// 1. GET /todos
 app.get("/todos", (req, res) => {
-  // reccommended to send response in Json format  -- res.send(JSON.stringify(todos));
-  res.json(todos); // res.json is more convenient
+  // Recommended to send response in JSON format
+  res.json(todos);
 });
 
-////  2.GET /todos/:id
-// : - is a placeholder for params and accessed by req.params
+// 2. GET /todos/:id
 app.get("/todos/:id", (req, res) => {
-  // params are always strings , convert em to int as per usecase
+  // Params are always strings, convert them to int as per use case
   const todoIndex = findIndex(todos, parseInt(req.params.id));
 
   if (todoIndex === -1) {
-    // send empty is default response
+    // Send empty response as default
     res.status(404).send();
   } else {
     res.json(todos[todoIndex]);
   }
 });
 
-//// 3. POST /todos
+// 3. POST /todos
 app.post("/todos", (req, res) => {
   const todo = {
     id: Math.round(Math.random() * 1000),
@@ -83,18 +81,17 @@ app.post("/todos", (req, res) => {
   };
 
   todos.push(todo);
-
-  //When handling an HTTP request in Express.js, it is essential to send a response back to the client to complete the request-response cycle.
+  // When handling an HTTP request in Express.js, it is essential to send a response back to the client to complete the request-response cycle.
   // Failing to send a response will leave the client waiting indefinitely, as it expects a response from the server.
-  res.status(201).json(todos); //chaining methods
+  res.status(201).json(todos); // Chaining methods
 });
 
-//// 4. PUT /todos/:id
+// 4. PUT /todos/:id
 app.put("/todos/:id", (req, res) => {
   const todoIndex = findIndex(todos, parseInt(req.params.id));
 
   if (todoIndex === -1) {
-    // send empty is default response
+    // Send empty response as default
     res.status(404).send();
   } else {
     todos[todoIndex].title = req.body.title;
@@ -103,13 +100,12 @@ app.put("/todos/:id", (req, res) => {
   }
 });
 
-//// 5. DELETE /todos/:id
-
+// 5. DELETE /todos/:id
 app.delete("/todos/:id", (req, res) => {
   const todoIndex = findIndex(todos, parseInt(req.params.id));
 
   if (todoIndex === -1) {
-    // send empty is default response
+    // Send empty response as default
     res.status(404).send();
   } else {
     todos = removeAtIndex(todos, todoIndex);
@@ -133,7 +129,9 @@ let findIndex = (arr, id) => {
 let removeAtIndex = (arr, index) => {
   let newArr = [];
   for (let i = 0; i < arr.length; i++) {
-    if (i != index) newArr.push(arr[i]);
+    if (i != index) {
+      newArr.push(arr[i]);
+    }
   }
   return newArr;
 };
