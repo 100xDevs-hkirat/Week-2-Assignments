@@ -1,32 +1,32 @@
 /**
-  You need to create a HTTP server in Node.js which will handle the logic of an authentication server.
-  - Don't need to use any database to store the data.
+ You need to create a HTTP server in Node.js which will handle the logic of an authentication server.
+ - Don't need to use any database to store the data.
 
-  - Save the users and their signup/login data in an array in a variable
-  - You can store the passwords in plain text (as is) in the variable for now
+ - Save the users and their signup/login data in an array in a variable
+ - You can store the passwords in plain text (as is) in the variable for now
 
-  The expected API endpoints are defined below,
-  1. POST /signup - User Signup
-    Description: Allows users to create an account. This should be stored in an array on the server, and a unique id should be generated for every new user that is added.
-    Request Body: JSON object with username, password, firstName and lastName fields.
-    Response: 201 Created if successful, or 400 Bad Request if the username already exists.
-    Example: POST http://localhost:3000/signup
+ The expected API endpoints are defined below,
+ 1. POST /signup - User Signup
+ Description: Allows users to create an account. This should be stored in an array on the server, and a unique id should be generated for every new user that is added.
+ Request Body: JSON object with username, password, firstName and lastName fields.
+ Response: 201 Created if successful, or 400 Bad Request if the username already exists.
+ Example: POST http://localhost:3000/signup
 
-  2. POST /login - User Login
-    Description: Gets user back their details like firstname, lastname and id
-    Request Body: JSON object with username and password fields.
-    Response: 200 OK with an authentication token in JSON format if successful, or 401 Unauthorized if the credentials are invalid.
-    Example: POST http://localhost:3000/login
+ 2. POST /login - User Login
+ Description: Gets user back their details like firstname, lastname and id
+ Request Body: JSON object with username and password fields.
+ Response: 200 OK with an authentication token in JSON format if successful, or 401 Unauthorized if the credentials are invalid.
+ Example: POST http://localhost:3000/login
 
-  3. GET /data - Fetch all user's names and ids from the server (Protected route)
-    Description: Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
-    The users username and password should be fetched from the headers and checked before the array is returned
-    Response: 200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
-    Example: GET http://localhost:3000/data
+ 3. GET /data - Fetch all user's names and ids from the server (Protected route)
+ Description: Gets details of all users like firstname, lastname and id in an array format. Returned object should have a key called users which contains the list of all users with their email/firstname/lastname.
+ The users username and password should be fetched from the headers and checked before the array is returned
+ Response: 200 OK with the protected data in JSON format if the username and password in headers are valid, or 401 Unauthorized if the username and password are missing or invalid.
+ Example: GET http://localhost:3000/data
 
-  - For any other route not defined in the server return 404
+ - For any other route not defined in the server return 404
 
-  Testing the server - run `npm run test-authenticationServer` command in terminal
+ Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
 const express = require("express")
@@ -36,49 +36,49 @@ const app = express();
 var users = [];
 
 app.use(express.json());
-app.post("/Signup", (req,res)=>{
+app.post("/signup", (req,res)=>{
     var user = req.body;
     let userAlreadyExisting = false;
     for(let i=0;i<users.length;i++){
-        if(users[i].username===user){
+        if(users[i].email===user.email){
             userAlreadyExisting=true;
             break;}
     }
     if(userAlreadyExisting)
-        res.status(400);
+        res.sendStatus(400);
     else{
         users.push(user);
-        res.status(201).send("Signup Successfull");
+        res.status(201).send("Signup successful");
     }
-})
+});
 
 app.post("/login",(req,res)=>{
     var user = req.body;
-    let authenticate = false;
-    let userdata = [];
+    let userdata = null;
     for(let i=0;i<users.length;i++){
-        if(user.username===users[i].username && user.password===users[i].password){
-            authenticate = true;
-            userdata.firstName = users[i].firstName;
-            userdata.lastName = users[i].lastName;
-            userdata.username = users[i].username;
+        if(users[i].email===user.email && users[i].password===user.password){
+            userdata=users[i];
             break;
         }
     }
-    if(authenticate){
-        res.status(200).send(userdata);
+    if(userdata){
+        res.status(200).send({
+            firstName: userdata.firstName,
+            lastName: userdata.lastName,
+            email: userdata.email
+        });
     }
     else{
-        res.status(400);
+        res.sendStatus(401);
     }
-})
+});
 
 app.get("/data", (req,res)=>{
-    var usernamee = req.headers.username;
+    var email = req.headers.email;
     var password = req.headers.password;
     let userFound = false;
     for(let i=0;i<users.length;i++){
-        if(usernamee===users[i].username && password===users[i].password){
+        if(email===users[i].email && password===users[i].password){
             userFound = true;
             break;
         }
@@ -89,13 +89,13 @@ app.get("/data", (req,res)=>{
             userSend.push({
                 firstName: users[i].firstName,
                 lastName: users[i].lastName,
-                username: users[i].username
+                email: users[i].email
             });
         }
-    res.send(userSend);
+        res.json({users});
     }
     else{
-        res.status(401);
+        res.sendStatus(401);
     }
 });
 
