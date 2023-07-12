@@ -39,11 +39,143 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+const PORT = 3000;
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+
+let todos = [];
+
+function findIndex(arr, id) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return i;
+  }
+  return -1;
+}
+
+function fetch(req, res) {
+  res.json(todos);
+}
+
+app.get('/todos', fetch);   //first question;
+
+
+function getById(req, res) {
+  // const id = req.params.id;
+  // const k = parseInt(req.params.id);
+
+  // // const todo = todos.find(todos.id === k);
+  // const todo = todos.find(t => t.id === k);
+
+  // if (!todo) {
+  //   res.status(404).send("required todo do not exist");
+  // }
+  // else {
+  //   res.json(todo);
+  // }
+
+  const todo = todos.find(t => t.id === parseInt(req.params.id));
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.json(todo);
+  }
+
+
+}
+app.get('/todos/:id', getById);
+
+
+function createTodo(req, res) {
+  const newtodo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description
+  };
+
+  todos.push(newtodo);
+  res.status(201).json(newtodo);
+}
+
+app.post('/todos', createTodo);
+
+
+// function updateTodoById(req, res) {
+//   const k = parseInt(req.params.id, 10);
+
+//   const ind = todos.findIndex(todos.id === k);
+
+//   if (ind === -1) {
+//     res.status(404).send("required todo do not exist");
+//   }
+//   else {
+//     todos[ind].title = req.body.title;
+//     todos[ind].description = req.body.description;
+
+//     res.status(202).json(todos[ind]);
+//   }
+
+// }
+
+
+function updateTodoById(req, res) {
+  // const k = parseInt(req.params.id);
+
+  // const ind = todos.findIndex(todo => todo.id === parseInt(req.params.id)); // Corrected findIndex method usage
+
+  // if (ind === -1) {
+  //   res.status(404).send("Required todo does not exist");
+  // } else {
+  //   todos[ind].title = req.body.title;
+  //   todos[ind].description = req.body.description;
+
+  //   res.status(202).json(todos[ind]);
+  // }
+
+  const todoIndex = findIndex(todos, parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos[todoIndex].title = req.body.title;
+    todos[todoIndex].description = req.body.description;
+    res.json(todos[todoIndex]);
+  }
+}
+app.put('/todos/:id', updateTodoById);
+
+
+function deleteById(req, res) {
+  const k = parseInt(req.params.id, 10);
+
+  const ind = todos.findIndex(ind => todos.id === k);
+
+  if (ind === -1) {
+    res.status(404).send("required todo do not exist");
+  }
+  else {
+    todos.splice(ind, 1);
+    res.status(200).send();
+  }
+}
+app.delete('/todos/:id', deleteById);
+
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`)
+}
+
+app.listen(PORT, started)
 
 module.exports = app;

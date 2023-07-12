@@ -16,10 +16,42 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+const PORT = 3000;
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+var bodyParser = require('body-parser');
 const app = express();
+app.use(bodyParser.json());
 
+function name(req, res) {
+  const files = fs.readdirSync('./files');
+  res.status(200).json(files);
+}
 
+app.get('./files', name);
+
+function read_file(err, fileContent, res) {
+  if (err) {
+    console.error('Error reading file:', err);
+    res.status(500).send('Error reading file');
+    return;
+  }
+  res.type('text/plain').send(fileContent);
+}
+
+function content(req, res) {
+  var file_name = req.body.filename;
+  var filePath = `./files/${file_name}`;
+  fs.readFile(filePath, 'utf-8', (err, fileContent) => {
+    read_file(err, fileContent, res);
+  });
+}
+app.get('/filescontent', content);
+
+function started() {
+  console.log(`Example app listening on port ${PORT}`)
+}
+
+app.listen(PORT, started)
 module.exports = app;
