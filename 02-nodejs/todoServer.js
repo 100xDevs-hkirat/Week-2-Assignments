@@ -45,5 +45,64 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.json());
+let toDos = [];
+let IdCount = 1;
+
+app.get("/todos", (req,res)=>{
+    res.json(toDos);
+});
+
+app.get("/todos/:id",(req,res)=>{
+    let id = parseInt(req.params.id);
+    let find = null;
+    for(let i=0;i<toDos.length;i++){
+        if(id===toDos[i].id){
+        find  = toDos[i];
+        break;
+        }
+    }
+    if(find)
+        res.status(200).json(find);
+    else
+        res.sendStatus(404);
+});
+
+app.post("/todos", (req,res)=>{
+    const newtoDo = {
+        id: IdCount,
+        title: req.body.title,
+        completed: req.body.completed,
+        description: req.body.description
+    };
+    IdCount++;
+    toDos.push(newtoDo);
+    res.status(201).json(newtoDo);
+});
+
+app.put("/todos/:id", (req,res)=>{
+    let indextobeFound = toDos.findIndex(item => item.id === parseInt(req.params.id));
+    if(indextobeFound === -1){
+        res.sendStatus(404);
+    }
+    else{
+        toDos[indextobeFound].title = req.body.title;
+        toDos[indextobeFound].description = req.body.description;
+        res.status(200).json(toDos[indextobeFound]);
+    }
+});
+
+app.delete("/todos/:id", (req,res)=>{
+    const indextobeFound = toDos.findIndex(item => item.id === parseInt(req.params.id));
+    if(indextobeFound === -1)
+        res.sendStatus(404);
+    else{
+        toDos.splice(indextobeFound,1);
+        res.sendStatus(200);
+    }
+});
+
+app.all("*",(req,res)=>{
+    res.sendStatus(404);
+})
 
 module.exports = app;
