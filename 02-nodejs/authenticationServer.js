@@ -30,8 +30,70 @@
  */
 
 const express = require("express")
+const jwt= require('jsonwebtoken')
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users=[]
+app.use(bodyparser.json())
+
+const auth = async (req, res, next) => {
+  // check header
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
+   res.status(401).send('Authentication invalid')
+  }
+  const token = authHeader.split(' ')[1]
+
+  try {
+    const payload = jwt.verify(token,"samplejwtsecret")
+    req.user=payload
+    next()
+  } catch (error) {
+    res.status(401).send('Authentication invalid')
+  }
+}
+
+
+app.post('/signup',(req,res)=>{
+  const { username, password,firstName,lastName } = req.body
+  if(!username|| !password||!firstName||!lastName){
+    res.status(400).send("Invalid Request body, make sure the required format is followed.")
+  }
+  if(users.find((val)=>{val.username==username})){
+    res.status(400).send("Username already exists")
+  }
+  let input=req.body
+  input.id=users.length+1
+  users.push(input)
+  res.status(201).send("Succesfully created User!")  
+})
+
+
+
+app.post('/login',(req,res)=>{
+  let creds = req.body
+  const { username, password} = req.body
+  if(!username|| !password) {
+    res.status(401).send("Invalid Credentials.")
+  }
+  
+  let user= users.find((val)=>{val.username==creds.username})
+  if(user.password!=creds.password){
+    res.status(401).send("Invalid Credentials.")
+  }
+  const token = jwt.sign({user: username},"samplejwtsecret",{expiresIn: '8h'})
+  let response={
+    oauth_token: token,
+    user_id:user.id
+  }
+  res.status(200).json(response)
+})
+
+
+app.get('/data',auth,(req,res)=> {
+  console.log(req.user)
+res.status(200).json(users)
+})
 
 module.exports = app;

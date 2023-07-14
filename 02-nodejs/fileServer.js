@@ -21,5 +21,29 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files',(req,res)=>{
+const directoryPath = path.join(__dirname, 'files');
+let filearr=[]
+fs.readdir(directoryPath, (err, files)=> {
+    if (err) {
+        return console.log('Unable to scan directory: ' + err);
+    } 
+    files.forEach((file)=> {
+       filearr.push(file) 
+    });
+});
+res.status(200).json(filearr)
+})
 
+app.get('/file/:filename',(req,res)=>{
+  const filename= req.params.filename;
+  const filePath= path.join(__dirname, `files/${filename}`)
+  fs.readFile(filePath,(err,data)=>{
+    if(err){
+      res.status(404).send("File not found!")
+    }
+    res.status(200).send(data)
+  })
+  res.status(500).send("Internal server Error!")
+})
 module.exports = app;

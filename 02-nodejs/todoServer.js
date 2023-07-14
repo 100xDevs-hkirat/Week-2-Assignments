@@ -41,9 +41,50 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
 
+let todos=[]
 app.use(bodyParser.json());
+//
+app.get("/todos",(req,res)=>{
+  res.status(200).json(todos)
+})
+//
+app.get("/todos/:id",(req,res)=>{
+const id=req.params.id
+const task= todos.find((val)=>{val.id==id})
+res.status(200).json(task)
+})
+//
+app.post("/todos",(req,res)=>{
+const task= req.body
+const {title,description,completed}=req.body
+if(!title||!description){
+  res.status(400).send("Bad Request: Incorrect body")
+}
+task.id=todos.length+1
+todos.push(task)
+res.status(201).json({id:task.id})
+})
+//
+app.put("/todos/:id",(req,res)=>{
+const id=req.params.id
+const ind=todos.findIndex((val)=>{val.id==id})
+if(ind==-1){
+  res.status(404).send("Not Found")
+}
+todos[ind]={id: id,...(req.body)}
+res.status(200).send("Updated")
+})
+//
+app.delete("/todos/:id",(req,res)=>{
+const id=req.params.id
+const ind=todos.findIndex((val)=>{val.id==id})
+if(ind==-1){
+  res.status(404).send("Not Found")
+}
+todos.splice(ind,1)
+res.status(200)
+})
 
 module.exports = app;
