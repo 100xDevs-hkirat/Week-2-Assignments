@@ -32,6 +32,70 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+var bodyParser = require('body-parser')
+app.use(bodyParser.json());
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+
+app.post('/signup', (req,res) => {
+  var user = req.body;
+  let userAlreadyExists = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === user.email) {
+        userAlreadyExists = true;
+        break;
+    }
+  }
+  if (userAlreadyExists) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+})
+
+app.post('/login', (req,res) => {
+  var ind = -1;
+  for(var i=0;i<users.length;i++){
+    if(users[i].username === req.body.username && users[i].password === req.body.password){
+      ind = i;
+      break;
+    }
+  }
+  if(ind === -1){
+    res.status(401).json({
+      firstName: users[ind].firstName,
+      lastName: users[ind].lastName,
+      email: users[ind].email
+    });
+  }
+  else{
+    res.status(200).send(users[ind]);
+  }
+
+})
+
+app.get("/data", (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if (userFound) {
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
 
 module.exports = app;

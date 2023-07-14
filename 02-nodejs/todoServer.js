@@ -15,7 +15,7 @@
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+     
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
@@ -40,10 +40,95 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const port = 3000
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
 
+
+let todos = [];
+
+
+function findTodoById(index){
+  for(var i=0;i<todos.length;i++){
+    if(todos[i].id == index)
+      return i;
+  }
+  return -1;
+}
+
+function deletoTodoByIndex(index){
+  let newArr = [];
+  for(var i=0;i<todos.length;i++){
+    if(i === index){
+      continue;
+    }
+    newArr.push(todos[i]);
+  }
+  todos = newArr;
+}
+
+app.get('/todos', (req,res) => {
+  res.json(todos);
+})
+
+app.get('/todos/:id', (req,res) => {
+  const index = req.params.id;
+  const todoIndex = findTodoById(index);
+
+  if(todoIndex === -1){
+    res.status(404).send("ID not found");
+  }
+  else{
+    res.json(todos[todoIndex])
+  }
+
+})
+
+
+app.post('/todos', (req,res) => {
+  const newTodo = {
+    id: Math.floor(Math.random()*1000000),
+    title: req.body.title,
+    description: req.body.description
+  };
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+  // console.log(todos);
+})
+
+
+app.put('/todos/:id', (req,res) => {
+  // console.log(todos);
+  const todoIndex = findTodoById(req.params.id)
+  if(todoIndex === -1){
+    res.status(404).send("ID not found");
+  }
+  else{
+    todos[todoIndex].title = req.body.title;
+    todos[todoIndex].description = req.body.description;
+    res.status(200).json(todos[todoIndex]);
+  }
+})
+
+app.delete('/todos/:id', (req,res) => {
+  const todoIndex = findTodoById(req.params.id);
+  if(todoIndex === -1){
+    res.status(404).send("Id not found");
+  }
+  else{
+    deletoTodoByIndex(todoIndex);
+    // console.log(todos);
+    res.status(200).send("Done with deletion!");
+  } 
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
 module.exports = app;
+
+
