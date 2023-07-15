@@ -30,8 +30,98 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require('body-parser');
+
+const port = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let Users = []
+
+app.use(bodyParser.json());
+
+function userSignUp(req, res){
+   let user = req.body
+   user.id = Users.length + 1;
+   
+   for(let i=0; i<Users.length; i++){
+     if(Users[i].username == user.username){
+      res.status(400).send("Username Already Exists")
+     }
+   }
+
+   Users.push(user);
+
+   res.status(201).send("User crated successfully")
+}
+
+function userLogin(req, res){
+   let user = req.body
+   user.id = Users.length + 1;
+   
+   for(let i=0; i<Users.length; i++){
+     if(Users[i].username == user.username){
+      if(Users[i].password == user.password){
+        res.json({
+          firstName: Users[i].firstName,
+          lastName: Users[i].lastName,
+          userName: Users[i].email
+        })
+      }
+
+      else{
+        res.status(401).send("Invalid Password")
+      }
+     }
+   }
+
+   res.status(401).send("Invalid Username/Password")
+}
+
+function getAllUsersData(req, res){
+  let username = req.headers.username;
+  let password = req.headers.password;
+
+  let isAuth = false
+  
+  for(let i=0; i<Users.length; i++){
+    if(Users[i].username == username && Users[i].password == password){
+     isAuth = true
+     break;
+    }
+  }
+
+  if(isAuth){
+    let allUsers = []
+    for(let i=0; i<Users.length; i++){
+       allUsers.push({
+            firstName: Users[i].firstName,
+            lastName: Users[i].lastName,
+            email: Users[i].email
+       })
+    }
+
+    res.json({
+      allUsers
+    })
+  }
+  else{
+    res.status(401).send("Invalid Username/Password")
+  }
+
+}
+
+
+app.post("/signup", userSignUp)
+app.post("/login" , userLogin)
+app.get("/data" , getAllUsersData)
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
 
 module.exports = app;

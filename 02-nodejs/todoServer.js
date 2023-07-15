@@ -41,9 +41,123 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000
 
 const app = express();
 
 app.use(bodyParser.json());
+
+
+let todos = []
+
+function getAllTodos(req, res) {
+
+  if(todos.length) {
+    res.send(todos)
+  }
+
+  else{
+    res.send("Todo List is Empty")
+  }
+    
+
+  
+}
+
+function getTodoById(req, res) {
+
+  let id = req.params.id
+  //console.log(id)
+  let flag = false
+
+  for(let i=0; i< todos.length; i++){
+
+    if(todos[i].id == id){
+      flag = true
+      res.send(todos[i])
+    }
+  }
+  
+  if(!flag)
+  res.status(404).send("Todo not found")
+  
+}
+
+function addTodo(req , res) {
+  
+  let newTodo = req.body
+  newTodo.id = todos.length
+  todos.push(newTodo)
+
+  res.send("Todos added successfully")
+}
+
+function updateTodo(req , res) {
+
+  let id = req.params.id
+  let newTodo = req.body
+  let flag = true
+
+  for(let i=0; i< todos.length; i++){
+
+    if(todos[i].id == id){
+      flag = false
+      if(newTodo.title){
+        todos[i].title = newTodo.title
+      }
+
+      if(newTodo.completed){
+        todos[i].completed = newTodo.completed
+      }
+
+      if(newTodo.description){
+        todos[i].description = newTodo.description
+      }
+
+      res.status(201).send(todos[i])
+    }
+  }
+
+  if(flag){
+    res.status(404).send("Todo not found")
+  }
+  
+}
+
+function deleteTodo(req , res){
+  
+  let id = req.params.id
+  let flag = true
+
+  for(let i=0; i< todos.length; i++){
+
+    if(todos[i].id == id){
+      flag = false
+      todos[i] = todos[todos.length - 1] 
+      todos.pop()
+      res.send("todo deleted Successfully")
+    }
+  }
+
+  if(flag){
+    res.status(404).send("Todo not found")
+  }
+  
+
+}
+
+app.get('/todos', getAllTodos)
+app.get('/todos/:id' , getTodoById)
+app.post('/todos', addTodo)
+app.put('/todos/:id' , updateTodo)
+app.delete('/todos/:id' , deleteTodo)
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
 
 module.exports = app;
