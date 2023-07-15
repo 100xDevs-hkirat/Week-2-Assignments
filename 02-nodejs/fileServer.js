@@ -21,5 +21,30 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files',(req,res)=>{
+  fs.readdir(path.join(__dirname,'./files/'),(err,files)=>{
+    if(err) {
+      //if there is an error on the server send the status code 500 and also send the json to the client saying {"er :failed to retrive the files }
+      return res.status(500).json({ errr: 'Failed to retrieve files' });
+    }
+    
+    //if there is no error on the server send the status code 200 and also send the json to the client saying {"files":files}
+    res.status(200).json({'files':files})
+    
+  });
+
+});
+
+// app.get('/files', (req, res) => {
+//   fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+//     if (err) {
+//       return res.status(500).json({ error: 'Failed to retrieve files' });
+//     }
+//     res.json(files);
+//   });
+// });
+
+
+
 
 module.exports = app;
