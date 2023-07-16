@@ -96,7 +96,7 @@ app.get("/data", (req, res) => {
         });
     }
     res.json({
-        users
+      usersToReturn
     });
   } else {
     res.sendStatus(401);
