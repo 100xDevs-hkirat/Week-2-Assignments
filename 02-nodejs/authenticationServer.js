@@ -29,9 +29,94 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require('express')
+const {v4 : uuidv4} = require('uuid')
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
+app.use(bodyParser.json())
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var usersList = []
+
+// Request Body: JSON object with username, password, firstName and lastName fields.
+function userSignUp(req,res){
+  var id = uuidv4();
+  var obj = req.body
+  var userFound = false
+  for(var i=0;i<usersList.length;i++){
+    if(usersList[i].email == req.body.email){
+      userFound=true
+      break
+    }
+  }
+  if(userFound){
+    res.status(400).json({'message':'User already exists'})
+  }
+  else{
+    usersList.push(obj)
+    res.status(201).send('Signup successful')
+  }
+}
+
+function userLogin(req,res){
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i<users.length; i++) {
+    if (usersList[i].email === user.email && usersList[i].password === user.password) {
+        userFound = usersList[i];
+        break;
+    }
+  }
+
+  if (userFound) {
+    res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email
+    });
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+function getAllUsers(req,res){
+  var email = req.headers.email
+  var password = req.headers.password
+  var isUserFound = false
+  for(var i=0;i<usersList.length;i++){
+    if(usersList[i].email == email && usersList[i].password == password){
+      isUserFound=true
+      break;
+    }
+  }
+  if(isUserFound){
+    var usersToReturn = []
+    for(var i=0;i<usersList.length;i++){
+      var objToReturn = {
+        email:usersList[i].email,
+        firstname:usersList[i].firstName,
+        lastname:usersList[i].lastName
+      }
+      usersToReturn.push(objToReturn)
+    }
+    res.status(200).json(usersToReturn)
+  }
+  else{
+    res.status(401).send()
+  }
+}
+
+function invalidRoute(req,res){
+  res.status(404).send('Route not found')
+}
+
+app.post('/signup',userSignUp)
+app.post('/login',userLogin)
+app.get('/data',getAllUsers)
+app.get('*',invalidRoute)
+
+app.listen(3000,()=>{
+  console.log("Server started");
+})
 module.exports = app;
