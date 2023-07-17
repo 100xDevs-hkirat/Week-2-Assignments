@@ -66,7 +66,7 @@ app.get("/todos/:id", function(req,res){
     const id = req.params.id;
     const todos = JSON.parse(data);
     const todoItem = todos.find(t => t.id === parseInt(id));
-    if (!todo) {
+    if (!todoItem) {
       res.status(404).json({
         message: "Todos not found"
       })
@@ -81,8 +81,8 @@ app.post("/todos",function(req,res){
 
   const newTodo = {
     id : Math.floor(Math.random() * 1000),
-    title: "Go to the gym",
-    description: " Let's get started!"
+    title: req.body.title,
+    description: req.body.description
   }
 
   fs.readFile("todo.json","utf8",(err,data) => {
@@ -114,16 +114,25 @@ app.put("/todos/:id",function(req,res){
 })
 
 app.delete("/todos/:id",function(req,res){
-  const id = req.params.id;
-  const index = todos.findIndex(i => i.id === parseInt(id))
+  fs.readFile("todo.json" , "utf8" , (err,data) => {
+    if (err) throw err;
+    const id = req.params.id;
+    const todos = JSON.parse(data);
+    const index = todos.findIndex(i => i.id === parseInt(id))
+  
+    if (index === -1){
+      res.status(404).json({error: "Todo item not found"})
+    } else {
+      todos.splice(index,1);
+      fs.writeFile("todo.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.status(200).json({message:"Todo item deleted successfully!"})
+      })
+    }
+  })
 
-  if (index === -1){
-    res.status(404).json({error: "Todo item not found"})
-  } else {
-    todos.splice(index,1);
-    res.status(200).json({message:"Todo item deleted successfully!"})
-  }
-})
+  })
+
 
 // app.get("/",(req,res) => {
 //   res.sendFile(path.join(__dirname,"index.html"))

@@ -7,24 +7,92 @@
     <title>Todo-App</title>
 </head>
 <script>
+
+    function deleteData(id){
+        fetch("http://localhost:3000/todos/" + id, {
+            method : "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            } 
+        }).then(deleteDone => console.log("Todo Deleted"));
+    }
+
+    function getData(){
+        fetch("http://localhost:3000/todos", {
+            method : "GET", 
+        }).then(res => res.json().then((function todoData(data) {
+            console.log(data);
+            var parentElement = document.getElementById("mainArea");
+            //parentElement.innerHTML = JSON.stringify(data) 
+            for (var i = 0 ; i < data.length; i++){
+                var childElement = document.createElement("div");
+
+                var grandChildElement1 = document.createElement("span");
+                grandChildElement1.innerHTML = data[i].title;
+
+                var grandChildElement2 = document.createElement("span");
+                grandChildElement2.innerHTML = data[i].description;
+
+                var grandChildElement3 = document.createElement("button")
+                grandChildElement3.innerHTML = "Delete";
+                grandChildElement3.setAttribute("onClick", "deleteData(" + data[i].id + ")")
+
+                
+                childElement.appendChild(grandChildElement1)
+                childElement.appendChild(grandChildElement2)
+                childElement.appendChild(grandChildElement3)
+
+                parentElement.appendChild(childElement);
+            }
+            
+        })))
+    }
+
+    getData();
+
     function onPress(){
+        var title = document.getElementById("title").value;
+        console.log(title);
+        var description = document.getElementById("description").value;
+        console.log(description);
         fetch("http://localhost:3000/todos", {
             method : "POST",
             body: JSON.stringify({
-                title: "gym",
-                description: "go to gym at 7"
+                title: title,
+                description: description
             }),
             headers: {
                 "Content-Type": "application/json"
             } 
-        }).then(result => result.json().then(data => console.log(data)))
+        }).then(result => result.json().then(function parsedResponse(data){
+            var parentElement = document.getElementById("mainArea");
+
+            var childElement = document.createElement("div");
+
+            var grandChildElement1 = document.createElement("span");
+            grandChildElement1.innerHTML = data[i].title;
+
+            var grandChildElement2 = document.createElement("span");
+            grandChildElement2.innerHTML = data[i].description;
+
+            var grandChildElement3 = document.createElement("button")
+            grandChildElement3.innerHTML = "Delete";
+
+            
+            childElement.appendChild(grandChildElement1)
+            childElement.appendChild(grandChildElement2)
+            childElement.appendChild(grandChildElement3)
+
+            parentElement.appendChild(childElement);
+        }))
     }
 </script>
 <body>
     TODO title 
     <input type="text" id="title"></input>
     TODO description
-    <input type="text" id="title"></input>
+    <input type="text" id="description"></input>
     <button onclick="onPress()">send todo </button>
+    <div id="mainArea">Hi there</div>
 </body>
 </html>
