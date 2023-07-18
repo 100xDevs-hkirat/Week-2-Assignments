@@ -1,3 +1,4 @@
+<html>
 <head>
     <title>
         TODO app
@@ -7,8 +8,13 @@
 
     function deleteDone() {
         console.log("done delete");
-        // Delete the right todo from the list
-        // You will need to give each todo an id, and that should be enough to remove it
+        // var childElement=document.getElement('div');
+        // var parentElement=childElement.parentNode;
+
+        // parentElement.removeChild(childElement);
+
+       // Delete the right todo from the list
+      // You will need to give each todo an id, and that should be enough to remove it
 
     }
     function deleteTodo(id) {
@@ -21,25 +27,22 @@
     }
 
     function todosCallback(data) {
+        console.log(data);
         var parentElement = document.getElementById("mainArea");
         // parentElement.innerHTML = JSON.stringify(data);
-        for (var i = 0; i<data.length; i++) {
+        for(var i=0;i<data.length;i++){
             var childElement = document.createElement("div");
-
             var grandChildElement1 = document.createElement("span");
-            grandChildElement1.innerHTML = data[i].title
+            grandChildElement1.innerHTML = data[i].title;
 
             var grandChildElement2 = document.createElement("span");
-            grandChildElement2.innerHTML = data[i].description
-
-            var grandChildElement3 = document.createElement("button");
-            grandChildElement3.innerHTML = "Delete"
-            grandChildElement3.setAttribute("onclick", "deleteTodo(" + data[i].id + ")")
-
-            childElement.appendChild(grandChildElement1)
-            childElement.appendChild(grandChildElement2)
-            childElement.appendChild(grandChildElement3)
-
+            grandChildElement2.innerHTML = data[i].description;
+            var grandChildElement3=document.createElement("button");
+            grandChildElement3.innerHTML = "Delete";
+            grandChildElement3.setAttribute("onclick","deleteTodo("+data[i].id+")");
+            childElement.appendChild(grandChildElement1);
+            childElement.appendChild(grandChildElement2);
+            childElement.appendChild(grandChildElement3);
             parentElement.appendChild(childElement);
         }
     }
@@ -86,7 +89,9 @@
         var description = document.getElementById("description").value;
 
         fetch("http://localhost:3000/todos", {
+            // method: "GET",
             method: "POST",
+
             body: JSON.stringify({
                 title: title,
                 description: description
@@ -109,3 +114,4 @@
 
     </div>
 </body>
+</html>

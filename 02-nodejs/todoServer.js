@@ -42,6 +42,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const path=require('path');
 const port=3000;
 const app = express();
 
@@ -153,12 +154,16 @@ app.post('/todos',createTodo)
 app.put('/todos/:id',updateIDtodo)
 app.delete('/todos/:id',deleteTodo)
 
+app.get('/',(req,res)=>{
+  res.sendFile(path.join(__dirname,"./solutions/index.html"));
+});
+
 app.use((req, res) => {
   res.status(404).json({ error: 'route not defined in the server' });
 });
 
-// app.listen(port,(req,res)=>{
-//   console.log(`app is listening on ${port}`);
-// })
+app.listen(port,(req,res)=>{
+  console.log(`app is listening on ${port}`);
+})
 
 module.exports = app;
