@@ -40,6 +40,7 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs')
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -54,6 +55,10 @@ app.use(bodyParser.json());
 
 // ]
 const todoArr = [];
+fs.readFile('./todoList.txt', 'utf-8',(err,data) => {
+  todoArr.push(data);
+})
+
 app.get('/todos', (req, res) => {
   res.status(200).json(todoArr)
 })
