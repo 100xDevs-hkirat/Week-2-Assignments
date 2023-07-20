@@ -41,9 +41,83 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+const PORT = 3000;
 
 app.use(bodyParser.json());
+
+
+var allTodo = [
+
+]; 
+
+
+function getAllTodo(req, res) {
+  res.status(200).send(allTodo);
+}
+app.get("/todos", getAllTodo);
+
+function getSpecificTodo(req, res) {
+  const todoId = req.params.id;
+  const foundToDo = allTodo.find(todo => todo.id === todoId);
+  if(foundToDo) {
+    res.status(200).send(foundToDo);
+  }else{
+    res.status(404).json({error : "Todo is not available"})
+  }
+}
+app.get("/todos/:id", getSpecificTodo);
+
+function createTodo(req, res) {
+  const userTodo = { "id" :  uuidv4(), "title": req.body.title, "completed": req.body.completed, description: req.body.description }
+  allTodo.push(userTodo);
+  res.send(`Todo Created Successfully and id id ${userTodo.id}`)
+}
+app.post("/todos", createTodo);
+
+function firstHandleFunction(req, res) {
+  res.send("Hello world!");
+}
+app.get("/",firstHandleFunction)
+
+function updateTodo(req, res){
+  const userTodoId = req.params.id;
+  const foundToDoIndex = allTodo.findIndex(todo => todo.id === userTodoId);
+
+  if(foundToDoIndex !== -1){
+    allTodo[foundToDoIndex].title = req.body.title || allTodo[foundToDoIndex].title;
+    allTodo[foundToDoIndex].description = req.body.description || allTodo[foundToDoIndex].description;
+    allTodo[foundToDoIndex].completed = req.body.completed || completed;
+  
+    res.json(allTodo[foundToDoIndex]);
+  }else{
+    res.status(404).json({error : "Item Not Available."});
+  }
+}
+app.put("/todos/:id", updateTodo);
+
+function deleteTodo(req, res) {
+  const userTodoId =  req.params.id;
+
+  console.log("userTodoId   =>>>>>   "+ userTodoId);
+
+ const index = allTodo.findIndex(todo => todo.id === userTodoId);
+
+ console.log("index   =>>>>>   "+ index);
+
+ allTodo.splice(index, index)
+
+ console.log("aLL TODOS ->>>>>>>>>>>>>>   "+ allTodo);
+
+ res.send(allTodo);
+}
+app.delete("/todos/:id", deleteTodo);
+
+function serverFn() {
+  console.log(`Server is listening on port ${PORT} `);
+}
+app.listen(PORT, serverFn);
 
 module.exports = app;

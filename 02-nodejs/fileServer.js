@@ -20,6 +20,40 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const bodyParser = require('body-parser')
+const { v4: uuidv4 } = require('uuid');
+
+app.use(bodyParser.json());
+
+var todos = [];
+
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+  if(err)  throw err ; 
+    var answer = JSON.parse(data);
+    res.send(answer);
+  })
+})
+
+app.post("/todos", (req, res) => {
+  const newTodo = {
+    "id": uuidv4(),
+    "title" : req.body.title,
+    "description" : req.body.description,
+    "completed" : req.body.completed
+  }
+  fs.readFile("todos.json", "utf-8",(err, data) => {
+    if(err) throw err;
+    var allTodos = JSON.parse(data);
+    todos.push(newTodo);
+  fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+    if(err)  throw err;
+    res.status(201).send(newTodo);
+  });
+  })
+}) 
+
+app.listen(3000, () => console.log("Server is running on 3000 PORT"));
 
 
-module.exports = app;
+// module.exports = app;
