@@ -622,4 +622,41 @@ And, you issue a request to:
 <http://yourhost.com/test/1>       // only route2 will match
 Because only middleware with app.use() fires for partial matches where the requested URL is contains more path segments beyond what is specified here.
 
-So, if you intend to insert some middleware that runs for all routes or runs for all routes that are descended from some path, then use app.use(). Personally, I would only use app.all(path, fn) if I wanted a handler to be run only for a specific path no matter what the method was and I didn't not want it to also run for paths that contain this path at the start. I see no practical reason to ever use app.all('*', fn) over app.use(fn).
+## res.json() vs res.send.json()
+
+The res.json() and res.send.json() methods are both used to send JSON data to the client. However, there are some key differences between the two methods.
+
+The res.json() method sets the Content-Type header to application/json. This tells the client that the response is in JSON format. The res.send.json() method does not set the Content-Type header. This means that the client will have to infer the format of the response from the data that is sent.
+
+The res.json() method also calls the JSON.stringify() method to convert the data to JSON format. This means that the data will be formatted according to the rules of JSON. The res.send.json() method does not call the JSON.stringify() method. This means that the data will be sent as-is.
+
+In general, the res.json() method is the preferred method for sending JSON data to the client. This is because it is more efficient and it ensures that the data is formatted correctly. However, the res.send.json() method can be used if you need to send data in a format that is not JSON.
+
+## promise uses of the .json
+
+Certainly! Here's an example to illustrate the usage of `res.json().then(callback)`:
+
+```javascript
+fetch('https://api.example.com/data') // Make an HTTP GET request to fetch data
+  .then(res => res.json()) // Extract JSON data from the response
+  .then(data => {
+    // Process the JSON data
+    console.log(data);
+    // Additional actions with the parsed data
+    // ...
+  })
+  .catch(error => {
+    // Handle any errors that occurred during the request or parsing
+    console.error('Error:', error);
+  });
+```
+
+In this example, we're using the `fetch()` function to make an HTTP GET request to `'https://api.example.com/data'` and fetch some data. The `fetch()` function returns a promise that resolves to the response object (`res`).
+
+Then, we use `.json()` on the response object (`res.json()`) to parse the response body as JSON. This also returns a promise, which resolves to the parsed JSON data.
+
+We chain a `.then()` method after `res.json()` to specify what action to take once the promise is fulfilled. In this case, we provide a callback function that receives the parsed JSON data as an argument (`data`). Inside the callback function, we can process the data as needed.
+
+If any errors occur during the request or parsing, the `.catch()` block will be triggered, allowing you to handle and log the error.
+
+By using `res.json().then(callback)`, we can handle the asynchronous nature of the HTTP request and the JSON parsing in a sequential manner, making it easier to work with the retrieved data.

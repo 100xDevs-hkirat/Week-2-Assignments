@@ -84,7 +84,7 @@ app.delete('/todos/:id', (req, res) => {
 
   fs.readFile("todos.json", "utf8", (err, data) => {
     if (err) throw err;
-    const todos = JSON.parse(data);
+    let todos = JSON.parse(data);// it ws previously const which doesn't allow us to write the file 
     const todoIndex = findIndex(todos, parseInt(req.params.id));
     if (todoIndex === -1) {
       res.status(404).send();
@@ -102,5 +102,7 @@ app.delete('/todos/:id', (req, res) => {
 app.use((req, res, next) => {
   res.status(404).send();
 });
-
-module.exports = app;
+app.listen(3000,(req,res) => {
+  console.log("Server running on port 3000");
+});
+//module.exports = app;
