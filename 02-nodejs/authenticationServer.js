@@ -29,9 +29,75 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const users = [];
+app.use(express.json());
+
+app.post("/signup", (req, res) => {
+  let userData = req.body;
+  let userAlreadyExists = false;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].username == userData.username) {
+      userAlreadyExists = true;
+    }
+  }
+  if (userAlreadyExists) {
+    res.status(400).send("user already exists");
+  } else {
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post("/login", (req, res) => {
+  let userData = req.body;
+  let fetchedData = null;
+  for (let i = 0; i < users.length; i++) {
+    if (
+      users[i].username === userData.username &&
+      users[i].password === userData.password
+    ) {
+      fetchedData = users[i];
+      break;
+    }
+  }
+  if (fetchedData) {
+    res.status(201).json({
+      email: fetchedData.username,
+      firstname: fetchedData.firstName,
+      lastname: fetchedData.lastName,
+    });
+  } else {
+    res.status(401).json({ error: "credential is invalid" });
+  }
+});
+
+app.get("/data", (req, res) => {
+  let username = req.headers.username;
+  let password = req.headers.password;
+  let userFound = false;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].username === username && users[i].password === password) {
+      userFound = true;
+      break;
+    }
+  }
+  if (userFound) {
+    let finalData = [];
+    for (let i = 0; i < users.length; i++) {
+      finalData.push({
+        firstname: users[i].firstName,
+        lastname: users[i].lastName,
+        email: users[i].username,
+      });
+    }
+    res.json({ users: finalData });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
 
 module.exports = app;
