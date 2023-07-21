@@ -67,7 +67,7 @@ app.post("/todos", (req, res) => {
     description: req.body.description,
   };
   todos.push(newTodo);
-  res.status(200).json(newTodo);
+  res.status(201).json({id: newTodo});
 });
 
 app.put("/todos/:id", (req, res) => {
@@ -77,7 +77,7 @@ app.put("/todos/:id", (req, res) => {
   } else {
     todos[todoindex].title = req.body.title;
     todos[todoindex].description = req.body.description;
-    res.json(todos[todoindex]);
+    res.status(200).json(todos[todoindex]);
   }
 });
 
