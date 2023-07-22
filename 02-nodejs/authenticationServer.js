@@ -30,8 +30,37 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+app.use(middleWare1);
+let users = [];
+
+function middleWare1(req, res, next) {
+  next();
+}
+
+app.get("/", (req, res) => {
+  res.send("This is lading page");
+})
+
+app.get("/data", (req, res) => {
+  res.send("this is /data route");
+})
+
+app.post("/login", (req, res) => {
+  res.send("this is /login route");
+})
+
+app.post("/signup", (req, res) => {
+  res.send("this is /signup route");
+})
+
+app.listen(PORT, () =>{
+  console.log(`Server started on Port: ${PORT}`);
+})
 
 module.exports = app;
