@@ -37,20 +37,42 @@ const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 app.use(bodyParser.json());
-app.use(middleWare1);
-let usersList = [];
 
-function middleWare1(req, res, next) {
-  next();
-}
+let usersList = [];
 
 app.get("/", (req, res) => {
   res.send("This is lading page");
 })
 
 app.get("/data", (req, res) => {
-  console.clear();
-  res.send(`userList: ${usersList.length}`);
+  let email = req.headers.email;
+  let password = req.headers.password;
+  let user = null;
+  for(let i = 0; i < usersList.length; i++) {
+    if ((usersList[i].email === email) && (usersList[i].password === password)) {
+      user = usersList[i];
+      break;
+    }
+  }
+
+  if(user) {
+    let listToReturn = [];
+
+    for(let i = 0; i < usersList.length; i++) {
+      listToReturn.push({
+        firstname: usersList[i].firstName,
+        lastname: usersList[i].lastName,
+        email: usersList[i].email
+      })
+    }
+
+    res.json({
+      users: listToReturn
+    })
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+
 })
 
 app.post("/login", (req, res) => {
@@ -61,14 +83,15 @@ app.post("/login", (req, res) => {
       user = usersList[i];
       break;
     }
-   }
+  }
 
    if(user) {
     if(user.password === loginDetails.password) {
       let sendObj = {
         id : user.id,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        email: user.email
       }
       res.send(sendObj);
     } else {
@@ -101,14 +124,14 @@ app.post("/signup", (req, res) => {
       lastName: receivedUserObj.lastName
     }
     usersList.push(user);
-    res.status(201).send(`Account with username: ${receivedUserObj.email} has been created`);
+    res.status(201).send(`Signup successful`);
   }
   
 })
 
 
-app.listen(PORT, () =>{
-  console.log(`Server started on Port: ${PORT}`);
-})
+// app.listen(PORT, () =>{
+//   console.log(`Server started on Port: ${PORT}`);
+// })
 
 module.exports = app;
