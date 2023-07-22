@@ -31,13 +31,14 @@
 
 const express = require("express")
 const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require('uuid');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 app.use(bodyParser.json());
 app.use(middleWare1);
-let users = [];
+let usersList = [];
 
 function middleWare1(req, res, next) {
   next();
@@ -48,7 +49,8 @@ app.get("/", (req, res) => {
 })
 
 app.get("/data", (req, res) => {
-  res.send("this is /data route");
+  console.clear();
+  res.send(`userList: ${usersList.length}`);
 })
 
 app.post("/login", (req, res) => {
@@ -56,8 +58,32 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/signup", (req, res) => {
-  res.send("this is /signup route");
+  let receivedUserObj = req.body;
+  let userExists = false;
+
+ for(let i = 0; i < usersList.length; i++) {
+  if (usersList[i].email === receivedUserObj.email) {
+    userExists = true;
+    break;
+  }
+ }
+
+  if(userExists) {
+    res.status(400).send(`Account with username: ${receivedUserObj.email} already exists`)
+  } else {
+    let user = {
+      id: uuidv4(),
+      email: receivedUserObj.email,
+      password: receivedUserObj.password,
+      firstName: receivedUserObj.firstName,
+      lastName: receivedUserObj.lastName
+    }
+    usersList.push(user);
+    res.status(201).send(`Account with username: ${receivedUserObj.email} has been created`);
+  }
+  
 })
+
 
 app.listen(PORT, () =>{
   console.log(`Server started on Port: ${PORT}`);
