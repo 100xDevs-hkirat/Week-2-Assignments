@@ -54,7 +54,29 @@ app.get("/data", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  res.send("this is /login route");
+  let loginDetails = req.body;
+  let user = null;
+  for(let i = 0; i < usersList.length; i++) {
+    if (usersList[i].email === loginDetails.email) {
+      user = usersList[i];
+      break;
+    }
+   }
+
+   if(user) {
+    if(user.password === loginDetails.password) {
+      let sendObj = {
+        id : user.id,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
+      res.send(sendObj);
+    } else {
+      res.status(401).send("Wrong password");
+    }
+   } else {
+    res.status(401).send(`No account with username: ${loginDetails.email} exists`)
+   }
 })
 
 app.post("/signup", (req, res) => {
