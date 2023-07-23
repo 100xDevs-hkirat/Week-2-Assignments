@@ -25,9 +25,6 @@ const PORT = 3000;
 
 const folderPath = "./files/";
 
-app.get('/', (req, res) => {
-  res.send("this is landing page");
-})
 
 app.get('/files', (req, res) => {
 
@@ -56,6 +53,10 @@ app.get('/file/:file_name', (req, res) => {
       res.send(data);
     }
   })
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send("Route not found")
 })
 
 app.listen(PORT, () => {

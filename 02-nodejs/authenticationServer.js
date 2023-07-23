@@ -129,6 +129,11 @@ app.post("/signup", (req, res) => {
   
 })
 
+app.all('*', (req, res) => {
+  res.status(404).send("Route not found")
+})
+
+
 
 // app.listen(PORT, () =>{
 //   console.log(`Server started on Port: ${PORT}`);
