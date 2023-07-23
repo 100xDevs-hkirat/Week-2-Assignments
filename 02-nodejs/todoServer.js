@@ -39,11 +39,108 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
+// const express = require('express');
+// const bodyParser = require('body-parser');
+
+// const app = express();
+
+// app.use(bodyParser.json());
+
+// module.exports = app;
+
+const express = require('express')
 const bodyParser = require('body-parser');
+const app = express()
+const port = 3000
 
-const app = express();
+app.use(bodyParser.json())
+//global TODO var
+let todos = []
 
-app.use(bodyParser.json());
+function getAllTodosHandler(req, res) {
+  res.status(201).send(todos)
+}
 
-module.exports = app;
+app.get('/todos', getAllTodosHandler)
+
+//
+function getTodoById(req, res){
+  let todoId = req.params.id
+  console.log(todoId)
+  function findCallbackfn(arr){
+    console.log(arr.id)
+    return Number( arr.id ) === Number(todoId)
+  }
+  var todo  = todos.find(findCallbackfn)
+  if(todo){
+    res.status(200).send(todo)
+  }else{
+    res.status(404)
+  }
+  
+}
+app.get('/todos/:id', getTodoById)
+
+function createTodoHandler(req, res) {
+  let cnt = 0
+  let requestbody = req.body
+  let todo ={
+    id : todos.length+1,
+    title:requestbody.title,
+    description:requestbody.description
+  }
+  todos.push(todo)
+  res.status(201).send(todo)
+}
+app.post('/todos', createTodoHandler)
+
+
+function updatTodoById(req, res){
+  let todoId = req.params.id
+  let todoBody = req.body
+  console.log(todoId)
+  function findCallbackfn(arr){
+    console.log(arr.id)
+     if(Number( arr.id ) === Number(todoId)){
+      Object.assign(arr,todoBody)
+     }
+return arr
+  }
+  var todo  = todos.find(findCallbackfn)
+  
+  if(todo){
+    res.status(200).send(todo)
+  }else{
+    res.status(404)
+  }
+}
+
+app.put('/todos/:id', updatTodoById)
+
+function deleteTodoById(req, res){
+  let todoId = req.params.id
+  function findCallbackfn(arr){
+    console.log(arr.id)
+     if(Number( arr.id ) === Number(todoId)){
+      //Object.assign(arr,todoBody)
+      let index = todos.indexOf(arr)
+      todos.splice(index,1)
+     }
+
+  }
+ todos.find(findCallbackfn)
+  if(todos){
+    res.status(200).send(todos)
+  }else{
+    res.status(404)
+  }
+}
+app.delete('/todos/:id', deleteTodoById)
+
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
+function callbackfn(){
+  console.log(`example app listening on port ${port}`)
+}
+app.listen(port, callbackfn)
