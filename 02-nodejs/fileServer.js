@@ -20,6 +20,46 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3001
 
+// var files = fs.readdirSync('./files');
+// var filePath = path.join(__dirname,files[0])
+// console.log(files[0])
+// console.log(filePath)
+// fs.readFile( './files/'+files[0], "utf-8", (err, data)=>{
+// if(err){
+// console.log(err)
+// }else{
+//   console.log(data)
+// }
+// })
 
-module.exports = app;
+function getAllFilesHandle(req, res){
+  var files = fs.readdirSync('./files');
+  
+  console.log(files)
+  result = {
+    "fileList":files
+  }
+  res.status(200).send(files)
+}
+
+app.get('/files',getAllFilesHandle)
+
+function getFileContent(req, res){
+  const fileName  =req.params.fileName
+  
+  function readFileContent(err, data){
+    console.log(data)
+    res.status(200).send(data)
+  }
+  fs.readFile('./files/'+fileName,'utf-8',readFileContent)
+  
+
+}
+
+app.get('/files/:fileName', getFileContent)
+
+app.listen(port, ()=>{
+  console.log(`file server running on port ${port}`)
+})

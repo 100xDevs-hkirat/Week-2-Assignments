@@ -30,8 +30,78 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const bodyParser = require('body-parser');
+const PORT = 3002;
 const app = express();
+app.use(bodyParser.json())
+let signUpArr = [];//let myArray = new Array();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+function userSignup(req,res){
+  let reqBody = req.body
+  let isExisting = checkForUniqueUserNames(signUpArr,reqBody.userName) 
+  if(isExisting){
+      let resbody={
+        message:`${reqBody.userName} already exists`,
+        status:400
+      }
+      res.status(400).send(resbody)
+  }else{
+    userData = {
+      id : signUpArr.length+1,
+      userName: reqBody.userName,
+      password:reqBody.password,
+      firstName:reqBody.firstName,
+      lastName :reqBody.lastName
+    }
+    signUpArr.push(userData)
+    res.status(201).send("Signup successful")
+  }
+}
+app.post('/signup', userSignup)
 
-module.exports = app;
+
+function getLoginUserDetails(req, res){
+  let username  = req.query.username
+  let userDetails=signUpArr.filter(value=> value.userName==username)
+  console.log(signUpArr.length)
+  if(userDetails){
+    res.status(200).send(userDetails)
+  }else{
+    res.status(401)
+  }
+
+}
+ app.post('/login',getLoginUserDetails)
+
+function getAllUsers(req, res){
+  let username = req.headers.username;
+  let password = req.headers.password;
+
+  let userData = signUpArr.filter(x=>x.userName == username && x.password == password)
+if(userData.length>0){
+  let userDetails =  signUpArr.map((x)=>{  
+    let result = {
+      id:x.id,
+      users:x.userName
+     }
+     return result
+    
+    })
+  
+   res.status(200).send(userDetails)
+}else{
+  res.status(404).send("no user details found")
+}
+
+
+}
+ app.get('/data', getAllUsers)
+
+function checkForUniqueUserNames(usersData,username){
+  //arr.filter(value => value == obj).length > 0
+  return (usersData.filter(value=> value.userName==username).length!=0)
+}
+
+app.listen(PORT, ()=> {
+  console.log(`server running on port ${PORT}`)
+})
