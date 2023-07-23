@@ -21,5 +21,36 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const PORT = 3000;
+
+app.get('/', (req, res) => {
+  res.send("this is landing page");
+})
+
+app.get('/files', (req, res) => {
+  let folderPath = "./files/";
+
+  fs.readdir(folderPath, (err, files) => {
+    if(err) {
+        console.log( new Error("Error occured while accessing folderPath"));
+        res.status(401).send("Error occured while accessing folderPath");
+    }
+
+    const fileList = files.filter(file => fs.statSync(path.join(folderPath, file)).isFile());
+    
+    res.json({
+      Files: fileList
+    })
+  })
+})
+
+app.get('/file/:file_name', (req, res) => {
+  let filename = req.params.file_name;
+  res.send(`this is /file route and the name received in param is : ${filename}`); 
+})
+
+app.listen(PORT, () => {
+  console.log(`Server started on PORT: ${PORT}`);
+})
 
 module.exports = app;

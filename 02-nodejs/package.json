@@ -9,7 +9,7 @@
     "test-todoServer": "./node_modules/jest/bin/jest.js ./tests/todoServer.test.js",
     "test-authenticationServer": "npx jest /tests/authenticationServer.test.js",
     "test-all": "./node_modules/jest/bin/jest.js ./tests/",
-    "start": "nodemon authenticationServer.js"
+    "start": "nodemon fileServer.js"
   },
   "keywords": [],
   "author": "",
