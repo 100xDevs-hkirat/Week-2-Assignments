@@ -31,7 +31,7 @@ app.get('/files', (req, res) => {
   fs.readdir(folderPath, (err, files) => {
     if(err) {
         console.log( new Error("Error occured while accessing folderPath"));
-        res.status(401).send("Error occured while accessing folderPath");
+        res.status(500).send("Error occured while accessing folderPath");
     }
 
     let fileList = files.filter(file => fs.statSync(path.join(folderPath, file)).isFile());
@@ -59,8 +59,8 @@ app.all('*', (req, res) => {
   res.status(404).send("Route not found")
 })
 
-app.listen(PORT, () => {
-  console.log(`Server started on PORT: ${PORT}`);
-})
+// app.listen(PORT, () => {
+//   console.log(`Server started on PORT: ${PORT}`);
+// })
 
 module.exports = app;
