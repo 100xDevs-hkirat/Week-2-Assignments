@@ -41,9 +41,72 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require("fs");
 const app = express();
 
+
 app.use(bodyParser.json());
+
+const arr =[];
+
+app.get('/todos', (req,res)=>{
+  res.send(arr);
+
+})
+
+app.get('/todos/:id', (req, res) => {
+  var ids = req.params.id;
+  
+  for(let i =0 ; i<arr.length; i++){
+    if (arr[i].id==ids) {
+      res.json(arr[i]);
+      return;
+    }
+  }
+  res.status(404).send("not found")
+});
+
+app.delete('/todos/:id', (req, res) => {
+  var ids = req.params.id;
+  
+  for(let i =0 ; i<arr.length; i++){
+    if (arr[i].id==ids) {
+      arr.splice(i,1);
+      res.status(200).send("successfully deleted");
+      return;
+    } 
+  }
+    res.status(404).send("not found")
+
+  });
+
+app.put('/todos/:id', (req, res) => {
+  var ids = req.params.id;
+  var data = req.body;
+  
+  for(let i =0 ; i<arr.length; i++){
+    if (arr[i].id==ids) {
+      arr[i].title = data.title;
+      arr[i].completed = data.completed;
+      res.status(200).send("successfully updated");
+      return;
+    }
+  }
+   res.status(404).send("not found")
+});
+
+
+app.post('/todos', (req,res)=>{
+  var data ={
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description
+  };
+  arr.push(data);
+  res.status(201).send(data)  //**********can use send as well as json because the data is in json only so send will also work */
+  
+  
+})
+
 
 module.exports = app;
