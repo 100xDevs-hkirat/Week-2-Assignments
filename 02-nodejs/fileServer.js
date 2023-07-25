@@ -42,8 +42,12 @@ app.get("/file/:filename", (req, res) => {
 	});
 });
 
-app.listen(3002, () => {
-	console.log("Server running on port 3002");
+app.all("*", (req, res) => {
+	res.status(404).send("Route not found");
 });
 
-// module.exports = app;
+// app.listen(3000, () => {
+// 	console.log("Server running on port 3000");
+// });
+
+module.exports = app;
