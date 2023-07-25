@@ -43,7 +43,38 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const PORT = 3000;
 
 app.use(bodyParser.json());
+
+
+
+app.get('/todos', (req, res) => {
+  res.send("this is /todos route");
+})
+
+app.get('todos/:id', (req, res) => {
+  res.send("this is /todos/:id route");
+})
+
+app.post('/todos', (req, res) => {
+  res.send('this is /todos route for post type');
+})
+
+app.put('/todos/:id', (req, res) => {
+  res.send('this is /todos/:id route for post type');
+})
+
+app.delete('/todos/:id', (req, res) => {
+  res.send('this os /todos/:id route for delete type');
+})
+
+app.get('*', (req, res) => {
+  res.status(404).send("Requested route not found");
+})
+
+app.listen(PORT, () => {
+  console.log(`Server started on port: ${PORT}`);
+})
 
 module.exports = app;
