@@ -41,13 +41,14 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = 3000;
 
 app.use(bodyParser.json());
 
-
+let todos = [];
 
 app.get('/todos', (req, res) => {
   res.send("this is /todos route");
@@ -59,6 +60,16 @@ app.get('todos/:id', (req, res) => {
 
 app.post('/todos', (req, res) => {
   res.send('this is /todos route for post type');
+  let receivedBody = req.body;
+  let id = uuidv4();
+
+  const todo = {
+    id: id,
+    title: receivedBody.title,
+    status: receivedBody.status,
+    description: receivedBody.description
+  }
+  todos.push(todo);
 })
 
 app.put('/todos/:id', (req, res) => {
