@@ -41,9 +41,79 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
-
 app.use(bodyParser.json());
+
+let todos = []
+app.get('/todos', (req, res) => {
+  res.status(200).json(todos);
+
+})
+
+app.get('/todos/:id', (req, res) => {
+  const Id = req.params.id ;// getting the id dynamically (taken as a string)
+  const todoItem = todos.find((todo)=>todo.id === parseInt(Id));
+  //Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
+  if(todoItem)
+     return res.status(200).json(todoItem);
+  else 
+    res.sendStatus(404);
+})
+
+app.post('/todos', (req, res) => {
+  const newTodoItem = {
+    id : Math.floor(Math.random() *100000000),
+    title : req.body.title,
+    description : req.body.description,
+    completed : req.body.completed,
+   
+}
+// note : the completed part is not defined in the test case if you write the completed part it will give error .
+// if (typeOf(completed) !== 'boolean'){
+//   return res.status(400).json({error: "make the completed true or false"})
+
+//}
+
+// if(!title || !description || !completed|| completed === undefined){
+//   return res.status(400).json({error: "missing description "})
+// }
+//push the new todo item inside the array
+todos.push(newTodoItem);
+//Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+res.status(201).json(newTodoItem);
+
+})
+
+    //PUT /todos/:id - Update an existing todo item by ID
+    //Description: Updates an existing todo item identified by its ID.
+    //Request Body: JSON object representing the updated todo item.
+    //Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+    //Example: PUT http://localhost:3000/todos/123
+
+    app.put('/todos/:id', (req, res) => {
+      const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+      if (todoIndex === -1) {
+        res.status(404).send();
+      } else {
+        todos[todoIndex].title = req.body.title;
+        todos[todoIndex].description = req.body.description;
+        res.json(todos[todoIndex]);
+      }
+    });
+
+    app.delete('/todos/:id', (req, res) => {
+      const todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+      if (todoIndex === -1) {
+        res.status(404).send();
+      } else {
+        todos.splice(todoIndex, 1);
+        res.status(200).send();
+      }
+    });
+    
+
+
+//app.listen(3000,(req,res)=>{   console.log('server is running at port 3000')} )
+
 
 module.exports = app;
