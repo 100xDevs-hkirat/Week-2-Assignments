@@ -73,8 +73,36 @@ app.post("/login", (req, res) => {
 	}
 });
 
-app.listen(PORT, () => {
-	console.log("Server created successfully at port 3000");
+app.get("/data", (req, res) => {
+	var email = req.headers.email;
+	var password = req.headers.password;
+	let userfound = false;
+	for (var i = 0; i < users.length; i++) {
+		if (users[i].email === email && users[i].password === password) {
+			userfound = true;
+			break;
+		}
+	}
+	if (userfound) {
+		// let usersReturn = [];
+		// for (let i = 0; i < users.length; i++) {
+		// 	usersReturn.push({
+		// 		firstName: users[i].firstName,
+		// 		lastName: users[i].lastName,
+		// 		email: users[i].email,
+		// 	});
+		// }
+		res.json({
+			users,
+		});
+		// console.log(usersReturn);
+	} else {
+		res.sendStatus(401);
+	}
 });
 
-// module.exports = app;
+// app.listen(PORT, () => {
+// 	console.log("Server created successfully at port 3000");
+// });
+
+module.exports = app;
