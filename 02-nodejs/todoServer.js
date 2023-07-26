@@ -39,11 +39,62 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const todos = [];
+
+app.get("/todos", (req, res) => {
+	res.json(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+	const todo = todos.find((t) => t.id === parseInt(req.params.id));
+	if (!todo) {
+		res.sendStatus(404);
+	} else {
+		res.status(200).json(todo);
+	}
+});
+
+app.post("/todos", (req, res) => {
+	const todo = req.body;
+	const newTodo = {
+		id: Math.floor(Math.random() * 10000),
+		title: todo.title,
+		description: todo.description,
+	};
+	todos.push(newTodo);
+	res.status(201).json(newTodo);
+});
+
+app.put("/todos/:id", (req, res) => {
+	todoIndex = todos.findIndex((index) => index.id === parseInt(req.params.id));
+	if (todoIndex === -1) {
+		res.sendStatus(404);
+	} else {
+		todos[todoIndex].title = req.body.title;
+		todos[todoIndex].description = req.body.description;
+		res.status(200).json(todos[todoIndex]);
+	}
+});
+
+app.delete("/todos/:id", (req, res) => {
+	todoIndex = todos.findIndex((t) => t.id === parseInt(req.params.id));
+	if (todoIndex === -1) {
+		res.sendStatus(404);
+	} else {
+		todos.splice(todoIndex, 1);
+		res.sendStatus(200);
+	}
+});
+
+// app.listen(3000, () => {
+// 	console.log("Server started in port 3000");
+// });
 
 module.exports = app;
