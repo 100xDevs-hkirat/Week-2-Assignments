@@ -93,8 +93,8 @@ app.delete("/todos/:id", (req, res) => {
 	}
 });
 
-app.listen(3000, () => {
-	console.log("Server started in port 3000");
-});
+// app.listen(3000, () => {
+// 	console.log("Server started in port 3000");
+// });
 
 module.exports = app;
