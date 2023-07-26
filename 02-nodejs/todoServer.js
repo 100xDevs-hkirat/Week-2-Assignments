@@ -46,4 +46,75 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var toDoList = []
+ var currentId = 1
+function fetchAllToDos(req,res){
+  return res.status(200).json(toDoList)
+}
+
+// "title": "Buy groceries", "completed": false, description: "I should buy groceries"
+function addEntryToDO(req,res){
+  var ob = {}
+  ob.id = currentId
+  ob.title = req.body.title
+  ob.completed = req.body.completed
+  ob.description = req.body.description
+  toDoList.push(ob)
+  currentId++;
+  res.status(201).json({
+    id:ob.id
+  })
+}
+
+function deleteToDoById(req,res){
+  var idToFetch = req.params.sid
+  const objWithIdIndex = toDoList.findIndex((obj) => obj.id == idToFetch);
+  if(objWithIdIndex > -1){
+    toDoList.splice(objWithIdIndex, 1);
+    res.status(200).send()
+  }
+  else{
+    res.status(404).send()
+  }
+}
+
+function updateToDoById(req,res){
+  var idToUpdate = req.params.id
+  var titleToUpdate = req.body.title
+  var descriptionToUpdate = req.body.description
+  var found  = false
+  for(var i=0;i<toDoList.length;i++){
+    if(toDoList[i].id == idToUpdate){
+      found=true
+      toDoList[i].title = titleToUpdate;
+      toDoList[i].description = descriptionToUpdate;
+      return res.status(200).send('Updated')
+    }
+  }
+  res.status(404).send('Not found')
+}
+
+function getToDoById(req,res){
+  var idToSearch = req.params.id
+  for(var i=0;i<toDoList.length;i++){
+    if(toDoList[i].id == idToSearch){
+      return res.status(200).json(toDoList[i])
+    }
+  }
+  res.status(404).send('Not found')
+}
+
+app.get('/todos',fetchAllToDos)
+app.get('/todos/:id',getToDoById)
+app.post('/todos',addEntryToDO)
+app.delete('/todos/:sid',deleteToDoById)
+app.put('/todos/:id',updateToDoById)
+app.get('*',(req,res) => {
+  res.status(404).send()
+})
+
+
+// app.listen(3000,()=>{
+//   console.log("Server started at 3000");
+// })
 module.exports = app;
