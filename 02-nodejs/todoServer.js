@@ -59,7 +59,6 @@ app.get('todos/:id', (req, res) => {
 })
 
 app.post('/todos', (req, res) => {
-  res.send('this is /todos route for post type');
   let receivedBody = req.body;
   let id = uuidv4();
 
@@ -77,7 +76,12 @@ app.put('/todos/:id', (req, res) => {
 })
 
 app.delete('/todos/:id', (req, res) => {
-  res.send('this os /todos/:id route for delete type');
+  let id = req.params.id;
+  for(let i = 0; i< todos.length; i++) {
+    if(todos[i].id == id) {
+      todos = todos.splice(i, 1);
+    }
+  }
 })
 
 app.get('*', (req, res) => {
