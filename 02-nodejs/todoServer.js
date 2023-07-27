@@ -56,7 +56,7 @@ app.get('/todos', (req, res) => {
   });
 })
 
-app.get('todos/:id', (req, res) => {
+app.get('/todos/:id', (req, res) => {
   let id = req.params.id;
   let todoToSend = null;
   for(let i = 0; i < todos.length; i++) {
@@ -94,9 +94,10 @@ app.delete('/todos/:id', (req, res) => {
   let id = req.params.id;
   for(let i = 0; i< todos.length; i++) {
     if(todos[i].id == id) {
-      todos = todos.splice(i, 1);
+      todos.splice(i, 1);
     }
   }
+  res.send("todo deleted!")
 })
 
 app.get('*', (req, res) => {
