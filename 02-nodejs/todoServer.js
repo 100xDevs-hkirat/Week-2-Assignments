@@ -51,9 +51,8 @@ app.use(bodyParser.json());
 let todos = [];
 
 app.get('/todos', (req, res) => {
-  res.json({
-    todos: todos
-  });
+  console.log(Array.isArray(todos));
+  res.send(todos);
 })
 
 app.get('/todos/:id', (req, res) => {
@@ -83,7 +82,9 @@ app.post('/todos', (req, res) => {
     description: receivedBody.description
   }
   todos.push(todo);
-  res.send("todo added successfully");
+  res.status(201).json({
+    id: todo.id
+  });
 })
 
 app.put('/todos/:id', (req, res) => {
@@ -119,8 +120,8 @@ app.get('*', (req, res) => {
   res.status(404).send("Requested route not found");
 })
 
-app.listen(PORT, () => {
-  console.log(`Server started on port: ${PORT}`);
-})
+// app.listen(PORT, () => {
+//   console.log(`Server started on port: ${PORT}`);
+// })
 
 module.exports = app;
