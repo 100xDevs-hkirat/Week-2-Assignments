@@ -51,11 +51,25 @@ app.use(bodyParser.json());
 let todos = [];
 
 app.get('/todos', (req, res) => {
-  res.send("this is /todos route");
+  res.json({
+    todos: todos
+  });
 })
 
 app.get('todos/:id', (req, res) => {
-  res.send("this is /todos/:id route");
+  let id = req.params.id;
+  let todoToSend = null;
+  for(let i = 0; i < todos.length; i++) {
+    if(todos[i].id == id) {
+      todoToSend = todos[i];
+    }
+  }
+  if(todoToSend) {
+    res.send(todoToSend);
+  } else {
+    res.status(404).send("NOT FOUND");
+  }
+  
 })
 
 app.post('/todos', (req, res) => {
@@ -69,6 +83,7 @@ app.post('/todos', (req, res) => {
     description: receivedBody.description
   }
   todos.push(todo);
+  res.send("todo added successfully");
 })
 
 app.put('/todos/:id', (req, res) => {
