@@ -87,13 +87,28 @@ app.post('/todos', (req, res) => {
 })
 
 app.put('/todos/:id', (req, res) => {
-  res.send('this is /todos/:id route for post type');
+  let id = req.params.id;
+
+  for(let i = 0; i < todos.length; i++) {
+    let todoIndex = -1;
+    if(todos[i].id === id) {
+      todoIndex = i;
+    } 
+    if(todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos[todoIndex].title = req.body.title;
+      todos[todoIndex].description = req.body.description;
+      todos[todoIndex].status = req.body.status;
+      res.send("todo updated");
+    }
+  }
 })
 
 app.delete('/todos/:id', (req, res) => {
   let id = req.params.id;
   for(let i = 0; i< todos.length; i++) {
-    if(todos[i].id == id) {
+    if(todos[i].id === id) {
       todos.splice(i, 1);
     }
   }
