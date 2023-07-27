@@ -30,8 +30,113 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require('uuid');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+let usersList = [];
+
+app.get("/", (req, res) => {
+  res.send("This is lading page");
+})
+
+app.get("/data", (req, res) => {
+  let email = req.headers.email;
+  let password = req.headers.password;
+  let user = null;
+  for(let i = 0; i < usersList.length; i++) {
+    if ((usersList[i].email === email) && (usersList[i].password === password)) {
+      user = usersList[i];
+      break;
+    }
+  }
+
+  if(user) {
+    let listToReturn = [];
+
+    for(let i = 0; i < usersList.length; i++) {
+      listToReturn.push({
+        firstname: usersList[i].firstName,
+        lastname: usersList[i].lastName,
+        email: usersList[i].email
+      })
+    }
+
+    res.json({
+      users: listToReturn
+    })
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+
+})
+
+app.post("/login", (req, res) => {
+  let loginDetails = req.body;
+  let user = null;
+  for(let i = 0; i < usersList.length; i++) {
+    if (usersList[i].email === loginDetails.email) {
+      user = usersList[i];
+      break;
+    }
+  }
+
+   if(user) {
+    if(user.password === loginDetails.password) {
+      let sendObj = {
+        id : user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+      res.send(sendObj);
+    } else {
+      res.status(401).send("Wrong password");
+    }
+   } else {
+    res.status(401).send(`No account with username: ${loginDetails.email} exists`)
+   }
+})
+
+app.post("/signup", (req, res) => {
+  let receivedUserObj = req.body;
+  let userExists = false;
+
+ for(let i = 0; i < usersList.length; i++) {
+  if (usersList[i].email === receivedUserObj.email) {
+    userExists = true;
+    break;
+  }
+ }
+
+  if(userExists) {
+    res.status(400).send(`Account with username: ${receivedUserObj.email} already exists`)
+  } else {
+    let user = {
+      id: uuidv4(),
+      email: receivedUserObj.email,
+      password: receivedUserObj.password,
+      firstName: receivedUserObj.firstName,
+      lastName: receivedUserObj.lastName
+    }
+    usersList.push(user);
+    res.status(201).send(`Signup successful`);
+  }
+  
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send("Route not found")
+})
+
+
+
+// app.listen(PORT, () =>{
+//   console.log(`Server started on Port: ${PORT}`);
+// })
 
 module.exports = app;

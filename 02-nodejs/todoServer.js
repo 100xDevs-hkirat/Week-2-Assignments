@@ -41,9 +41,87 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+const PORT = 3000;
 
 app.use(bodyParser.json());
+
+let todos = [];
+
+app.get('/todos', (req, res) => {
+  console.log(Array.isArray(todos));
+  res.send(todos);
+})
+
+app.get('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let todoToSend = null;
+  for(let i = 0; i < todos.length; i++) {
+    if(todos[i].id == id) {
+      todoToSend = todos[i];
+    }
+  }
+  if(todoToSend) {
+    res.send(todoToSend);
+  } else {
+    res.status(404).send("NOT FOUND");
+  }
+  
+})
+
+app.post('/todos', (req, res) => {
+  let receivedBody = req.body;
+  let id = uuidv4();
+
+  const todo = {
+    id: id,
+    title: receivedBody.title,
+    status: receivedBody.status,
+    description: receivedBody.description
+  }
+  todos.push(todo);
+  res.status(201).json({
+    id: todo.id
+  });
+})
+
+app.put('/todos/:id', (req, res) => {
+  let id = req.params.id;
+
+  for(let i = 0; i < todos.length; i++) {
+    let todoIndex = -1;
+    if(todos[i].id === id) {
+      todoIndex = i;
+    } 
+    if(todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos[todoIndex].title = req.body.title;
+      todos[todoIndex].description = req.body.description;
+      todos[todoIndex].status = req.body.status;
+      res.send("todo updated");
+    }
+  }
+})
+
+app.delete('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  for(let i = 0; i< todos.length; i++) {
+    if(todos[i].id === id) {
+      todos.splice(i, 1);
+    }
+  }
+  res.send("todo deleted!")
+})
+
+app.get('*', (req, res) => {
+  res.status(404).send("Requested route not found");
+})
+
+// app.listen(PORT, () => {
+//   console.log(`Server started on port: ${PORT}`);
+// })
 
 module.exports = app;
