@@ -39,11 +39,111 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
 
 module.exports = app;
+
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.txt", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    const todos = JSON.parse(data.toString());
+    return res.status(200).send(todos);
+  });
+});
+app.get("/todo/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("todos.txt", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    const todos = JSON.parse(data.toString());
+    const result = todos.find((todo) => todo.id == id);
+    if (result) {
+      return res.status(200).send(result);
+    } else {
+      return res.status(200).send("User Does Not Exist");
+    }
+  });
+});
+app.post("/post/todo", (req, res) => {
+  const { title, completed, description } = req.body;
+  fs.readFile("todos.txt", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    const todos = JSON.parse(data.toString());
+    const todoToPush = {
+      title: title,
+      completed: completed,
+      description: description,
+      id: Math.floor(Math.random() * (100 - 10 + 1)) + 10,
+    };
+    todos.push(todoToPush);
+    console.log(todos);
+    fs.writeFile("todos.txt", JSON.stringify(todos), (err) => {
+      if (err) {
+        throw err;
+      }
+      return res.status(200).send(todoToPush);
+    });
+  });
+});
+
+app.put("/todo/:id", (req, res) => {
+  const { title, completed, description } = req.body;
+  const id = req.params.id;
+  fs.readFile("todos.txt", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    let todos = JSON.parse(data.toString());
+    const result = todos.find((todo) => todo.id == id);
+    if (result) {
+      result.title = title;
+      result.completed = completed;
+      result.description = description;
+      fs.writeFile("todos.txt", JSON.stringify(todos), (err) => {
+        if (err) {
+          throw err;
+        }
+        return res.status(200).send(result);
+      });
+    } else {
+      return res.status(200).send("todo Does Not Exist");
+    }
+  });
+});
+
+app.delete("/todo/:id", (req, res) => {
+  const id = req.params.id;
+  fs.readFile("todos.txt", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    let todos = JSON.parse(data.toString());
+    const result = todos.find((todo) => todo.id == id);
+    if (result) {
+      todos = todos.filter((todo) => todo.id != result.id);
+      fs.writeFile("todos.txt", JSON.stringify(todos), (err) => {
+        if (err) {
+          throw err;
+        }
+        return res.status(200).send("Todo deleted!");
+      });
+    } else {
+      return res.status(200).send("todo Does Not Exist");
+    }
+  });
+});
+
+app.all("*", (req, res) => {
+  return res.status(404).send("route doesnt exist");
+});
