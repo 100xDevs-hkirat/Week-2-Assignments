@@ -29,9 +29,57 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+let users = [];
+app.post("/signup", (req, res) => {
+  const { username, password, firstName, lastName, email } = req.body;
+  const user = {
+    username: username,
+    password: password,
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    id: Math.floor(Math.random() * (100 - 10 + 1)) + 10,
+  };
+  users.push(user);
+  return res.status(200).send(user);
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const findUser = users.find((user) => user.username == username);
+  if (findUser) {
+    if (password == findUser.password) {
+      return res.status(200).json({
+        username: findUser.username,
+        firstName: findUser.firstName,
+        lastName: findUser.lastName,
+      });
+    } else {
+      return res.status(400).send("Invalid Username/Password");
+    }
+  } else {
+    return res.status(400).send("User does not exist.");
+  }
+});
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+  const user = users.find(
+    (user) => user.email == email && user.password == password
+  );
+  if (user) {
+    return res.status(200).json({ users: users });
+  } else {
+    return res.status(200).json({ users: "Route not accessible" });
+  }
+});
+
+app.all("*", (req, res) => {
+  return res.status(404).send("route dne");
+});
 
 module.exports = app;

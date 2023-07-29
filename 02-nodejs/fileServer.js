@@ -16,10 +16,37 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+app.get("/files", async (req, res) => {
+  const filesArray = await new Promise((resolve, reject) => {
+    fs.readdir("./files", (err, files) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(files);
+    });
+  });
+  return res.status(200).send(filesArray);
+});
 
+app.get("/file/:filename", async (req, res) => {
+  const filename = req.params.filename;
+  const fileContent = await new Promise((resolve, reject) => {
+    fs.readFile(`./files/${filename}`, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(data.toString());
+    });
+  });
+  return res.status(200).send(fileContent);
+});
+
+app.listen(6500, () => {
+  console.log("app listening on port");
+});
 module.exports = app;
