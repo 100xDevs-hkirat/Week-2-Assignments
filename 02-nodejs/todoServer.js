@@ -86,7 +86,7 @@ app.post("/todos", (req, res) => {
     todos.push(todo);
 
     fs.writeFile("todos.json", JSON.stringify(todos), (data) => {
-      res.status(201).send({ id: id });
+      res.status(201).send(todo);
     });
   });
 });
