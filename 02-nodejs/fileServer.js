@@ -19,7 +19,48 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const app = express();
 
+const app = express();
+const port = 3000;
+const filesDirectory = path.join(__dirname, 'files');
+
+// Middleware to parse JSON requests
+app.use(express.json());
+
+// Route: GET /files
+app.get('/files', (req, res) => {
+  fs.readdir(filesDirectory, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.status(200).json(files);
+  });
+});
+
+// Route: GET /file/:filename
+app.get('/file/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(filesDirectory, filename);
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).send('File not found');
+      }
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.status(200).send(data);
+  });
+});
+
+// Route: 404 - Not Found
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
 
 module.exports = app;
