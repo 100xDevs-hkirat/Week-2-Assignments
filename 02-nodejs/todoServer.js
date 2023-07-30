@@ -39,11 +39,116 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const readJson = () => {
+  try {
+    const file = fs.readFileSync(path.resolve(__dirname, "./dbs/todos.json"));
+    const todos = file ? JSON.parse(file) : [];
+    return todos;
+  } catch (err) {
+    return [];
+  }
+};
+
+const writeJson = (todosJSON) => {
+  fs.writeFileSync(
+    path.resolve(__dirname, "./dbs/todos.json"),
+    JSON.stringify(todosJSON)
+  );
+};
+
+const findTodo = (id) => {
+  const todos = readJson();
+  const todo = todos.find((todo) => todo.id === id);
+  return todo;
+};
+
+app.get("/todos", (req, res) => {
+  const todos = readJson();
+  return res.status(200).send(todos);
+});
+
+app.post("/todos", (req, res) => {
+  const todo = req.body;
+  const todos = readJson();
+  const id = new Date().getTime().toString();
+  todos.push({ ...todo, id });
+  writeJson(todos);
+  return res.status(201).send({ id });
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+
+  const todo = findTodo(id);
+  if (todo) {
+    return res.status(200).send(todo);
+  } else {
+    return res.status(404).send();
+  }
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const { title, completed, description } = req.body;
+
+  let updatedTodo = {};
+  if (title) {
+    updatedTodo["title"] = title;
+  }
+  if (completed) {
+    updatedTodo["completed"] = completed;
+  }
+  if (description) {
+    updatedTodo["description"] = description;
+  }
+
+  const todo = findTodo(id);
+  if (todo) {
+    const todos = readJson();
+    updatedTodo = { ...todo, ...updatedTodo };
+    const updatedTodos = todos.map((todoObj) => {
+      if (todoObj.id === id) {
+        return updatedTodo;
+      } else {
+        return todoObj;
+      }
+    });
+    writeJson(updatedTodos);
+    return res.status(200).send(updatedTodo);
+  } else {
+    return res.status(404).send();
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const todo = findTodo(id);
+
+  if (todo) {
+    const todos = readJson();
+    const updatedTodos = todos.filter((todoObj) => todoObj.id !== id);
+    writeJson(updatedTodos);
+    return res.status(200).send("Todo Deleted");
+  } else {
+    return res.status(404).send();
+  }
+});
+
+app.use((req, res) => {
+  return res.status(404).send("No route found");
+});
+
+// const port = 4000;
+
+// app.listen(port, () => console.log(`Server started at port ${port}`));
 
 module.exports = app;
