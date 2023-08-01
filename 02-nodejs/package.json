@@ -2,7 +2,7 @@
   "name": "02-nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "fileServer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test-fileServer": "./node_modules/jest/bin/jest.js ./tests/fileServer.test.js",
@@ -21,7 +21,9 @@
     "testTimeout": 10000
   },
   "dependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
     "uuid": "^9.0.0"
   }
 }
