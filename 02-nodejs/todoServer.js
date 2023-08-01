@@ -43,13 +43,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
-app.use(bodyParser.json());
+const port = 3000;
 let todos = [{
   title: 'New Todo',
   description: 'A new todo item',
   id: "ABC"
 }];
+app.use(bodyParser.json());
+
 
 const generateRandomId = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -84,14 +85,19 @@ app.get('/todos/:id', (req, res) => {
 });
 
 app.post('/todos', (req, res) => {
-  const item = req.body;
-  const id = generateRandomId(7);
-  const todo = {...item, id};
-  todos.push(todo);
-  if(todos.find(to => to == todo) == undefined || todos.length == 0) {
-    return res.status(500).send("Internal Server Error :(");
+  try {
+    const item = req.body;
+    const id = generateRandomId(7);
+    const todo = {...item, id};
+    todos.push(todo);
+    if(todos.find(to => to == todo) == undefined || todos.length == 0) {
+      return res.status(500).send("Internal Server Error :(");
+    }
+    return res.status(201).json(todo);
+  } catch (error) {
+    return res.status(500).send(error);
   }
-  return res.status(200).json(todo);
+  
 });
 
 app.put('/todos/:id', (req, res) => {
@@ -138,6 +144,8 @@ app.get("/:any", (req, res) => {
   return res.status(404).send("Invalid Route :)");
 });
 
-app.listen(4000, () => console.log("running"));
+app.listen(port, () => {
+  console.log(`Server is running at the port: ${port}`);
+});
 
 module.exports = app;
