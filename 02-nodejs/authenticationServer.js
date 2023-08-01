@@ -33,17 +33,10 @@ const express = require("express")
 const PORT = 3000;
 const app = express();
 const bodyParser = require("body-parser");
-const jwt = require("jsonwebtoken");
+var jwt = require('jsonwebtoken');
 let users = [];
 app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-app.use((req, res, next) => {
-  const {username, password} = req.body;
-  if(!username || username.length == 0 || !password || password.length == 0) {
-    return res.status(401).send("Unauthorize!");
-  }
-  next();
-})
 
 const generateRandomId = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -58,14 +51,14 @@ const generateRandomId = (length) => {
   return result;
 }
 
-const createUser = (username, password, firstName, lastName) => {
+const createUser = (email, password, firstName, lastName) => {
   const uniqueId = generateRandomId(Math.floor(Math.random() * 10) + 5);
   const user = {
-    username, password, firstName, lastName, uniqueId
+    email, password, firstName, lastName, uniqueId
   }
   if (users.length != 0) {
     for(let i of users) {
-      if(i.username == user.username) {
+      if(i.email == user.email) {
         return 0;
       }
     }
@@ -76,52 +69,56 @@ const createUser = (username, password, firstName, lastName) => {
 }
 
 const signup = (req, res) => {
-  const {username, password, firstName, lastName} = req.body;
-  if(!username || !password || !firstName || !lastName) {
+  const {email, password, firstName, lastName} = req.body;
+  if(!email || !password || !firstName || !lastName) {
     return res.status(404).send("Data not provided");
   }
-  const created = createUser(username, password, firstName, lastName);
-  if(!created) {
-    return res.status(400).send("Username already exists");
+  const created = createUser(email, password, firstName, lastName);
+  if(created == 0) {
+    return res.status(400).send("email already exists");
   }
-  return res.status(201).send("User Created :)");
+  return res.status(201).send("Signup successful");
 }
 
-const isUser = (username, password) => {
-  if(users.length != 0) {
-    for(let i of users) {
-      if (username == i.username) {
-        if(username.password == password) {
-          return i;
-        } else{
-          return 0;
-        }
-      }
-    }
+const auth = (req, res, next) => {
+  const {email, password} = req.headers;
+  if(!email || email.length == 0 || !password || password.length == 0) {
+    return res.status(401).send("Unauthorized");
+  }
+  next();
+}
+
+const isUser = (email, password) => {
+  const isUsera = users.find(user => user.email == email);
+  if(isUsera == undefined) {
+    return 0;
+  }
+  else if(isUsera.password == password) {
+    return isUsera;
   }
   return 0;
 }
 
 const login = (req, res) => {
-  const {username, password} = req.body;
-  if(!username || !password) {
-    return res.status(401).send("Data not provided");
+  const {email, password} = req.body;
+  if(!email || email.length == 0 || !password || password.length == 0) {
+    return res.status(401).send("Unauthorized");
   }
-  const log = isUser(username, password);
-  if(!isUser) {
-    return res.status(401).send("Unauthorize :(");
+  const log = isUser(email, password);
+  if(log == 0) {
+    return res.status(401).send("Unauthorized");
   }
-  const token = jwt.sign(isUser, isUser.password);
+  const token = jwt.sign(log, log.password);
   const response = {
     authToken: token
   }
-  return res.status(200).json(response);
+  return res.status(200).json(log);
 }
 
 const getAllData = (req, res) => {
-  const {username, password} = req.header;
-  if(!username || !password) {
-    return res.status(401).send("Unauthorized!");
+  const {email, password} = req.headers;
+  if(isUser(email, password) == 0) {
+    return res.status(401).send("Unauthorized");
   }
   const response = {users};
   return res.status(200).json(response);
@@ -129,7 +126,7 @@ const getAllData = (req, res) => {
 
 app.post("/signup", signup);
 app.post("/login", login);
-app.get("/data", getAllData);
+app.get("/data", auth, getAllData);
 app.get("/:rand", (req, res) => {
   return res.status(404).send("Route not found :(");
 })
