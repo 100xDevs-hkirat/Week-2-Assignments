@@ -48,6 +48,7 @@ const dirContent = (path) => {
   if(response != 0) {
     return response;
   }
+  return 0;
 }
 
 const getFiles = (req, res) => {
@@ -80,6 +81,7 @@ app.get('/files', getFiles);
 app.get('/file/:fileName', getFileContent);
 app.get("/:any", (req, res) => {
   return res.status(404).send("Not found");
-})
+});
+app.listen(3001)
 
 module.exports = app;
