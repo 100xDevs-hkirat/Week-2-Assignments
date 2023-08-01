@@ -37,6 +37,13 @@ const jwt = require("jsonwebtoken");
 let users = [];
 app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use((req, res, next) => {
+  const {username, password} = req.body;
+  if(!username || username.length == 0 || !password || password.length == 0) {
+    return res.status(401).send("Unauthorize!");
+  }
+  next();
+})
 
 const generateRandomId = (length) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -71,7 +78,7 @@ const createUser = (username, password, firstName, lastName) => {
 const signup = (req, res) => {
   const {username, password, firstName, lastName} = req.body;
   if(!username || !password || !firstName || !lastName) {
-    return res.status(400).send("Data not provided");
+    return res.status(404).send("Data not provided");
   }
   const created = createUser(username, password, firstName, lastName);
   if(!created) {
@@ -98,7 +105,7 @@ const isUser = (username, password) => {
 const login = (req, res) => {
   const {username, password} = req.body;
   if(!username || !password) {
-    return res.status(400).send("Data not provided");
+    return res.status(401).send("Data not provided");
   }
   const log = isUser(username, password);
   if(!isUser) {
@@ -108,6 +115,15 @@ const login = (req, res) => {
   const response = {
     authToken: token
   }
+  return res.status(200).json(response);
+}
+
+const getAllData = (req, res) => {
+  const {username, password} = req.header;
+  if(!username || !password) {
+    return res.status(401).send("Unauthorized!");
+  }
+  const response = {users};
   return res.status(200).json(response);
 }
 
