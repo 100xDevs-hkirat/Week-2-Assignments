@@ -20,6 +20,66 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+let files = [];
 
+
+const readdirr = () => {
+  const fileAr = fs.readdirSync("./files", "utf-8", (err, data) => {
+    if(err) {
+      return 0;
+    }
+    files = data;
+    return files;
+  });
+  if(fileAr != 0) {
+    return fileAr;
+  }
+}
+
+const callback = (err, files) => {
+  if(err) {
+    return 0;
+  }
+  return files;
+}
+
+const dirContent = (path) => {
+  const response = fs.readdirSync(path, callback);
+  if(response != 0) {
+    return response;
+  }
+}
+
+const getFiles = (req, res) => {
+  const files = dirContent("./files");
+  if(files == 0) {
+    return res.status(404).send("Not found")
+  }
+  const response = {files}
+  console.log(response)
+  return res.status(200).json(response);
+}
+
+
+
+const getFileContent = (req, res) => {
+  const fileAr = readdirr();
+  const {fileName} = req.params;
+  if(fileAr.find(file => fileName == file) == undefined) {
+    fs.writeFileSync('./files/notFound.txt', "File not found", (err) => 0)
+    return res.status(404).send("File not found")
+  }
+  let content = fs.readFileSync(`./files/${fileName}`, callback);
+  content = content.toString();
+  const response = {content}
+  return res.status(200).send(content);
+}
+
+
+app.get('/files', getFiles);
+app.get('/file/:fileName', getFileContent);
+app.get("/:any", (req, res) => {
+  return res.status(404).send("Not found");
+})
 
 module.exports = app;
