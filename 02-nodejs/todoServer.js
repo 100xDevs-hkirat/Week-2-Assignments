@@ -138,6 +138,6 @@ app.get("/:any", (req, res) => {
   return res.status(404).send("Invalid Route :)");
 });
 
-app.listen(3006, () => console.log("running"));
+app.listen(4000, () => console.log("running"));
 
 module.exports = app;
