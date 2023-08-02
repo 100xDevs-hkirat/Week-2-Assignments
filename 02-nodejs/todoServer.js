@@ -43,7 +43,109 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+const port = 3000;
+let todos = [];
 app.use(bodyParser.json());
+
+
+const generateRandomId = (length) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charactersLength);
+    result += characters.charAt(randomIndex);
+  }
+
+  return result;
+}
+
+const findTodo = (id) => {
+  return todos.find(todo => todo.id == id);
+}
+
+app.get('/todos', (req, res) => {
+  const response = {todos};
+  return res.status(200).json(todos);
+});
+
+app.get('/todos/:id', (req, res) => {
+  try {
+    const {id} = req.params;
+    const toDo = findTodo(id);
+    if(toDo == undefined) {
+      return res.status(404).send("Not Found");
+    }
+    return res.status(200).json(toDo);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+  
+});
+
+app.post('/todos', (req, res) => {
+  try {
+    const item = req.body;
+    const id = generateRandomId(7);
+    const todo = {...item, id};
+    todos.push(todo);
+    if(todos.find(to => to == todo) == undefined || todos.length == 0) {
+      return res.status(500).send("Internal Server Error :(");
+    }
+    return res.status(201).json(todo);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+  
+});
+
+app.put('/todos/:id', (req, res) => {
+  const {id} = req.params;
+  const {title, completed, description} = req.body;
+  if(todos.length == 0) {
+    return res.status(500).send("Todos is empty :(");
+  }
+  let todo = todos.find(todo => todo.id == id);
+  if(todo == undefined) {
+    return res.status(404).send("Not Found");
+  }
+  
+  for(let i of todos) {
+    if(i.id == id) {
+      if(title != undefined || title != '') {
+        i.title = title;
+      }
+      if(completed != undefined || completed != '') {
+        i.completed = completed;
+      }
+      if(description != undefined || description != '') {
+        i.description = description;
+      }
+      return res.status(200).send("OK");
+    }
+  }
+});
+
+app.delete('/todos/:id', (req, res) => {
+  const {id} = req.params;
+  if(todos.length == 0) {
+    return res.status(500).send("Todos is empty :(");
+  }
+  let rmTodo = findTodo(id);
+  if(rmTodo == undefined) {
+    return res.status(404).send("Not Found");
+  }
+  todos = todos.filter(todo => todo != rmTodo);
+  return res.status(200).send("OK");
+});
+
+app.get("/:any", (req, res) => {
+  return res.status(404).send("Invalid Route :)");
+});
+
+// app.listen(port, () => {
+//   console.log(`Server is running at the port: ${port}`);
+// });
 
 module.exports = app;

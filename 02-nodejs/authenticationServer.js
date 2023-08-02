@@ -32,6 +32,103 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require("body-parser");
+var jwt = require('jsonwebtoken');
+let users = [];
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const generateRandomId = (length) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charactersLength);
+    result += characters.charAt(randomIndex);
+  }
+
+  return result;
+}
+
+const createUser = (email, password, firstName, lastName) => {
+  const uniqueId = generateRandomId(Math.floor(Math.random() * 10) + 5);
+  const user = {
+    email, password, firstName, lastName, uniqueId
+  }
+  if (users.length != 0) {
+    for(let i of users) {
+      if(i.email == user.email) {
+        return 0;
+      }
+    }
+  }
+  
+  users.push(user);
+  return 1;
+}
+
+const signup = (req, res) => {
+  const {email, password, firstName, lastName} = req.body;
+  if(!email || !password || !firstName || !lastName) {
+    return res.status(404).send("Data not provided");
+  }
+  const created = createUser(email, password, firstName, lastName);
+  if(created == 0) {
+    return res.status(400).send("email already exists");
+  }
+  return res.status(201).send("Signup successful");
+}
+
+const auth = (req, res, next) => {
+  const {email, password} = req.headers;
+  if(!email || email.length == 0 || !password || password.length == 0) {
+    return res.status(401).send("Unauthorized");
+  }
+  next();
+}
+
+const isUser = (email, password) => {
+  const isUsera = users.find(user => user.email == email);
+  if(isUsera == undefined) {
+    return 0;
+  }
+  else if(isUsera.password == password) {
+    return isUsera;
+  }
+  return 0;
+}
+
+const login = (req, res) => {
+  const {email, password} = req.body;
+  if(!email || email.length == 0 || !password || password.length == 0) {
+    return res.status(401).send("Unauthorized");
+  }
+  const log = isUser(email, password);
+  if(log == 0) {
+    return res.status(401).send("Unauthorized");
+  }
+  const token = jwt.sign(log, log.password);
+  const response = {
+    authToken: token
+  }
+  return res.status(200).json(log);
+}
+
+const getAllData = (req, res) => {
+  const {email, password} = req.headers;
+  if(isUser(email, password) == 0) {
+    return res.status(401).send("Unauthorized");
+  }
+  const response = {users};
+  return res.status(200).json(response);
+}
+
+app.post("/signup", signup);
+app.post("/login", login);
+app.get("/data", auth, getAllData);
+app.get("/:rand", (req, res) => {
+  return res.status(404).send("Route not found :(");
+})
 
 module.exports = app;
