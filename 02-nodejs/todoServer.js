@@ -44,11 +44,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = 3000;
-let todos = [{
-  title: 'New Todo',
-  description: 'A new todo item',
-  id: "ABC"
-}];
+let todos = [];
 app.use(bodyParser.json());
 
 
@@ -71,17 +67,21 @@ const findTodo = (id) => {
 
 app.get('/todos', (req, res) => {
   const response = {todos};
-  return res.status(200).json(response);
+  return res.status(200).json(todos);
 });
 
 app.get('/todos/:id', (req, res) => {
-  const {id} = req.params;
-  const toDo = findTodo(id);
-  if(toDo == undefined) {
-    return res.status(404).send("Not Found");
+  try {
+    const {id} = req.params;
+    const toDo = findTodo(id);
+    if(toDo == undefined) {
+      return res.status(404).send("Not Found");
+    }
+    return res.status(200).json(toDo);
+  } catch (error) {
+    return res.status(500).send(error);
   }
-  const response = {toDo};
-  return res.status(200).json(response);
+  
 });
 
 app.post('/todos', (req, res) => {
@@ -144,8 +144,8 @@ app.get("/:any", (req, res) => {
   return res.status(404).send("Invalid Route :)");
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at the port: ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server is running at the port: ${port}`);
+// });
 
 module.exports = app;
