@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Post Page - Dark Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #f1f1f1;
+            /* background-image: url('https://example.com/background-image-dark.jpg'); */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #f1f1f1;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ddd;
+        }
+
+        input[type="text"],
+        textarea {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            resize: vertical;
+            background-color: #333;
+            color: #f1f1f1;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a New Post</h1>
+        <form id="postForm">
+            <label for="title">Title:</label>
+            <input type="text" id="title" class="titleInput" name="title" required>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+            <button type="submit">Post</button>
+        </form>
+        <script>
+            let todos = {}
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('postForm');
+                const baseUrl = "http://localhost:3005/todos";
+
+                fetch(baseUrl, {
+                    method: "GET",
+                }).then(response => {
+                    if(!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json()
+                }).then(data => {
+                    console.log(data)
+                    todos = data;
+                })
+    
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault(); // Prevent the default form submission behavior
+    
+                    // Read values from input fields
+                    const titleInput = document.getElementById('title');
+                    const descriptionInput = document.getElementById('description');
+    
+                    const title = titleInput.value;
+                    const description = descriptionInput.value;
+    
+                    // You can now use the 'title' and 'description' variables to perform any action, such as sending data to a server or displaying the values on the page
+                    console.log('Title:', title);
+                    console.log('Description:', description);
+                    
+                    const reqBody = {
+                        title,
+                        description
+                    }
+                    const reqObj = {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(reqBody)
+                    }
+                    
+                    fetch(baseUrl, reqObj)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Handle the response from the server, if needed
+                        console.log('Server Response:', data);
+                    })
+                    .catch(error => {
+                        // Handle any errors that occurred during the fetch
+                        console.error('Error:', error);
+                    });
+    
+                    // Clear the input fields
+                    titleInput.value = '';
+                    descriptionInput.value = '';
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

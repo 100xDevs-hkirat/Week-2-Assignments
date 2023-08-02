@@ -81,6 +81,12 @@ function removeAtIndex(obj, index) {
   return newArray;
 }
 
+app.get("/", (req, res) => {
+  return res.sendFile(`${__dirname}/index.html`, (err) => {
+    if(err) throw err;
+  })
+})
+
 app.get('/todos', (req, res) => {
   fs.readFile("todos.json", "utf-8", (err, data) => {
     if (err) throw err;
@@ -93,6 +99,9 @@ app.get('/todos/:id', (req, res) => {
   fs.readFile("todos.json", "utf-8", (err, data) => {
     if(err) throw err;
     const todos = JSON.parse(data);
+    if(Object.keys(todos).length == 0) {
+      return res.status(404).send();
+    }
     const todoIndex = findIndex(todos, parseInt(req.params.id));
     if (todoIndex === -1) {
       res.status(404).send();
@@ -111,7 +120,6 @@ app.post('/todos', (req, res) => {
   };
   fs.readFile("todos.json", "utf8", (err, data) => {
     if (err) throw err;
-    console.log(data)
     let todos = {};
     if(data != ''){
       todos = JSON.parse(data);
@@ -173,8 +181,8 @@ app.use((req, res, next) => {
   res.status(404).send();
 });
 
-// app.listen(port, () => {
-//   console.log(`Server is running on port: ${port}`);
-// })
+app.listen(port, () => {
+  console.log(`Server is running on port: ${port}`);
+})
 
 module.exports = app;
