@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Post Page - Dark Mode</title>
     <style>
@@ -7,6 +8,10 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             background-color: #121212;
             color: #f1f1f1;
             /* background-image: url('https://example.com/background-image-dark.jpg'); */
@@ -17,12 +22,73 @@
 
         .container {
             max-width: 600px;
-            margin: 100px auto;
-            padding: 20px;
+            margin: 40px 30px;
+            padding: 20px 10px;
+            min-width: 250px;
+            min-height: 200px;
+            width: fit-content;
+            height: fit-content;
+            padding: 50px 60px;
             background-color: rgba(0, 0, 0, 0.9);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
+
+        .todo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.3s ease;
+            /* justify-content: center; */
+        }
+
+        .todo:hover {
+            box-shadow: 0 8px 16px rgba(239, 233, 233, 0.4);
+        }
+
+        .title-bar {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            font-size: x-small;
+            border-radius: 5px;
+            /* width: fit-content; */
+            min-width: 300px;
+            max-width: 300px;
+        }
+
+        .title-bar h1 {
+            margin: 0;
+        }
+
+        .todo-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .description {
+            background-color: #444;
+            border: 1px solid #666;
+            border-radius: 5px;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            height: 100px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            transition: background-color 0.2s ease;
+            text-align: center;
+            /* height: fit-content ; */
+        }
+
+        .description:hover {
+            background-color: #555;
+        }
+
 
         h1 {
             text-align: center;
@@ -67,61 +133,116 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>Create a New Post</h1>
+        <h1>Create a New Todo</h1>
         <form id="postForm">
             <label for="title">Title:</label>
-            <input type="text" id="title" class="titleInput" name="title" required>
+            <input type="text" id="title" class="titleInput" name="title" required maxlength="50">
             <label for="description">Description:</label>
             <textarea id="description" name="description" rows="4" required></textarea>
-            <button type="submit">Post</button>
+            <button type="submit">Create</button>
         </form>
-        <script>
-            let todos = {}
-            document.addEventListener('DOMContentLoaded', function () {
-                const form = document.getElementById('postForm');
-                const baseUrl = "http://localhost:3005/todos";
 
-                fetch(baseUrl, {
-                    method: "GET",
-                }).then(response => {
-                    if(!response.ok) {
-                        throw new Error('Network response was not ok');
+    </div>
+    <div class="todo-container">
+    </div>
+    <script>
+        let todos = {}
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('postForm');
+            const baseUrl = "http://localhost:3005/todos";
+
+            fetch(baseUrl, {
+                method: "GET",
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json()
+            }).then(data => {
+                console.log(data)
+                todos = data;
+                const todoContainner = document.querySelector('.todo-container');
+
+                if (Object.keys(todos).length != 0) {
+                    for (let i of Object.keys(todos)) {
+                        const title = document.createElement('div');
+                        // Add a class to the div
+                        title.classList.add('title-bar');
+                        const h1 = document.createElement('h1');
+
+                        // You can also set other attributes and content for the div, if needed
+                        h1.textContent = todos[i].title;
+                        title.appendChild(h1);
+
+                        const description = document.createElement('div');
+                        description.classList.add("description");
+                        description.textContent = todos[i].description;
+
+                        const todo = document.createElement('div');
+                        todo.classList.add("todo");
+                        todo.classList.add("container");
+
+                        // Append the new div to the body or any other parent element
+                        todo.appendChild(title);
+                        todo.appendChild(description);
+                        todo.setAttribute('id', todos[i].id);
+                        todoContainner.appendChild(todo);
+
+                        
+                        
                     }
-                    return response.json()
-                }).then(data => {
-                    console.log(data)
-                    todos = data;
-                })
-    
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault(); // Prevent the default form submission behavior
-    
-                    // Read values from input fields
-                    const titleInput = document.getElementById('title');
-                    const descriptionInput = document.getElementById('description');
-    
-                    const title = titleInput.value;
-                    const description = descriptionInput.value;
-    
-                    // You can now use the 'title' and 'description' variables to perform any action, such as sending data to a server or displaying the values on the page
-                    console.log('Title:', title);
-                    console.log('Description:', description);
-                    
-                    const reqBody = {
-                        title,
-                        description
-                    }
-                    const reqObj = {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(reqBody)
-                    }
-                    
-                    fetch(baseUrl, reqObj)
+                    const todosEle = document.querySelectorAll(".todo");
+                    todosEle.forEach(todo => {
+                        todo.addEventListener("click", () => {
+                            const id = todo.id;
+                            const ans = prompt("Do you want to delete this? 'y' or 'n'");
+                            if(ans.toLowerCase() == 'y') {
+                                fetch(`${baseUrl}/${id}`, {
+                                    method: "delete", 
+                                    headers: {"Content-type": "application/json"}}
+                                ).then(response => {
+                                    if(response.ok) {
+                                        location.reload();
+                                    }
+                            })
+                            }
+                        })
+                    })
+                }
+            });
+
+
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission behavior
+
+                // Read values from input fields
+                const titleInput = document.getElementById('title');
+                const descriptionInput = document.getElementById('description');
+
+                const title = titleInput.value;
+                const description = descriptionInput.value;
+
+                // You can now use the 'title' and 'description' variables to perform any action, such as sending data to a server or displaying the values on the page
+                console.log('Title:', title);
+                console.log('Description:', description);
+
+                const reqBody = {
+                    title,
+                    description
+                }
+                const reqObj = {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reqBody)
+                }
+
+                fetch(baseUrl, reqObj)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
@@ -131,18 +252,61 @@
                     .then(data => {
                         // Handle the response from the server, if needed
                         console.log('Server Response:', data);
+                        const todoContainner = document.querySelector('.todo-container')
+                        const title = document.createElement('div');
+                        // Add a class to the div
+                        title.classList.add('title-bar');
+                        const h1 = document.createElement('h1');
+
+                        // You can also set other attributes and content for the div, if needed
+                        h1.textContent = data.title;
+                        title.appendChild(h1);
+
+                        const description = document.createElement('div');
+                        description.classList.add("description");
+                        description.textContent = data.description;
+
+                        const todo = document.createElement('div');
+                        todo.classList.add("todo");
+                        todo.classList.add("container");
+
+                        // Append the new div to the body or any other parent element
+                        todo.appendChild(title);
+                        todo.appendChild(description);
+                        todo.setAttribute('id', data.id);
+                        todoContainner.appendChild(todo)
+                        todo.addEventListener("click", () => {
+                            const id = todo.id;
+                            const ans = prompt("Do you want to delete this? 'y' or 'n'");
+                            if(ans.toLowerCase() == 'y') {
+                                fetch(`${baseUrl}/${id}`, {
+                                    method: "delete", 
+                                    headers: {"Content-type": "application/json"}}
+                                ).then(response => {
+                                    if(response.ok) {
+                                        location.reload();
+                                    }
+                            })
+                            }
+                        })
+
                     })
                     .catch(error => {
                         // Handle any errors that occurred during the fetch
                         console.error('Error:', error);
                     });
-    
-                    // Clear the input fields
-                    titleInput.value = '';
-                    descriptionInput.value = '';
-                });
+
+                const todos = document.querySelectorAll(".todo");
+                todos.forEach(todo => {
+
+                })
+
+                // Clear the input fields
+                titleInput.value = '';
+                descriptionInput.value = '';
             });
-        </script>
-    </div>
+        });
+    </script>
 </body>
+
 </html>
