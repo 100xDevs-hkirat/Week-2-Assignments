@@ -35,3 +35,42 @@ const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;
+
+let users = [] ;
+
+app.listen(PORT);
+
+app.use(express.json());
+
+getSignup = (req ,res) =>
+{
+  const user = users.find(user => user.name == req.body.username)
+  if (user != null) {
+    let userr = {id : Math.floor(Math.random()*100000) , username : req.body.username ,password : req.body.password , firstname : req.body.firstname , lastname : req.body.lastname}
+    users.push(userr)
+    res.status(200).send(userr)
+  } else {
+    res.status(404).send(`Username already exist`)
+  }
+}
+
+app.post(`//signup` , getSignup)
+
+postLogin = (req , res) =>
+{
+    let user = users.find(user => user.firstname == res.body.firstname)
+    if (user == null) {
+        res.send("Cannot find id")
+    } else {
+      if(user.password == res.body.password)
+      {
+        res.send(user)
+      }
+      else{
+        res.status(404).send("Password doesn't match")
+      }
+    }
+}
+
+app.post(`/login` , postLogin)
+
