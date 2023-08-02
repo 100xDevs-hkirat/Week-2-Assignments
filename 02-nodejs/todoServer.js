@@ -41,9 +41,97 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
 
-module.exports = app;
+// module.exports = app;
+
+callback = () =>
+{
+  console.log(`HTTP Server is running at port ${port}`)
+}
+
+app.listen(port , callback)
+
+// 1> GET /todos
+
+Todos = [] ;
+
+getTODOS = (req ,res) =>
+{
+    res.json(Todos)
+}
+
+app.get(`/todos` , getTODOS)
+
+// 2> GET /todos/:id
+
+getID = (req , res) =>
+{
+    let foundID = Todos.find(arr => arr.id == parseInt(req.query.id))
+    if (!foundID) {
+      res.status(404).send("ID doesn't exist")
+    } else {
+      res.status(200).send(foundID)
+    }
+}
+
+app.get(`/todos/:id` , getID)
+
+// 3> POST /todos
+
+postTODOS = (req , res) =>
+{
+    newTODO = {
+      id : Math.floor(Math.random()*1000) ,
+      title: req.body.title ,
+      completed : req.body.completed ,
+      description : req.body.description 
+    }
+
+    Todos.push(newTODO)
+    res.send(Todos)
+}
+
+app.post(`/todos` , postTODOS)
+
+// 4> PUT /todos/:id
+
+updateTODOS = (req , res) =>
+{
+    foundIndex = Todos.findIndex(arr => arr.id == req.body.id)
+
+    if (foundIndex == -1) {
+      res.status(404).send("Cannot find todo with this ID")
+    } else {
+      Todos[foundIndex].title = req.body.title
+      Todos[foundIndex].completed = req.body.completed
+      Todos[foundIndex].description = req.body.description
+    }
+    res.send(Todos)
+  }
+
+app.put(`/todos/:id` , updateTODOS)
+
+// 5> DELETE /todos/:id
+
+deleteTODOS = (req ,res) =>
+{
+    let foundID = Todos.findIndex(arr => arr.id == req.body.id)
+
+    if (foundID == -1) {
+      res.status(404).send(`Cannot find Todo you are searching for`)
+    } else {
+      Todo.splice(foundID , 1)
+      res.status(201).send(Todo)
+    }
+}
+
+app.delete(`/todos/:id` , deleteTODOS)
+
+// for all other routes, return 404
+app.use((req, res, next) => {
+  res.status(404).send();
+});

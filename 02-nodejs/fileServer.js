@@ -20,6 +20,58 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-
+const port = 3000
 
 module.exports = app;
+
+callback = () =>
+{
+  console.log(`HTTP fileServer running at port ${port}`)
+}
+
+app.listen(port , callback)
+
+//  1> GET /files
+
+getContaines = (req , res) =>
+{
+  fs.readdir(path.join(__dirname , `./files/`) , (err , data) =>
+  {
+    if (err)
+    {
+      console.err(err)
+    }
+    else
+    {
+      res.json(data) 
+    }
+  })
+}
+
+app.get(`/files` , getContaines)
+
+// 2> GET /file/:filename
+
+getFile = (req ,res) =>
+{
+    fs.readFile(path.join(__dirname , `./files/` , req.query.filename) , (err , value) =>
+    {
+      if (err)
+      {
+          console.err(err)  
+      }
+      else
+      {
+          res.json(value)  
+      }
+    })
+}
+
+app.get(`/file/:filename` , getFile)
+
+// For Any other routes 
+
+app.use((req ,res , next) =>
+{
+  res.send("Path doesn't exist")
+})
