@@ -30,6 +30,19 @@ app.get('/files', (req, res) =>{
   });
 });
 
+app.get("/file/:filename", (req, res) => {
+  const filepath = path.join(__dirname, './files/', req.params.filename);
 
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
 
 module.exports = app;
