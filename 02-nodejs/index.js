@@ -42,11 +42,12 @@
 const express = require('express');
 const fs = require("fs");
 const bodyParser = require('body-parser');
-
+const cors = require("cors");
 const app = express();
 const port = 3005;
 
 app.use(bodyParser.json());
+app.use(cors())
 
 
 // const readFile = () => {
@@ -177,9 +178,9 @@ app.delete('/todos/:id', (req, res) => {
 // })
 
 // for all other routes, return 404
-app.use((req, res, next) => {
-  res.status(404).send();
-});
+// app.use((req, res, next) => {
+//   res.status(404).send();
+// });
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);

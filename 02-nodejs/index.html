@@ -205,7 +205,14 @@
                                     headers: {"Content-type": "application/json"}}
                                 ).then(response => {
                                     if(response.ok) {
-                                        location.reload();
+                                        // console.log(todosEle)
+                                        // for(let i of todosEle) {
+                                        //     if(i.id == id) {
+                                        //         todosEle.removeChild(i);
+                                        //         return;
+                                        //     }
+                                        // }
+                                        location.reload()
                                     }
                             })
                             }
@@ -284,7 +291,14 @@
                                     headers: {"Content-type": "application/json"}}
                                 ).then(response => {
                                     if(response.ok) {
-                                        location.reload();
+                                        // location.reload();
+                                        const todosEle = document.querySelectorAll(".todo");
+                                        const todos = document.querySelector(".todo-container");
+                                        for(let i of todosEle) {
+                                            if(id == i.id) {
+                                                todos.removeChild(i)
+                                            }
+                                        }
                                     }
                             })
                             }
