@@ -27,11 +27,16 @@
   - For any other route not defined in the server return 404
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
- */
+ */ 
 
 const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var user = [];
+
+
+
+
 
 module.exports = app;
