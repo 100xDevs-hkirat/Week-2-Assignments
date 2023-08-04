@@ -16,6 +16,7 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -53,8 +54,8 @@ app.all("*", (req, res) => {
   res.status(404).send("Route not found");
 });
 
-app.listen(3000, ()=>{
-  console.log("Server is running on port 3000")
-})
+// app.listen(3000, ()=>{
+//   console.log("Server is running on port 3000")
+// })
 
 module.exports = app;
