@@ -21,5 +21,58 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+function allFiles()
+{
+  const folderPath = path.join(__dirname, 'files');
+  const files = fs.readdirSync(folderPath, { withFileTypes: true });
+  const fileList = [];
+  files.forEach((file) => {
+    fileList.push(file.name);
+  });
+
+  return fileList;
+}
+
+function getInfo(req, res)
+{
+  const filepath = path.join(__dirname, 'files');
+  try {
+    fs.readdir(filepath, (err, files)=>{
+      if(err) res.sendStatus(500);
+      res.json(files);
+    })
+  } catch (error) {
+    res.sendStatus(500);
+  }
+}
+
+function fileData(req, res)
+{
+  const filepath = path.join(__dirname, 'files', req.params.file);
+
+    try {
+      fs.access(filepath, (err) => {
+        if(err){
+          res.status(404).send("File not found");
+        }
+        else{
+          const data = fs.readFileSync(filepath, 'utf8');
+          res.send(data);
+        }
+      });
+    } catch (error) {
+      res.status(404).send("File not found" );
+    }
+}
+
+app.get('/files', getInfo);
+app.get('/file/:file', fileData);
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
 
 module.exports = app;
+// app.listen(3000, ()=>{
+//   console.log("Listening");
+// })

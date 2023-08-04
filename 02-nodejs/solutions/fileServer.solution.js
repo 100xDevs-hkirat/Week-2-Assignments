@@ -22,12 +22,16 @@ const path = require('path');
 const app = express();
 
 app.get('/files', (req, res) => {
-  fs.readdir(path.join(__dirname, './files/'), (err, files) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to retrieve files' });
-    }
-    res.json(files);
-  });
+  try {
+    fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to retrieve files' });
+      }
+      res.json(files);
+    });
+  } catch (error) {
+    res.status(500).send("Server error");
+  }
 });
 
 app.get('/file/:filename', (req, res) => {
@@ -35,7 +39,7 @@ app.get('/file/:filename', (req, res) => {
 
   fs.readFile(filepath, 'utf8', (err, data) => {
     if (err) {
-      return res.status(404).send('File not found');
+      return res.status(404).json('File not found');
     }
     res.send(data);
   });
