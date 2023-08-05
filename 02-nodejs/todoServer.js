@@ -28,7 +28,7 @@
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
-    Request Body: { "title": "Buy groceries", "completed": true }
+    Request Body: { "title": "Buy groceries", "completed" : true }
     
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
@@ -43,7 +43,80 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const PORT = 3000;
 
 app.use(bodyParser.json());
+
+const todo = [];
+
+const findIndex = (arr, id ) => {
+  let inNum = -1;
+  for (let i = 0; i < arr.length; i++) {
+    if(arr[i].id == parseInt(id)){
+      inNum = i;
+    }    
+  }
+  return inNum;
+}
+
+app.delete("/todos/:id", (req,resp)=>{
+  let reqId = req.params.id;
+  let index = findIndex(todo, reqId)
+
+  let deletedTodo = todo.splice(index , 1);
+
+  for(let i = 0; i< todo.length; i++){
+    todo[i].id = i + 1;
+  }
+
+  resp.status(200).json(`todo no ${index +1} is deleted`)
+ 
+})
+
+app.put("/todos/:id" , (req, resp)=> {
+  let reqId = req.params.id;
+  let index = findIndex(todo , reqId)
+
+  if(index === -1){
+    resp.status(404).json("404 NOT FOUND!")
+  }else{
+    todo[index].completed = true;
+    resp.status(200).json(todo[index])
+  }
+})
+
+app.post("/todos", (req, resp)=>{
+  let data = req.body;
+  let id = todo.length + 1;
+
+  todo.push({
+    id: id,
+    title: data.title,
+    description: data.description,
+    completed: data.completed
+  })
+
+  resp.status(201).json(todo)
+
+})
+
+app.get("/todos", (req,resp) => {
+  resp.status(200).json(todo);
+})
+
+app.get("/todos/:id", (req,resp)=> {
+  const reqId = req.params.id;
+  let index = findIndex(todo, reqId);
+
+  if(index === -1){
+    resp.status(404).json("404 NOT FOUND!")
+  }else {
+    resp.status(200).json(todo[index])
+  }
+})
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`)
+// })
 
 module.exports = app;
