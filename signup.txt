@@ -1,0 +1,3 @@
+{"username":"om@06","password":"kathar@064","first name":"om","last name":"kathar","id":1}
+{"username":"rudra@06","password":"nile@064","first name":"Rudra","last name":"Nile","id":2}
+{"username":"bhavna@06","password":"nile@064","first name":"Bhavan","last name":"Nile","id":3}
