@@ -46,4 +46,70 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const todos = [];
+
+function retrieveAllTodos(req, res) { //get :todo #1
+  res.status(200).json(todos);
+}
+
+function retrieveTodoById(req, res) {
+  const todoID = req.params.id; // Use req.params.id to get the ID from URL
+  const todo = todos.find(todo => todo.id === parseInt(todoID));
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.sendStatus(404);
+  }
+}
+
+
+function posttodo(req,res) //post :creating a new todo #3
+{
+  const newTodo = {
+    id: todos.length+1, // unique random id
+    title: req.body.title,
+    description: req.body.description
+  };
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+}
+
+function updateTodo(req, res) {
+  const todoID = req.params.id;
+  const updatedTodo = req.body; // Use req.body to get the updated data
+  const index = todos.findIndex(todo => todo.id === parseInt(todoID));
+  if (index !== -1) {
+    todos[index] = { ...todos[index], ...updatedTodo };
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
+}
+
+function deleteTodo(req, res) {
+  const todoID = req.params.id; // Use req.params.id to get the ID from URL
+  const index = todos.findIndex(todo => todo.id === parseInt(todoID));
+  if (index !== -1) {
+    todos.splice(index, 1);
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
+}
+
+
+app.get('/todos', retrieveAllTodos);
+
+app.get('/todos/:id', retrieveTodoById);
+
+app.post('/todos', posttodo);
+
+app.put('/todos/:id', updateTodo);
+
+app.delete('/todos/:id', deleteTodo);
+
+app.use((req, res) => {
+  res.status(404).send('Not found');
+});
+
 module.exports = app;
