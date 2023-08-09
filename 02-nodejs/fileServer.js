@@ -21,5 +21,30 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get('/files', (req, res) =>{
+  fs.readdir('./files/', (err,files) => {
+    if(err) {res.sendStatus(500)}
+    res.send(files);
+  })
+  
+})
+
+app.get('/file/:filename', (req, res) =>{
+  var fname = req.params.filename;
+  fs.readFile('./files/'+fname, (err, data) => {
+    if(err) {res.status(404).send("File not found")}
+    else{
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.write(data);
+    res.end();
+    }
+  })
+})
+
+app.get('*', (req,res) => {
+  res.status(404).send("Route not found");
+})
+//app.listen(3000, () =>{console.log("On port 3000")})
+
 
 module.exports = app;

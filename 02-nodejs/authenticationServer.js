@@ -31,7 +31,78 @@
 
 const express = require("express")
 const PORT = 3000;
+const bodyParser = require('body-parser');
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+var users = [];
+var ctr = 0;
+app.use(bodyParser.json());
+app.post('/signup', (req,res) => {
+  if(users.find(usr => usr.email === req.body.email)) {
+    res.status(400).send();
+  }
+  else {
+    var newUser = {
+      id : ++ctr,
+      email : req.body.email,
+      password : req.body.password,
+      firstName : req.body.firstName,
+      lastName : req.body.lastName
+    }
+    users.push(newUser);
+    res.status(201).send("Signup successful");
+  }
+})
+
+app.post('/login', (req,res) => {
+  var uname = req.body.email;
+  var pass = req.body.password;
+  var index = users.findIndex(x => x.email === uname)
+  if(users[index].email == uname && users[index].password == pass) {
+    res.json({
+      firstName: users[index].firstName,
+      lastName: users[index].lastName,
+      email: users[index].email
+  });
+  }
+  else {
+    res.status(401).send();
+  }
+})
+
+app.get('/data', (req,res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+    }
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+})
+
+app.get('*', (req,res)=> {
+  res.status(404).send();
+})
+
+//app.listen(3000, () => console.log('ok'))
 
 module.exports = app;
