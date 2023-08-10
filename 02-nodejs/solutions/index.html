@@ -1,0 +1,32 @@
+
+<head>
+    <title>
+        TODO app
+    </title>
+</head>
+<head>
+<script>
+    function parsedResponse(data) {
+        console.log(data);
+    }
+
+    function callback(resp) {
+        resp.json().then(parseResponse);
+    }
+
+    function onPress() {
+        fetch("http://locahost:3000/todos", {
+            method: "GET"
+        }).then(callback)
+    }
+</script>
+<body>
+    Todo title 
+    <input type="text" id ="title"></input>
+    <br><br>
+    Todo description
+    <input type="text" id="title"></input>
+    <br>
+    <button onclick="onPress()">send todo</button>
+</body>
+</head>
