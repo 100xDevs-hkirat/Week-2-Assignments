@@ -29,9 +29,74 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+app.use(express.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users = [];
 
+function signupFn(req, res) {
+  const data = req.body;
+  // console.log(data);
+  var already = false;
+  users.map((item) => {
+    if (item.email === data.email) {
+      already = true;
+    }
+  });
+  if (already) {
+    res.sendStatus(400);
+  } else {
+    users.push(data);
+    res.status(201).send("Signup successful");
+  }
+}
+
+function loginFn(req, res) {
+  const data = req.body;
+  var already = false;
+  users.map((item) => {
+    if (item.username === data.username) {
+      already = true;
+    }
+  });
+  if (already) {
+    res.status(200).send("login done");
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+function dataFn(req, res) {
+  const dt = req.body;
+  var already = false;
+  users.map((item) => {
+    if (item.email === dt.email) {
+      already = true;
+    }
+  });
+  if (already) {
+    let usersRet = [];
+    users.map((item, index) => {
+      usersRet.push({
+        id: index,
+        email: item.email,
+        username: item.username,
+        password: item.password,
+      });
+    });
+    res.status(200).send(usersRet);
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+app.post("/signup", signupFn);
+app.post("/login", loginFn);
+app.get("/data", dataFn);
+
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`);
+// });
 module.exports = app;
