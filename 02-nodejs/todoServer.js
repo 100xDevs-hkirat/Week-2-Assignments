@@ -39,11 +39,60 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
+const bodyParser = require('body-parser')
+const uuid = require('uuid')
 
-const app = express();
+const uniqueId = uuid.v4
 
-app.use(bodyParser.json());
+const todos = []
+const PORT = 3000
+const app = express()
 
-module.exports = app;
+app.use(bodyParser.json())
+
+app.get('/todos', (_, res) => {
+  res.status(200).json(todos)
+})
+app.get('/todos/:id', (req, res) => {
+  const todo = todos.find(todo => todo.id === req.params.id)
+  if (!todo) {
+    res.status(404).json({ message: 'Todo not found' })
+  } else {
+    res.status(200).json(todo)
+  }
+})
+
+app.post('/todos', (req, res) => {
+  const todo = { ...req.body, id: uniqueId() }
+  todos.push(todo)
+  res.status(201).json({ id: todo.id })
+})
+app.put('/todos/:id', (req, res) => {
+  const index = todos.findIndex(todo => todo.id === req.params.id)
+  if (index === -1) {
+    return res.status(404).json({ message: 'Todo not found' })
+  }
+
+  todos[index] = { ...todos[index], ...req.body }
+  res.status(200).json(todos[index])
+})
+app.delete('/todos/:id', (req, res) => {
+  const index = todos.findIndex(todo => todo.id === req.params.id)
+  if (index === -1) {
+    return res.status(404).json({ message: 'Todo not found' })
+  }
+  todos.splice(index, 1)
+
+  res.status(200).json(todos[index])
+})
+
+app.use((_, res) => {
+  res.status(404).send('404 - Not Found')
+})
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`)
+// })
+
+module.exports = app
