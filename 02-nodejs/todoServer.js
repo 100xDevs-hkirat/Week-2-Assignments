@@ -57,10 +57,10 @@ app.use(bodyParser.json());
  */
 
 /** @type {Todo[]} todoList */
-const todoList = []
+let todoList = []
 
 app.get('/todos', (req, res) => {
-  res.send({ data: todoList })
+  return res.send(todoList)
 })
 
 app.post('/todos', function(req, res) {
@@ -70,14 +70,14 @@ app.post('/todos', function(req, res) {
   let newTodo = { id: uuidv4(), title, description }
   todoList.push(newTodo)
   
-  res.status(201).send(newTodo)
+  return res.status(201).send(newTodo);
 });
 
 app.get('/todos/:id', (req, res) => {
   let todo = todoList.find(todo => todo.id == req.params.id)
   if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
   
-  res.send(todo)
+  return res.send(todo)
 })
 
 app.put('/todos/:id', function(req, res) {
@@ -88,21 +88,24 @@ app.put('/todos/:id', function(req, res) {
   if(title) todo.title = title
   if(description) todo.description = description
   
-  res.send(todo);
+  return res.send(todo);
 });
 
 app.delete('/todos/:id', function(req, res) {
-  let todo = todoList.find(todo => todo.id == req.params.id)
-  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  let deleteId = req.params.id
+  let todo = todoList.find(todo => todo.id == deleteId)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${deleteId}`})
   
-  res.send(`Delete record with id ${id}`);
+  todoList = todoList.filter(todo => todoList.id == deleteId)
+  
+  return res.send(todo);
 });
 
-const port = 3000;
-app.listen(port, () => {
-    console.clear()
-    console.log(`Server is listening on port http://localhost:${port}`);
-});
+// const port = 3000;
+// app.listen(port, () => {
+//     console.clear()
+//     console.log(`Server is listening on port http://localhost:${port}`);
+// });
 
 
 app.get('*', (req, res) => {
