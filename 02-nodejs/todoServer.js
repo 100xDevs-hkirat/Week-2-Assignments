@@ -143,11 +143,11 @@ app.delete('/todos/:id', async function(req, res) {
   return res.send(todo);
 });
 
-const port = 3000;
-app.listen(port, () => {
-    console.clear()
-    console.log(`Server is listening on port http://localhost:${port}`);
-});
+// const port = 3000;
+// app.listen(port, () => {
+//     console.clear()
+//     console.log(`Server is listening on port http://localhost:${port}`);
+// });
 
 
 app.get('*', (req, res) => {
