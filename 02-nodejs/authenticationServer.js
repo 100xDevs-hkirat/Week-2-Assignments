@@ -32,6 +32,56 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const { v4: uuidV4 } = require("uuid")
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+let users = []
+
+app.post('/signup', function(req, res) {
+  const { username, password, firstName, lastName } = req.body;
+  
+  if (!username || !password || !firstName || !lastName) {
+    return res.status(401).send({error: 'username, password, firstName and lastName all fields are required'})
+  }
+  
+  users.push({id: uuidV4(), username, password, firstName, lastName})
+  return res.status(201).send({id: uuidV4(), username, password, firstName, lastName});
+});
+
+app.post('/login', function (req, res) {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(401).send({error: 'both username and password fields are required'})
+  
+  const userFound = users.find(user => user.username == username && user.password == password)
+  if(!userFound) res.status(401).send({error: "Unauthorized"})
+  return res.send(userFound)
+})
+
+function checkAuth(req, res, next) {
+  const { username, password } = req.headers;
+  if (!username || !password) return res.status(401).send({error: "Unauthorized"})
+  
+  const userFound = users.find(user => user.username == username && user.password == password)
+  if(!userFound) res.status(401).send({error: "Unauthorized"})
+  
+  next()
+}
+
+app.get('/data', checkAuth, (req, res) => {
+  
+  const usersToSend = users.map(({username, firstName, lastName}) => ({username, firstName, lastName}) )
+  res.send({users: usersToSend})
+})
+
+app.get('*', (req, res) => {
+  res.status(404).send('Not found')
+})
+
+app.listen(PORT, () => {
+    console.clear()
+    console.log(`Server is listening on PORT http://localhost:${PORT}`);
+});
 module.exports = app;
