@@ -20,6 +20,47 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3001;
+
+
+app.get('/files', (req, res) => {
+  fs.readdir('./files', (err, files) => {
+    if (err) throw new Error(err)
+    res.send(files)
+  })
+})
+
+app.get('/files/:file', (req, res) => {
+  fs.readFile(`./files/${req.params.file}`, { encoding: 'utf-8' }, (err, data) => {
+    if (err) throw new Error(err)
+    res.send(data)
+  })
+})
+
+app.get('*', (req, res) => {
+  fs.readdir('./files', (err, files) => {
+    if (err) throw new Error(err)
+  
+    let filesList = ''
+    files.forEach(file => {
+      filesList+= `<li> <a href="http://localhost:${port}/files/${file}">/${file}</a> </li>`
+    })
+  
+    let html = `
+      <h1>Available routes:</h1>
+      <ul>
+        <li> <a href="http://localhost:${port}/files">/files</a> </li>
+        ${filesList}
+      </ul>
+    `
+    res.status(404).send(html)
+  })
+})
+
+app.listen(port, () => {
+    console.clear()
+    console.log(`Server is listening on port http://localhost:${port}`);
+});
 
 
 module.exports = app;
