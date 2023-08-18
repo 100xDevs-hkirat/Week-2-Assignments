@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require("uuid")
 
 const app = express();
 
 app.use(bodyParser.json());
+
+
+/**
+ * @typedef {object} Todo
+ * 
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ */
+
+/** @type {Todo[]} todoList */
+const todoList = []
+
+app.get('/todos', (req, res) => {
+  res.send({ data: todoList })
+})
+
+app.post('/todos', function(req, res) {
+  const { title, description } = req.body;
+  if (!title || !description) return res.status(401).send({error: "title and description, both are required"})
+  
+  let newTodo = { id: uuidv4(), title, description }
+  todoList.push(newTodo)
+  
+  res.status(201).send(newTodo)
+});
+
+app.get('/todos/:id', (req, res) => {
+  let todo = todoList.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  res.send(todo)
+})
+
+app.put('/todos/:id', function(req, res) {
+  let todo = todoList.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  const { title, description } = req.body;
+  if(title) todo.title = title
+  if(description) todo.description = description
+  
+  res.send(todo);
+});
+
+app.delete('/todos/:id', function(req, res) {
+  let todo = todoList.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  res.send(`Delete record with id ${id}`);
+});
+
+const port = 3000;
+app.listen(port, () => {
+    console.clear()
+    console.log(`Server is listening on port http://localhost:${port}`);
+});
+
+
+app.get('*', (req, res) => {
+  const availableRoutes = {
+    "GET /todos": "Retrieve all todo items",
+    "GET /todos/:id": "Retrieve a specific todo item by ID",
+    "POST /todos": "Create a new todo item",
+    "PUT /todos/:id": "Update an existing todo item by ID",
+    "DELETE /todos/:id": "Delete a todo item by ID",
+  }
+  res.status(404).send({
+    availableRoutes
+  })
+})
 
 module.exports = app;
