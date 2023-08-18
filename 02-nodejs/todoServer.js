@@ -40,8 +40,9 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require("fs/promises");
 const bodyParser = require('body-parser');
-const { v4: uuidv4 } = require("uuid")
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
@@ -56,56 +57,98 @@ app.use(bodyParser.json());
  * @property {string} description
  */
 
-/** @type {Todo[]} todoList */
-let todoList = []
+const TODOS_FILE = "todos.json"
 
-app.get('/todos', (req, res) => {
-  return res.send(todoList)
+/** @returns {Promise<Todo[]>} data */
+async function readFile() {
+  try {
+    const data = await fs.readFile(TODOS_FILE, { encoding: 'utf8' })
+    return JSON.parse(data) 
+  } catch (error) {
+    return error
+  }
+}
+
+async function writeToFile(todos) {
+  try {
+    await fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 2), { encoding: 'utf8' })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+async function getById(id) {
+  try {
+    let todos = await readFile()
+    let todo = todos.find(todo => todo.id == id)
+    return todo
+  } catch (error) {
+   throw new Error(error) 
+  }
+}
+
+app.get('/todos', async (req, res) => {
+  try {
+    const todos = await readFile()
+    return res.send(todos)
+  } catch (error) {
+    throw new Error(error)
+  }
 })
 
-app.post('/todos', function(req, res) {
+app.post('/todos', async function(req, res) {
   const { title, description } = req.body;
   if (!title || !description) return res.status(401).send({error: "title and description, both are required"})
-  
-  let newTodo = { id: uuidv4(), title, description }
-  todoList.push(newTodo)
-  
-  return res.status(201).send(newTodo);
+
+  try {
+    let todos = await readFile()
+    console.log({todos})
+    let newTodo = { id: uuidv4(), title, description }
+    todos.push(newTodo)
+    await writeToFile(todos)
+    return res.status(201).send(newTodo);
+  } catch (error) {
+    return res.status(500).send(error)
+  }
 });
 
-app.get('/todos/:id', (req, res) => {
-  let todo = todoList.find(todo => todo.id == req.params.id)
+app.get('/todos/:id', async (req, res) => {
+  let todo = await getById(req.params.id)
   if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
   
   return res.send(todo)
 })
 
-app.put('/todos/:id', function(req, res) {
-  let todo = todoList.find(todo => todo.id == req.params.id)
+app.put('/todos/:id', async function(req, res) {
+  let todos = await readFile()
+  let todo = todos.find(todo => todo.id == req.params.id)
   if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
   
   const { title, description } = req.body;
   if(title) todo.title = title
   if(description) todo.description = description
   
-  return res.send(todo);
-});
-
-app.delete('/todos/:id', function(req, res) {
-  let deleteId = req.params.id
-  let todo = todoList.find(todo => todo.id == deleteId)
-  if (!todo) return res.status(404).send({error: `Not found with id: ${deleteId}`})
-  
-  todoList = todoList.filter(todo => todoList.id == deleteId)
+  await writeToFile(todos)
   
   return res.send(todo);
 });
 
-// const port = 3000;
-// app.listen(port, () => {
-//     console.clear()
-//     console.log(`Server is listening on port http://localhost:${port}`);
-// });
+app.delete('/todos/:id', async function(req, res) {
+  let todos = await readFile()
+  let todo = todos.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  todos = todos.filter(item => item.id != req.params.id)
+  await writeToFile(todos)
+  
+  return res.send(todo);
+});
+
+const port = 3000;
+app.listen(port, () => {
+    console.clear()
+    console.log(`Server is listening on port http://localhost:${port}`);
+});
 
 
 app.get('*', (req, res) => {
