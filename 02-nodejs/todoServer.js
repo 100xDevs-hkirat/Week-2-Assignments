@@ -39,11 +39,134 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+// const express = require('express');
+// const bodyParser = require('body-parser');
+
+// const app = express();
+
+// app.use(bodyParser.json());
+
 const express = require('express');
-const bodyParser = require('body-parser');
-
 const app = express();
-
+const PORT = 3000;
+const bodyParser = require('body-parser');
 app.use(bodyParser.json());
+const fs = require('fs');
+const path = require('path');
+
+var todoList = [];
+
+function findIndex(arr, id) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function removeAtIndex(arr, index) {
+  let newArray = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i !== index) {
+      newArray.push(arr[i]);
+    }
+  }
+  return newArray;
+}
+
+// app.get("/todos", (req, res) => {
+//   res.status(200).send(todoList);
+// });
+
+// using file as storage 
+
+app.get("/todos",(req,res)=>{
+  fs.readFile("todos.json","utf-8",(err,data)=>{
+    if(err) throw err;
+    res.json(JSON.parse(data));
+  })
+})
+
+var ctr = 1;
+
+// app.post("/todos", (req, res) => {
+//   var todoItemList = {
+//     id: ctr,
+//     title: req.body.title,
+//     description: req.body.description 
+//   }
+
+//   todoList.push(todoItemList);
+//   ctr++;
+
+//   res.status(200).send(todoList);
+//   console.log(todoList);
+// });
+
+
+// using file as a database
+
+app.post("/todos",(req,res)=>{
+  const newTodo = {
+    id: Math.floor(Math.random()*100000),
+    title: req.body.title,
+    description: req.body.description
+  };
+  ctr++;
+  fs.readFile("todos.json","utf-8",(err,data)=>{
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile("todos.json",JSON.stringify(todos),(err)=>{
+      if(err) throw err;
+      res.status(200).json(todos);
+      console.log(todos);
+      
+    })
+  })
+})
+
+// app.delete("/todos/:id", (req, res) => { // Fixed route path
+//   const todoIndex = findIndex(todoList, parseInt(req.params.id)); // Parse id to integer
+//   if (todoIndex === -1) {
+//     return res.status(404).send({ "message": "Todo not found" });
+//   } else {
+//     todoList = removeAtIndex(todoList, todoIndex); // Update the todoList
+//     res.status(200).send();
+//   }
+// });
+
+// using file for storing todo list
+app.delete('/todos/:id', (req, res) => {
+
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    const todoIndex = findIndex(todos, parseInt(req.params.id));
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos = removeAtIndex(todos, todoIndex);
+      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.status(200).send();
+      });
+    }
+  });
+});
+
+app.get("/",(req,res)=>{
+  res.sendFile(path.join(__dirname,"index.html"));
+})
+
+app.use((req,res,next)=>{
+  res.status(404).send();
+})
+
+app.listen(PORT, () => {
+  console.log("App is listening on port " + PORT);
+});
 
 module.exports = app;
+

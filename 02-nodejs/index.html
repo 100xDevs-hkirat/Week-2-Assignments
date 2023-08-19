@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script>
+    function parsedResponse(data){
+        console.log(data);
+    }
+    function callback(resp){
+        resp.json().then(parsedResponse);
+    }
+    function onPress(){
+        fetch("http://localhost:3000/todos",{
+            method: "POST",
+            body: JSON.stringify({
+                title:"Task 1",
+                description:"go to gym"
+            }),
+            headers:{
+                "content-type": "application/json"
+            }
+        }).then(callback)
+    }
+</script>
+<body>
+    <h1>Todo App</h1>
+<input type="text" placeholder="Enter the title of task">
+<input type="text" placeholder="Enter the description of task">
+<button onclick="onPress()">Submit Task</button>
+</body>
+</html>
