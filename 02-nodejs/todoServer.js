@@ -40,10 +40,127 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require("fs/promises");
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-
 app.use(bodyParser.json());
+
+
+/**
+ * @typedef {object} Todo
+ * 
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ */
+
+const TODOS_FILE = "todos.json"
+
+/** @returns {Promise<Todo[]>} data */
+async function readFile() {
+  try {
+    const data = await fs.readFile(TODOS_FILE, { encoding: 'utf8' })
+    return JSON.parse(data) 
+  } catch (error) {
+    return error
+  }
+}
+
+async function writeToFile(todos) {
+  try {
+    await fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 2), { encoding: 'utf8' })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+async function getById(id) {
+  try {
+    let todos = await readFile()
+    let todo = todos.find(todo => todo.id == id)
+    return todo
+  } catch (error) {
+   throw new Error(error) 
+  }
+}
+
+app.get('/todos', async (req, res) => {
+  try {
+    const todos = await readFile()
+    return res.send(todos)
+  } catch (error) {
+    throw new Error(error)
+  }
+})
+
+app.post('/todos', async function(req, res) {
+  const { title, description } = req.body;
+  if (!title || !description) return res.status(401).send({error: "title and description, both are required"})
+
+  try {
+    let todos = await readFile()
+    console.log({todos})
+    let newTodo = { id: uuidv4(), title, description }
+    todos.push(newTodo)
+    await writeToFile(todos)
+    return res.status(201).send(newTodo);
+  } catch (error) {
+    return res.status(500).send(error)
+  }
+});
+
+app.get('/todos/:id', async (req, res) => {
+  let todo = await getById(req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  return res.send(todo)
+})
+
+app.put('/todos/:id', async function(req, res) {
+  let todos = await readFile()
+  let todo = todos.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  const { title, description } = req.body;
+  if(title) todo.title = title
+  if(description) todo.description = description
+  
+  await writeToFile(todos)
+  
+  return res.send(todo);
+});
+
+app.delete('/todos/:id', async function(req, res) {
+  let todos = await readFile()
+  let todo = todos.find(todo => todo.id == req.params.id)
+  if (!todo) return res.status(404).send({error: `Not found with id: ${req.params.id}`})
+  
+  todos = todos.filter(item => item.id != req.params.id)
+  await writeToFile(todos)
+  
+  return res.send(todo);
+});
+
+// const port = 3000;
+// app.listen(port, () => {
+//     console.clear()
+//     console.log(`Server is listening on port http://localhost:${port}`);
+// });
+
+
+app.get('*', (req, res) => {
+  const availableRoutes = {
+    "GET /todos": "Retrieve all todo items",
+    "GET /todos/:id": "Retrieve a specific todo item by ID",
+    "POST /todos": "Create a new todo item",
+    "PUT /todos/:id": "Update an existing todo item by ID",
+    "DELETE /todos/:id": "Delete a todo item by ID",
+  }
+  res.status(404).send({
+    availableRoutes
+  })
+})
 
 module.exports = app;
