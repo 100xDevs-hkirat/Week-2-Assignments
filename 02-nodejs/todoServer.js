@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const PORT = 3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+var todoItems = [];
+
+
+app.get("/todos", (req, res) => {
+  res.status(200).send(todoItems);
+})
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const index = todoItems.findIndex(todoItem => todoItem.id === id.toString());
+  console.log(id, index);
+
+
+  if(index === -1) {
+    res.status(404).send("TODO NOT FOUND !!");
+  }
+  else {
+    res.status(200).send(todoItems[index]);
+  }
+})
+
+app.post("/todos", (req, res) => {
+  var todo = req.body;
+
+  const uniqueId = Date.now().toString();
+  todo["id"] = uniqueId;
+
+  res.status(201).send({
+    "id" : uniqueId
+  })
+
+  todoItems.push(todo);
+})
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+
+  const index = todoItems.findIndex(todoItem => todoItem.id === id);
+
+  if(index === -1) {
+    res.status(404).send("TODO NOT FOUND")
+  }
+  else {
+    // var updatedTodo = Object.assign({}, todoItems[index], req.body);
+    // todoItems[index] = updatedTodo;
+
+    Object.assign(todoItems[index], req.body);
+    res.status(200).send("TODO UPDATED")
+  }
+})
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const index = todoItems.findIndex(todoItem => todoItem.id === id);
+
+  if(index === -1) {
+    res.status(404).send("TODO NOT FOUND TO DELETE !!");
+  }
+  else {
+    todoItems.splice(index, 1);
+    res.status(200).send("TODO ITEM DELETED !!");
+  }
+})
+
+app.get("/", (req, res) => {
+  res.send("Intial Route For TODO APP");
+})
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`)
+})
 
 module.exports = app;
