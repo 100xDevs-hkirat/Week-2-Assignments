@@ -94,6 +94,20 @@ function checkAlreadyExists(userInfo, callback) {
     callback(exists);
   });
 }
+function getAllUsers(callback) {
+  console.log("Fetching Data");
+
+  fs.readFile("signup.txt", "utf-8", (err, data) => {
+    console.log("Reading File");
+    if (err) {
+      console.error("Error reading file:", err);
+      callback(err, null);
+    } else {
+      const lines = data.trim().split("\n");
+      callback(null, lines);
+    }
+  });
+}
 
 //signup
 function signup(req, res) {
@@ -161,6 +175,44 @@ function login(req, res) {
   });
 }
 
+//Get User Data
+function getData(req, res) {
+  console.log("Get User Data");
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  let foundUser = null;
+
+  getAllUsers((err, users) => {
+    if (err) {
+      console.log("ERROR");
+      res.status(500).json({ error: "Error reading file" });
+    } else {
+      users.forEach((line) => {
+        const user = JSON.parse(line);
+        if (user.username === email && user.password === password) {
+          userFound = true;
+          foundUser = user;
+        }
+      });
+
+      if (userFound) {
+        res.status(200).json({
+          firstname: foundUser.firstname,
+          lastname: foundUser.lastname,
+        });
+      } else {
+        res.status(404).json({ error: "User not found" });
+      }
+    }
+  });
+}
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+app.get("/data", getData);
 app.post("/login", login);
 app.post("/signup", signup);
 app.listen(PORT, () => {
