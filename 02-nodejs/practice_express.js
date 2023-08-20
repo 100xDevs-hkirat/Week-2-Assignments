@@ -1,6 +1,14 @@
-const express = require('express')
+const express = require('express');
+const bodyParser = require('body-parser');
 const app = express()
 const port = 3000
+
+// This is the middleware, all the requests will go through this middleware. 
+// app.use() - All these are middleware, there can be multiple middle wares. 
+
+app.use(bodyParser.json());
+
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -15,6 +23,22 @@ function caluclateSum(value) {
     return sum;
 }
 
+/*
+
+This is the third way we can get data via an HTTP request that is body 
+
+Here body can be JSON, XML, HTML anything. But the preferred way is JSON depending on the requirement anyway. 
+
+But unless Query params and Headers we can't access req.body directly. We need to use middleware, that the request will go via
+bodyParser.json() 
+
+app.get("/caluclateSum", (req, res) => {
+  var val = req.body.value1;
+
+  res.send("Caluclated Sum = " + caluclateSum(val));
+})
+
+*/
 
 /*
 
