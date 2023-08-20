@@ -39,11 +39,222 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
+const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
-
+const port = 3000;
+const fs = require("fs");
+const path = require("path");
+const { send } = require("process");
+const e = require("express");
 app.use(bodyParser.json());
+let id;
+
+function fetchLastUserId(callback) {
+  fs.readFile("todos.txt", "utf-8", (err, fileContent) => {
+    if (err) {
+      console.error("Error reading file:", err);
+      callback(err, null);
+      return;
+    }
+
+    const lines = fileContent.trim().split("\n");
+
+    if (lines.length > 0) {
+      const lastLine = lines[lines.length - 1];
+
+      if (lastLine === "") {
+        callback(null, null);
+      } else {
+        try {
+          const lastRecord = JSON.parse(lastLine);
+
+          const lastRecordId = lastRecord.id;
+          callback(null, lastRecordId);
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          callback(parseError, null);
+        }
+      }
+    }
+  });
+}
+
+function getSpecificTodos(find) {
+  const data = fs.readFileSync("todos.txt", "utf-8");
+  const lines = data.split("\n");
+  const specificTodos = [];
+
+  lines.forEach((line) => {
+    if (line.trim() !== "") {
+      try {
+        const todo = JSON.parse(line);
+        const id = parseInt(todo.id);
+
+        if (id === find) {
+          specificTodos.push(todo);
+        }
+      } catch (parseError) {
+        console.error("Error parsing JSON:", parseError);
+      }
+    }
+  });
+
+  return specificTodos.length > 0 ? specificTodos : null;
+}
+app.get("/todos", (req, res) => {
+  console.log("Fetching all todos");
+
+  fs.readFile("todos.txt", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(200).send(data);
+    }
+  });
+});
+
+app.get("/todos/:id", (req, res) => {
+  console.log("Fetching specific todo using id");
+  const idddd = parseInt(req.params.id);
+  const specificTodos = getSpecificTodos(idddd);
+
+  if (specificTodos === null) {
+    res.status(404).json({ error: "Todo not found" });
+  } else {
+    res.json(specificTodos);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  console.log("Adding Todo to todo list");
+  const body = req.body;
+  if (id === null) {
+    body.id = 1;
+  } else {
+    body.id = id++;
+  }
+
+  const dataToWrite = JSON.stringify(body);
+  fs.appendFile("todos.txt", dataToWrite + "\n", (err) => {
+    if (err) {
+      console.error("Error writing to file:", err);
+      res.status(500).send("Error writing to file");
+    } else {
+      console.log("Written Successfully");
+      res.status(201).send("success");
+    }
+  });
+});
+
+app.put("/todos/:id", (req, res) => {
+  const taskIdToUpdate = parseInt(req.params.id);
+  const updatedTaskData = req.body;
+
+  fs.readFile("todos.txt", "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err);
+      return res.status(500).json({ message: "Error reading file" });
+    } else {
+      try {
+        const tasks = data.split("\n").filter((line) => line.trim() !== "");
+
+        const updatedTasks = tasks.map((task) => {
+          const parsedTask = JSON.parse(task);
+          if (parsedTask.id === taskIdToUpdate) {
+            return JSON.stringify({ ...parsedTask, ...updatedTaskData });
+          }
+          return task;
+        });
+
+        const updatedData = updatedTasks.join("\n");
+        fs.writeFile("todos.txt", updatedData, (writeErr) => {
+          if (writeErr) {
+            console.error("Error updating file:", writeErr);
+            return res.status(500).json({ message: "Error updating file" });
+          } else {
+            console.log("File updated successfully.");
+            return res.json({ message: "Task updated successfully" });
+          }
+        });
+      } catch (parseErr) {
+        console.error("Error parsing JSON:", parseErr);
+        return res.status(400).json({ message: "Invalid JSON data" });
+      }
+    }
+  });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  console.log("Deleting Specific Todo");
+  const todoIdToRemove = parseInt(req.params.id);
+
+  fs.readFile("todos.txt", "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err);
+      return res.status(500).json({ message: "Error reading file" });
+    } else {
+      try {
+        const tasks = data.split("\n").filter((line) => line.trim() !== "");
+
+        const lineIndexToRemove = tasks.findIndex((line) => {
+          try {
+            const parsedTask = JSON.parse(line);
+            return parsedTask.id === todoIdToRemove;
+          } catch (parseErr) {
+            return false;
+          }
+        });
+
+        if (lineIndexToRemove !== -1) {
+          tasks.splice(lineIndexToRemove, 1);
+          const updatedData = tasks.join("\n");
+
+          fs.writeFile("todos.txt", updatedData, (writeErr) => {
+            if (writeErr) {
+              console.error("Error updating file:", writeErr);
+              return res.status(500).json({ message: "Error updating file" });
+            } else {
+              console.log(
+                "Todo with ID " + todoIdToRemove + " removed successfully."
+              );
+              return res.json({ message: "Todo removed successfully" });
+            }
+          });
+        } else {
+          console.error(`No todo found with ID ${todoIdToRemove}.`);
+          return res
+            .status(404)
+            .json({ message: `No todo found with ID ${todoIdToRemove}` });
+        }
+      } catch (parseErr) {
+        console.error("Error parsing JSON:", parseErr);
+      }
+    }
+  });
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+app.listen(port, () => {
+  console.log("Server is running on http://localhost: " + port);
+  fetchLastUserId((err, lastUserId) => {
+    if (err) {
+      console.error("Error:", err);
+      return;
+    }
+    if (lastUserId === null) {
+      id = 1;
+    } else if (lastUserId !== null) {
+      id = lastUserId + 1;
+      console.log("ID of the last user:", lastUserId);
+    } else {
+      console.log("No records in the file.");
+    }
+  });
+});
 
 module.exports = app;
