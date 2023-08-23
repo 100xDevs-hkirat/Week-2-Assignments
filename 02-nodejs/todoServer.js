@@ -46,4 +46,109 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var todos = [];
+
+
+app.get("/todos", (req, res) => {
+  try {
+    console.log("successful");
+    res.json(todos);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/todos/:id", (req, res) => {
+  try {
+    const id = req.params.id;
+    let found = false;
+
+    todos.forEach((todo) => {
+      if (todo.id == id) {
+        found = true;
+        res.json(todo);
+      }
+    });
+
+    if (!found) {
+      res.status(404).json({ error: "Todo not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.post("/todo", (req, res) => {
+  try {
+    const { id, todo, completed, description } = req.body;
+
+    if (!id || !todo || !completed || !description) {
+      res.status(400).json({ error: "Incomplete todo data" });
+      return;
+    }
+
+    todos.push(req.body);
+    res.status(201).json({ message: "Todo created successfully" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.put("/todo/:id", (req, res) => {
+  try {
+    const { id, title, completed, description } = req.body;
+    const todoId = req.params.id;
+    let todoUpdated = false;
+
+    todos.forEach((todo) => {
+      if (todo.id == todoId) {
+        todo.todo = req.body.todo;
+        todo.completed = req.body.completed;
+        todo.description =req.body.description;
+        todoUpdated = true;
+        res.status(200).json({ message: "Todo updated successfully" });
+      }
+    });
+
+    if (!todoUpdated) {
+      res.status(404).json({ message: "Todo ID not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.delete("/todo/:id", (req, res) => {
+  try {
+    const id = req.params.id;
+    let todoFound = false;
+
+    todos.forEach((todo, index) => {
+      if (todo.id == id) {
+        todos.splice(index, 1);
+        todoFound = true;
+        res.status(200).json({ message: "Deleted todo successfully" });
+      }
+    });
+
+    if (!todoFound) {
+      res.status(404).json({ message: "Todo ID not found" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.listen(3000,()=>{
+  console.log("Server listening at 3000 port");
+})
 module.exports = app;

@@ -28,10 +28,119 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
-
 const express = require("express")
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users = [];
+app.use(express.json());
 
+app.post("/signup",(req,res)=>{
+    try{
+        var user = req.body;
+        var id = users.length +1;
+        user.id = id;
+        let userAlreadyExists = false;
+        for(var i=0;i<users.length;i++){
+            if(users[i].username === user.username){
+                userAlreadyExists=true;
+                break;
+            }
+        }
+         if(userAlreadyExists){
+                res.status(400).json({"message":"user already exsists,please try to login"})}
+         else{
+            users.push(user);
+            res.status(201).send("Signup successful");
+         }
+    }
+    catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+});
+
+function generateRandomToken(length) {
+  // Define the characters to be used in the token
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  let token = '';
+  for (let i = 0; i < length; i++) {
+    // Generate a random index to select a character from the defined set of characters
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    // Append the randomly selected character to the token
+    token += characters.charAt(randomIndex);
+  }
+
+  return token;
+}
+
+app.post("/login",(req,res)=>{
+    try{
+       var user = req.body;
+       let userFound=null;
+       for(var i=0;i<users.length;i++){
+            if(users[i].username===user.username && users[i].password===user.password){
+                userFound=users[i];
+                break;
+            }
+       }
+
+       if(userFound){
+            res.json({
+             firstName: userFound.firstName,
+              lastName: userFound.lastName,
+               email: userFound.email,
+               token: generateRandomToken(10)
+            });
+       }
+       else {
+           res.sendStatus(401);
+           }
+
+    }
+    catch(error){
+    console.error(error);
+    res.status(500).json({"message":"internal server error"});
+    }
+
+});
+
+app.get("/data",(req,res)=>{
+    var username = req.headers.username;
+    var password = req.headers.password;
+
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].username === username && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if(userFound){
+    let userToReturn = [];
+    for(var i=0;i<users.length;i++){
+        userToReturn.push({
+        firstName:users[i].firstName,
+        lastName: users[i].lastName,
+        username: users[i].username
+        });
+    }
+    res.json({userToReturn});
+  }
+  else {
+      res.sendStatus(401);
+    }
+
+});
+
+app.get("/",(req,res)=>{
+    res.status(200).json(users);
+})
+
+app.listen(3000,()=>{
+  console.log("Server listening at 3000 port");
+})
 module.exports = app;
