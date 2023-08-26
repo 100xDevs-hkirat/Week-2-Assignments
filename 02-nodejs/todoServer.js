@@ -46,4 +46,58 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var uniqueId = 1;
+var toDos = [];
+
+app.get('/todos', (req, res) => {
+    res.status(200).json(toDos);
+}).post('/todos', (req, res) => {
+    var { body } = req;
+    body.id = uniqueId++;
+    toDos.push(body);
+    res.status(201).send({ id: uniqueId - 1 });
+});
+
+app.get('/todos/:id', (req, res) => {
+    var toDo = {};
+    var id = req.params.id;
+    var status = 404;
+    for (var i = 0; i < toDos.length && status === 404; ++i) {
+        if (toDos[i].id.toString() === id) {
+            status = 200;
+            toDo = toDos[i];
+        }
+    }
+    console.log(status, toDo);
+    res.status(status).send(toDo);
+}).put('/todos/:id', (req, res) => {
+    var { id } = req.params;
+    var staus = 404;
+
+    for (var i = 0; i < toDos.length; ++i)
+        if (toDos[i].id.toString() === id) {
+            var updatedToDo = toDos[i];
+            for (key in req.body) updatedToDo[key] = req.body.key;
+            toDos[i] = updatedToDo;
+            staus = 200;
+        }
+
+    res.sendStatus(staus);
+}).delete('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    var status = 404;
+    for (var i = 0; i < toDos.length; ++i)
+        if (toDos[i].id.toString() === id) {
+            toDos.splice(i, 1);
+            status = 200;
+            break;
+        }
+    res.sendStatus(status);
+});
+
+
+app.use((req, res, next) => {
+    res.sendStatus(404);
+})
+
 module.exports = app;
