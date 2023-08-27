@@ -6,6 +6,43 @@
 </head>
 <head>
 <script>
+
+    function todoCallback(data) {
+        console.log(data);
+        var parentElement = document.getElementById("mainArea");
+        // parentElement.innerHTML = JSON.stringify(data);
+        for (var  i = 0; i < data.length; i ++) {
+            var childElement = document.createElement("div");
+            
+            var grandChildrenElement1 = document.createElement("div");
+            grandChildrenElement1.innerHTML = data[i].title
+
+            var grandChildrenElement2 = document.createElement("span");
+            grandChildrenElement1.innerHTML = data[i].description
+
+            var grandChildrenElement3 = document.createElement("button");
+            grandChildrenElement1.innerHTML = "Delete"
+
+            childElement.appendChild(grandChildrenElement1)
+            childElement.appendChild(grandChildrenElement2)
+            childElement.appendChild(grandChildrenElement3)
+
+            parentElement.append(childElement);
+         }
+    } 
+
+    function getDataCallback(resp) {
+        resp.json().then(todoCallback);
+    }
+
+    function getData() {
+        fetch("http://localhost:3000/todos", {
+            method: "GET",
+        }).then(getDataCallback)
+    }
+
+    getData();
+
     function parsedResponse(data) {
         console.log(data);
     }
@@ -15,6 +52,10 @@
     }
 
     function onPress() {
+        var title = document.getElementById("title").value;
+        var description = document.getElementById("description").value;
+        
+        console.log(title);
         fetch("http://locahost:3000/todos", {
             method: "GET"
         }).then(callback)
@@ -25,8 +66,11 @@
     <input type="text" id ="title"></input>
     <br><br>
     Todo description
-    <input type="text" id="title"></input>
+    <input type="text" id="description"></input>
     <br>
     <button onclick="onPress()">send todo</button>
+    <div id="mainArea">
+
+    </div>
 </body>
 </head>
