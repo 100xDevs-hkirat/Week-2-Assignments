@@ -6,7 +6,18 @@
 </head>
 <head>
 <script>
-
+    function deleteDone() {
+        console.log("done delete");
+    }
+    function deleteTodo(id) {
+        console.log(id);
+        fetch("http://localhost:3000/todos/" + id, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(deleteDone)
+    }
     function todoCallback(data) {
         console.log(data);
         var parentElement = document.getElementById("mainArea");
