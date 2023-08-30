@@ -34,4 +34,77 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var users = []
+
+app.use(express.json()) 
+app.post("/signup",(req,res) => {
+  var user = req.body
+  let userAlreadyExist = false
+  for(var i=0; i<user.length; i++){
+    if(user[i].email === user.email){
+      useralreadyExist = true
+      break
+    }
+
+    if(userAlreadyExist){
+      res.status(400).send("User already exists")
+    }else{
+      users.push(user)
+      res.send("Sighnup successfull")
+    }
+
+  }
+})
+
+app.post("/login",(req,res) => {
+   var user = req.body
+    userFound = null
+    for(var i=0; i<user.length; i++){
+      if(user[i].email === user.email && user[i].password === user.password){
+        userFound = true
+        break
+      }
+    }
+
+    if(userFound){
+      res.status(200).json({
+        firstname : user.firstname,
+        lastname : user.lastname,
+        email : user.email
+      })
+    }else{
+      res.status(401)
+    }
+})
+
+app.get("/data",(req,res) =>{
+  var email = req.headers.email
+  var password = req.headers.password 
+  let userFound = false
+  for(var i=0; i<users.length; i++){
+    if(users[i].email === users.email && users[i].password === users.password){
+      userFound = true
+      break   
+  }
+}
+
+  if(userFound){
+    let returnToUsers = []
+    for(var i=0; i<users.length; i++){
+      returnToUsers.push({
+        firstname : users[i].firstname,
+        lastname : users[i].lastname,
+        email : users[i].email
+      })
+    }
+    res.json({
+      users
+    })
+  }else{
+    res.send(401)
+  }
+})
+
+
+
 module.exports = app;
