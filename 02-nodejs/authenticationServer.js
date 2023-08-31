@@ -30,8 +30,59 @@
  */
 
 const express = require("express")
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(express.json());
+
+var list = []
+var id = 0
+
+app.post('/signup', (req, res) => {
+  var index = -1
+  if (list.length != 0){
+    index = list.findIndex(t => t.email === req.body.email)
+  }
+  if(list.length != 0 & index != -1){
+    return res.status(400).send()
+  }
+  id++
+  list.push(req.body)
+  console.log(list)
+  res.status(201).send('Signup successful')
+})
+
+app.post('/login', (req, res) => {
+  var index = list.findIndex(t => t.email === req.body.email)
+  if(list.length == 0 || index == -1){
+    return res.status(401).send('Unauthorized')
+  }
+  if(list[index].password != req.body.password){
+    return res.status(401).send('Unauthorized')
+  }
+  res.json(list[index])
+})
+
+app.get('/data', (req, res) =>{
+  var email = req.headers.email
+  var password = req.headers.password
+  var userFound = false
+  for(let i = 0; i < list.length; i++){
+    if(list[i].email === email && list[i].password === password){
+      userFound = true
+      break
+    }
+  }
+  console.log(userFound)
+  if(!userFound){
+    return res.status(401).send('Unauthorized')
+  }
+  var users = list
+  res.json({users})
+})
+
+//app.listen(3000, () => {console.log("listening on 3000")})
 
 module.exports = app;

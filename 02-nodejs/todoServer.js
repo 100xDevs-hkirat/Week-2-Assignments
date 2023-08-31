@@ -46,4 +46,78 @@ const app = express();
 
 app.use(bodyParser.json());
 
+
+var port = 3000
+
+
+var id = 0
+var list = []
+
+app.get('/todos', (req, res) => {
+  res.json(list);
+});
+
+
+app.get('/todos/:id', (req, res) => {
+  const todo = list.find(t => t.id === parseInt(req.params.id));
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.json(todo);
+  }
+});
+
+
+function addItem(req, res){
+  
+  var curr_id = id
+  id++
+  const newTodo = {
+    id: curr_id, // unique random id
+    title: req.body.title,
+    description: req.body.description
+  }
+  list.push(newTodo)
+  res.status(201).json(newTodo)
+}
+
+app.post('/todos', addItem)
+
+function updateItem(req, res){
+  var item_id = parseInt(req.params.id)
+  var index = list.findIndex(obj => obj.id === item_id)
+  if (index == -1){
+    res.status(404).send("Todo Not found")
+  }
+  else{
+    for (const [key, value] of Object.entries(req.body)){
+      list[index][key] = value
+    }
+    res.status(200).json(list[index])
+  }
+}
+
+app.put('/todos/:id', updateItem)
+
+function deleteItem(req, res){
+  var item_id = parseInt(req.params.id)
+  var index = list.findIndex(obj => obj.id === item_id)
+  if(index == -1){
+    res.status(404).send("Todo Not found")
+  }
+  else{
+    list.splice(index, 1)
+    res.status(200).send("Todo deleted")
+  }
+}
+
+app.delete('/todos/:id', deleteItem)
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+//app.listen(port, () =>{"listening on port 3000"})
+
 module.exports = app;
+
