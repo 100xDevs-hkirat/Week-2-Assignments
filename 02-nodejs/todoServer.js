@@ -39,11 +39,84 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
+const express = require("express");
+const fs = require("fs").promises;
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
+const port = 3000;
+const filePath = __dirname + "/files/todolist.json";
+let toDoListItems = [];
 const app = express();
-
 app.use(bodyParser.json());
+app.use(readFileMiddleware);
+
+function readFileMiddleware(req, res, next) {
+  try {
+    fs.readFile(filePath, "utf-8").then((data) => {
+      toDoListItems = JSON.parse(data);
+      next();
+    });
+  } catch (err) {
+    res.status(300, "Error occurred while processing request");
+  }
+}
+
+function getToDoItems(req, res) {
+  res.send(toDoListItems);
+}
+
+function getToDoItem(req, res) {
+  const id = req.params.id;
+  const item = toDoListItems.find((item) => item.id == id);
+  if (item) {
+    res.send(item);
+  } else {
+    res.status(404).send("Item Not Found");
+  }
+}
+
+function createToDoItem(req, res) {
+  let item = req.body;
+  item.id = uuidv4();
+  toDoListItems.push(item);
+  fs.writeFile(filePath, JSON.stringify(toDoListItems));
+  res.status(201).json({ id: item.id });
+}
+
+function updateToDoItem(req, res) {
+  let reqItem = req.body;
+  let id = req.params.id;
+
+  let itemToUpdate = toDoListItems.find((item) => item.id == id);
+  if (itemToUpdate) {
+    itemToUpdate.title = reqItem.title;
+    itemToUpdate.completed = reqItem.completed;
+    fs.writeFile(filePath, JSON.stringify(toDoListItems));
+    res.send();
+  } else {
+    res.status(404).send("Item Not Found");
+  }
+}
+
+function deleteToDoItem(req, res) {
+  const id = req.params.id;
+  const itemToDelete = toDoListItems.find((item) => item.id == id);
+  if (itemToDelete) {
+    const indexOfDelItem = toDoListItems.findIndex((item) => item.id == id);
+    toDoListItems.splice(indexOfDelItem, 1);
+    fs.writeFile(filePath, JSON.stringify(toDoListItems));
+    res.send();
+  } else {
+    res.status(404).send("Item Not Found");
+  }
+}
+
+app.get("/todos", getToDoItems);
+app.get("/todos/:id", getToDoItem);
+app.post("/todos", createToDoItem);
+app.put("/todos/:id", updateToDoItem);
+app.delete("/todos/:id", deleteToDoItem);
+app.listen(port, () => console.log(`Listening for ${port}`));
 
 module.exports = app;
