@@ -29,9 +29,80 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const jsonParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const users = [];
+app.use(jsonParser.json());
 
+function signupHandler(req, res) {
+  const userInfo = req.body;
+  const { email, password, firstName, lastName } = userInfo;
+  if (email && password && firstName && lastName) {
+    let isUserNotExists = !users.find((user) => user.email === email);
+    if (isUserNotExists) {
+      userInfo.id = uuidv4();
+      users.push(userInfo);
+      res.status(201).send("Signup successful");
+    } else {
+      res.status(400).send("400 Bad Request");
+    }
+  } else {
+    res.status(400).send("Please provide correct data");
+  }
+}
+
+function loginHandler(req, res) {
+  const loginInfo = req.body;
+  const isValidUser = users.find(
+    (item) =>
+      item.email === loginInfo.email && item.password === loginInfo.password
+  );
+  if (isValidUser) {
+    const { firstName, lastName, email } = isValidUser;
+    const result = {
+      firstName,
+      lastName,
+      email,
+    };
+    res.status(200).send(result);
+  } else {
+    res.status(401).send("401 Aunauthorized");
+  }
+}
+
+function isAuthenticated(req, res, next) {
+  const { email, password } = req.headers;
+  const isValidUser = users.find(
+    (user) => user.email === email && user.password === password
+  );
+  if (isValidUser) {
+    next();
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+}
+
+function getUsersInfoHandler(req, res) {
+  let result = users.map((user) => {
+    return {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user.id,
+    };
+  });
+  res.send({ users: result });
+}
+
+function routeNotFoundHandler(req, res) {
+  res.status(404).send("Route not found");
+}
+
+app.post("/signup", signupHandler);
+app.post("/login", loginHandler);
+app.get("/data", isAuthenticated, getUsersInfoHandler);
+app.all("*", routeNotFoundHandler);
+app.listen(PORT, console.log(`Application listening to port ${PORT}`));
 module.exports = app;

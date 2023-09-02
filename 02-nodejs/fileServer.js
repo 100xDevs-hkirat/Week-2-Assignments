@@ -31,7 +31,6 @@ function getAllFiles(req, res) {
 
 function getFileContent(req, res) {
   const reqFile = req.params.fileName;
-  console.log(reqFile);
   fs.readdir(filePath).then((files) => {
     if (files.includes(reqFile)) {
       fs.readFile(filePath + "/" + reqFile).then((content) => {
