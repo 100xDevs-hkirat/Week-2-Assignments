@@ -29,9 +29,9 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express");
-const jsonParser = require("body-parser");
-const { v4: uuidv4 } = require("uuid");
+const express = require('express');
+const jsonParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 const PORT = 3000;
 const app = express();
 const users = [];
@@ -45,12 +45,12 @@ function signupHandler(req, res) {
     if (isUserNotExists) {
       userInfo.id = uuidv4();
       users.push(userInfo);
-      res.status(201).send("Signup successful");
+      res.status(201).send('Signup successful');
     } else {
-      res.status(400).send("400 Bad Request");
+      res.status(400).send('400 Bad Request');
     }
   } else {
-    res.status(400).send("Please provide correct data");
+    res.status(400).send('Please provide correct data');
   }
 }
 
@@ -69,7 +69,7 @@ function loginHandler(req, res) {
     };
     res.status(200).send(result);
   } else {
-    res.status(401).send("401 Aunauthorized");
+    res.status(401).send('401 Aunauthorized');
   }
 }
 
@@ -81,7 +81,7 @@ function isAuthenticated(req, res, next) {
   if (isValidUser) {
     next();
   } else {
-    res.status(401).send("Unauthorized");
+    res.status(401).send('Unauthorized');
   }
 }
 
@@ -97,12 +97,12 @@ function getUsersInfoHandler(req, res) {
 }
 
 function routeNotFoundHandler(req, res) {
-  res.status(404).send("Route not found");
+  res.status(404).send('Route not found');
 }
 
-app.post("/signup", signupHandler);
-app.post("/login", loginHandler);
-app.get("/data", isAuthenticated, getUsersInfoHandler);
-app.all("*", routeNotFoundHandler);
+app.post('/signup', signupHandler);
+app.post('/login', loginHandler);
+app.get('/data', isAuthenticated, getUsersInfoHandler);
+app.all('*', routeNotFoundHandler);
 app.listen(PORT, console.log(`Application listening to port ${PORT}`));
 module.exports = app;

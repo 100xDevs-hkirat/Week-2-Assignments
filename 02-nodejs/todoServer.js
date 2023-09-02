@@ -40,12 +40,12 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 
-const express = require("express");
-const fs = require("fs").promises;
-const bodyParser = require("body-parser");
-const { v4: uuidv4 } = require("uuid");
+const express = require('express');
+const fs = require('fs').promises;
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 const port = 3000;
-const filePath = __dirname + "/files/todolist.json";
+const filePath = __dirname + '/files/todolist.json';
 let toDoListItems = [];
 const app = express();
 app.use(bodyParser.json());
@@ -53,12 +53,12 @@ app.use(readFileMiddleware);
 
 function readFileMiddleware(req, res, next) {
   try {
-    fs.readFile(filePath, "utf-8").then((data) => {
+    fs.readFile(filePath, 'utf-8').then((data) => {
       toDoListItems = JSON.parse(data);
       next();
     });
   } catch (err) {
-    res.status(300, "Error occurred while processing request");
+    res.status(300, 'Error occurred while processing request');
   }
 }
 
@@ -72,7 +72,7 @@ function getToDoItem(req, res) {
   if (item) {
     res.send(item);
   } else {
-    res.status(404).send("Item Not Found");
+    res.status(404).send('Item Not Found');
   }
 }
 
@@ -95,7 +95,7 @@ function updateToDoItem(req, res) {
     fs.writeFile(filePath, JSON.stringify(toDoListItems));
     res.send();
   } else {
-    res.status(404).send("Item Not Found");
+    res.status(404).send('Item Not Found');
   }
 }
 
@@ -108,15 +108,15 @@ function deleteToDoItem(req, res) {
     fs.writeFile(filePath, JSON.stringify(toDoListItems));
     res.send();
   } else {
-    res.status(404).send("Item Not Found");
+    res.status(404).send('Item Not Found');
   }
 }
 
-app.get("/todos", getToDoItems);
-app.get("/todos/:id", getToDoItem);
-app.post("/todos", createToDoItem);
-app.put("/todos/:id", updateToDoItem);
-app.delete("/todos/:id", deleteToDoItem);
+app.get('/todos', getToDoItems);
+app.get('/todos/:id', getToDoItem);
+app.post('/todos', createToDoItem);
+app.put('/todos/:id', updateToDoItem);
+app.delete('/todos/:id', deleteToDoItem);
 app.listen(port, () => console.log(`Listening for ${port}`));
 
 module.exports = app;

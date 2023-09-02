@@ -16,12 +16,12 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require("express");
-const fs = require("fs").promises;
-const path = require("path");
+const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 const port = 3000;
 const app = express();
-const filePath = __dirname + "/files";
+const filePath = __dirname + '/files';
 
 function getAllFiles(req, res) {
   fs.readdir(filePath).then((files) => {
@@ -33,20 +33,20 @@ function getFileContent(req, res) {
   const reqFile = req.params.fileName;
   fs.readdir(filePath).then((files) => {
     if (files.includes(reqFile)) {
-      fs.readFile(filePath + "/" + reqFile).then((content) => {
+      fs.readFile(filePath + '/' + reqFile).then((content) => {
         res.send(content);
       });
     } else {
-      res.status(404).send("File not found");
+      res.status(404).send('File not found');
     }
   });
 }
 
 function routeNotFoundHandler(req, res) {
-  res.status(404).send("Route not found");
+  res.status(404).send('Route not found');
 }
-app.get("/files", getAllFiles);
-app.get("/file/:fileName", getFileContent);
-app.all("*", routeNotFoundHandler);
+app.get('/files', getAllFiles);
+app.get('/file/:fileName', getFileContent);
+app.all('*', routeNotFoundHandler);
 app.listen(port, () => console.log(`Listening Successfullt ${port}`));
 module.exports = app;
