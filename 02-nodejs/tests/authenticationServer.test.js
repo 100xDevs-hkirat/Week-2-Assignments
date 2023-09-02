@@ -3,18 +3,17 @@ const server = require('../authenticationServer');
 
 const email = 'testuser@gmail.com';
 const password = 'testpassword';
-const firstName = "kirat"
-const lastName = "kirat"
-
+const firstName = 'kirat';
+const lastName = 'kirat';
 
 describe('API Tests', () => {
   let globalServer;
   beforeAll((done) => {
-      if (globalServer) {
-        globalServer.close();
-      }
+    if (globalServer) {
+      globalServer.close();
+    }
     globalServer = server.listen(3000);
-    done()
+    done();
   });
 
   afterAll((done) => {
@@ -22,7 +21,12 @@ describe('API Tests', () => {
   });
 
   it('should allow a user to sign up', async () => {
-    const requestBody = JSON.stringify({ email, password, firstName, lastName });
+    const requestBody = JSON.stringify({
+      email,
+      password,
+      firstName,
+      lastName,
+    });
 
     const options = {
       method: 'POST',
@@ -70,7 +74,7 @@ describe('API Tests', () => {
       path: '/data',
       headers: {
         email,
-        password: "",
+        password: '',
       },
     };
 
@@ -86,7 +90,7 @@ describe('API Tests', () => {
       path: '/data',
       headers: {
         email,
-        password
+        password,
       },
     };
 
