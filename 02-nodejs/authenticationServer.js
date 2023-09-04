@@ -29,9 +29,82 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
+const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const port = 3000;
+
+const users = [];
+
+app.use(bodyParser.json());
+
+// 1
+app.post("/signup", (req, res) => {
+  for (const user of users) {
+    if (user["username"] === req.body.username) {
+      res.sendStatus(404);
+    }
+  }
+
+  const newUser = req.body;
+  const id = Math.floor(Math.random() * 100000) + 1;
+  newUser["id"] = id;
+  users.push(newUser);
+  res.status(201).send("Signup successful");
+});
+
+// 2
+app.post("/login", (req, res) => {
+  for (const user of users) {
+    if (
+      user["username"] === req.body.username &&
+      user["password"] === req.body.password
+    ) {
+      res.json({
+        email: user["email"],
+        firstName: user["firstName"],
+        lastName: user["lastName"],
+      });
+    }
+  }
+  res.sendStatus(401);
+});
+
+// 3
+app.get("/data", (req, res) => {
+  let isValidUser = false;
+
+  for (const user of users) {
+    if (
+      user["username"] === req.headers.username &&
+      user["password"] === req.headers.password
+    ) {
+      isValidUser = true;
+    }
+  }
+
+  let userToReturn = [];
+
+  if (isValidUser) {
+    for (const user of users) {
+      userToReturn.push({
+        firstName: user["firstName"],
+        lastName: user["lastName"],
+        email: user["email"],
+      });
+
+      res.json({ users: userToReturn });
+    }
+  }
+  res.sendStatus(401);
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`);
+// });
 
 module.exports = app;
