@@ -41,11 +41,13 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const path = require('path')
 const app = express();
-
+//2nd method to solve CORS error by allowing backend to have request from everywhere
+//npm install cors and npm run
+const cors = require("cors");
 app.use(bodyParser.json());
-
+app.use(cors());
 let todos = [];
 
 app.get('/todos', (req, res) => {
@@ -87,14 +89,22 @@ app.delete('/todos/:id', (req, res) => {
   if (todoIndex === -1) {
     res.status(404).send();
   } else {
+    deletedTodo = todos[todoIndex]
     todos.splice(todoIndex, 1);
-    res.status(200).send();
+    res.status(200).json(deletedTodo);
   }
 });
 
-// for all other routes, return 404
-app.use((req, res, next) => {
-  res.status(404).send();
-});
+//the 1st method to solve CORS error
+app.get('/', (req,res) => {
+  res.sendFile(path.join(__dirname,"index.html"));
+})
 
+// for all other routes, return 404
+// app.use((req, res, next) => {
+//   res.status(404).send();
+// });
+
+
+app.listen(3000);
 module.exports = app;
