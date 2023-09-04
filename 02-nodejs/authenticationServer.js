@@ -32,6 +32,75 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const generateRandomToken = (length) => crypto.randomBytes(length).toString('hex');
+const jwt = require('jsonwebtoken'); 
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var users = [];
+let nextUserId = 1;
+app.post("/signup",(req,res) => {
+  const {userName,firstName,lastName,email,password} = req.body;
+  const userExists = users.some(user => user.email === email && user.userName === userName);
+  if (userExists) {
+    res.status(400).json({error: "User already registered"})
+  } else {
+    const newUser = {id:nextUserId,userName,firstName,lastName,email,password}
+    nextUserId++;
+    users.push(newUser);
+    
+  }
+  const token = jwt.sign({userName},'secretKey',{expiresIn:'1h'})
+  res.status(201).json({message: "Signup successfully"},token);
+  res.send(token);
+})  
 
+
+app.post("/login", (req,res) => {
+  const {firstName,lastName,email,password} = req.body;
+  const userLoggedIn = users.some(user => user.email === email && user.password === password);
+
+  if(!userLoggedIn){
+    return res.status(401).send('Invalid Credentials')
+  }
+    const user = {firstName,lastName,id,email}
+    res.status(200).json(user);
+
+
+})
+
+
+app.get("/data", (req,res) => {
+  const {email,password} = req.headers;
+  let userFound = false;
+  for(var i = 0 ; i<users.length; i++){
+    if(users[i].email === email && users[i].password === password){
+      userFound = true;
+      return;
+    }
+  }
+  if (userFound) {
+    let userList = [];
+    for (let i = 0; i<users.length; i++) {
+      userList.push({
+          firstName: users[i].firstName,
+          lastName: users[i].lastName,
+          email: users[i].email
+      });
+  }
+  res.json({
+      users
+  });
+} else {
+  res.sendStatus(401);
+}
+});
+//     const userDetails = users.map(user => {
+//       const user = {firstName,lastName,id};
+//       return user
+//     })
+//     userList.push(userDetails);
+//   } 
+//   res.json({users: userDetails});
+// })
 module.exports = app;
+
+
