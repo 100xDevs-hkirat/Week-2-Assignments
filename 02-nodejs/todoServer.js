@@ -41,9 +41,129 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
+const path=require('path');
+const port=3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+var todoList=[];
+
+
+  // {
+  //   id : 1,
+  //   title:'Learn React',
+  //   description:'React is very cool framework for frontend development'
+    
+  // },
+  // {
+  //   id : 2,
+  //   title:'Learn javascript',
+  //   description:'JavaScript is very important language for frontend as well as backend development'
+    
+  // }
+
+
+function printAlltodos(req,res){
+  fs.readFile("./files/todoList.json","utf8",(err,data)=>{
+    if(err){
+    throw err;
+    }
+res.json(JSON.parse(data));
+  });
+}
+
+function printIDtodo(req,res){
+  const todoId=parseInt(req.params.id);
+  fs.readFile("./files/todoList.json","utf8",(err,data)=>{
+    if(err)throw err;
+    const todos=JSON.parse(data);
+    const todoIndex=todos.findIndex((todo)=>todo.id===todoId);
+    if(todoIndex===-1){
+     res.status(404).send('error: Todo not found');
+    }
+   res.status(200).json(todos[todoIndex]);
+  });
+
+  
+}
+
+function createTodo(req,res){
+ fs.readFile("./files/todoList.json","utf8",(err,data)=>{
+  if(err)throw err;
+  const todos=JSON.parse(data);
+  var newTodoId=todos.length+1;
+  const newTodo={
+    id:newTodoId,
+    title: req.body.title,
+    description : req.body.description
+  };
+  todos.push(newTodo);
+  fs.writeFile("./files/todoList.json",JSON.stringify(todos),"utf8",(err)=>{
+    if(err)throw err;
+  res.status(201).json(newTodo);
+
+  });
+ });
+  
+}
+
+function updateIDtodo(req,res){
+  const todoId=parseInt(req.params.id);
+  fs.readFile("./files/todoList.json","utf8",(err,data)=>{
+    if(err)throw err;
+    const todos=JSON.parse(data);
+    var todoIndex=todos.findIndex((todo)=>todo.id===todoId);
+    if(todoIndex===-1){
+      res.status(404).send('error: Todo not found');
+      }
+      todos[todoIndex].title=req.body.title;
+      todos[todoIndex].description=req.body.description;
+    fs.writeFile("./files/todoList.json",JSON.stringify(todos),"utf8",(err)=>{
+      if(err)throw err;
+      res.status(200).json(todoList[todoIndex]);
+    });
+  });
+}
+
+function deleteTodo(req,res){
+  let todoId=parseInt(req.params.id);
+  fs.readFile("./files/todoList.json","utf8",(err,data)=>{
+    if(err)throw err;
+    const todos=JSON.parse(data);
+    const index=todos.findIndex((todo)=>todoId===todo.id);
+    if(index===-1){
+    res.status(404).send('error: Todo not found');
+    }
+    todos.splice(index, 1);
+    for(let i=0;i<todos.length;i++){
+      todos[i].id=i+1;
+    }
+    fs.writeFile("./files/todoList.json",JSON.stringify(todos),"utf8",(err)=>{
+      if(err)throw err;
+  res.status(200).send();
+
+    });
+  });
+}
+
+app.get('/todos',printAlltodos)
+app.get('/todos/:id',printIDtodo)
+app.post('/todos',createTodo)
+app.put('/todos/:id',updateIDtodo)
+app.delete('/todos/:id',deleteTodo)
+
+app.get('/',(req,res)=>{
+  res.sendFile(path.join(__dirname,"./solutions/index.html"));
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'route not defined in the server' });
+});
+
+app.listen(port,(req,res)=>{
+  console.log(`app is listening on ${port}`);
+})
 
 module.exports = app;
