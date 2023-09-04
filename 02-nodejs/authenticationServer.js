@@ -27,11 +27,76 @@
   - For any other route not defined in the server return 404
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
- */
+ */ 
 
 const express = require("express")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var user = [];
+
+app.use(express.json());
+app.post("/signup", (req, res) => {
+  var user = req.body;
+  let userAlreadyExists = false;
+  for ( var i = 0; i< user.length; i++) {
+    if (user[i].email === user.email) {
+      userAlreadyExists = true;
+      break;
+    }
+  }
+  if (userAlreadyExists) {
+    res.sendStatus(400);
+  } else {
+    res.status(send("signup successful"));
+  }
+});
+
+app.post("/login", (req, res)=> {
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i< user.length; i++) {
+    if (user[i].email === user.email && user[i].password === user.password) {
+      userFound = user[i];
+      break;
+    }
+  }
+  if (userFound) {
+    res.json({
+      firstName: userFound.firstName,
+      lastName: userFound.lastName,
+      email: userFound.email
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res)=>{
+  var email = req.header.email;
+  let password = req.header.password;
+  let userFound = false;
+  for (var i = 0; i< user.length; i++) {
+    if (user[i].email === email && user[i].password === password) {
+      userFound = true;
+      break;
+    }
+  }
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i<user.length; i++) {
+      usersToReturn.push({
+        firstName: user[i].firstName,
+        lastName: user[i].lastName,
+        email: user[i].email
+      });
+    }
+    res.json({
+      users
+    });
+  }else{
+    res.sendStatus(401);
+  }
+})
 
 module.exports = app;
