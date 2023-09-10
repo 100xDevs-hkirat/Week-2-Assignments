@@ -40,30 +40,18 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
   const express = require('express');
-  const fs = require('fs');
   const bodyParser = require('body-parser');
   
   const app = express();
   const port = 3000;
-  const todosFilePath = 'todos.json';
-
-  let todos = loadTodos();
-
+  
+  var todos = [];
+  
   app.use(bodyParser.json());
   
-
-  function loadTodos(){
-    try {
-      const data = fs.readFileSync(todosFilePath, 'utf8');
-      return JSON.parse(data);
-    } catch (error) {
-      return [];
-    }
-  }
-
-  function saveTodos() {
-    const data = JSON.stringify(todos);
-    fs.writeFileSync(todosFilePath, data, 'utf8');
+  
+  function getTodos() {
+    return todos;
   }
   
   function getTodoById(id) {
@@ -92,7 +80,7 @@
   }
   
   app.get('/todos', (req,res)=>{
-    res.status(200).json(todos);
+    res.status(200).json(getTodos());
   })
   
   app.get('/todos/:id', (req,res)=>{
@@ -106,7 +94,6 @@
   
   app.post('/todos', (req,res)=>{
     var newTask = createTask(req.body.title, req.body.description);
-    saveTodos();
     res.status(201).json(newTask);
   })
   
@@ -116,7 +103,6 @@
       res.status(404).send();
     } else {
       updateTask(todoIndex, req.body.title, req.body.description);
-      saveTodos();
       res.json(todos[todoIndex]);
     }
   }) 
@@ -125,7 +111,6 @@
     var id = req.params.id;
     if(id <= todos.length){
       var deletedTask = deleteTask(id);
-      saveTodos();
       res.status(200).json(deletedTask);
     } else {
       res.status(404).send('Not Found');
@@ -140,3 +125,4 @@
       res.status(404).send('Not Found');
   })
   module.exports = app;
+  
