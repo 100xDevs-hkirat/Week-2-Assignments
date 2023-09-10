@@ -30,8 +30,72 @@
  */
 
 const express = require("express")
+const bodyParser = require('body-parser');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+var users = [];
+
+app.post('/signup', (req, res) => {
+  var user = req.body;
+  user.id = users.length + 1;
+  let userAlreadyExists = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === user.email) {
+        userAlreadyExists = true;
+        break;
+    }
+  }
+  if (userAlreadyExists) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+}) 
+
+app.post('/login', (req, res) => {
+  var user = req.body;
+  let userFound = null;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === user.email && users[i].password === user.password) {
+        userFound = users[i];
+        break;
+    }
+  }
+  if (userFound) {
+    res.status(200).send(userFound);
+  } else {
+    res.sendStatus(401);
+  }
+})
+
+app.get('/data', (req, res) => {
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = null;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = users[i];
+        break;
+    }
+  }
+  if (userFound) {
+    res.status(200).send({users: users});
+  }
+  else {
+    res.sendStatus(401);
+  }
+})
+
+app.use((req,res, next) => {
+  res.status(404).send('Route not found')
+})
+ 
+// app.listen(PORT , () => {
+//   console.log(`Server is listening on port ${PORT}`)
+// })
 
 module.exports = app;
