@@ -43,7 +43,85 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const port = 3000;
+
+var todos = [];
 
 app.use(bodyParser.json());
 
+
+function getTodos() {
+  return todos;
+}
+
+function getTodoById(id) {
+  return todos[id-1];
+}
+
+function createTask(title, description){
+  var newTask = {
+    id: todos.length + 1,
+    title: title,
+    description: description,
+    completed: false
+  }
+  todos.push(newTask);
+  return newTask;
+}
+
+function updateTask(id, title, description){
+  todos[id-1].title = title;
+  todos[id-1].description = description;
+}
+
+function deleteTask(id){
+  todos.splice(id-1,1);
+  return todos;
+}
+
+app.get('/todos', (req,res)=>{
+  res.status(200).json(getTodos());
+})
+
+app.get('/todos/:id', (req,res)=>{
+  var id = req.params.id;
+  if(id-1 < todos.length){
+    res.status(200).json(getTodoById(id));
+  } else {
+    res.status(404).send('Not Found');
+  }
+})
+
+app.post('/todos', (req,res)=>{
+  var newTask = createTask(req.body.title, req.body.description);
+  res.status(201).json(newTask);
+})
+
+app.put('/todos/:id', (req,res) => {
+  var todoIndex = parseInt(req.params.id);
+  if (todoIndex > todos.length) {
+    res.status(404).send();
+  } else {
+    updateTask(todoIndex, req.body.title, req.body.description);
+    res.json(todos[todoIndex]);
+  }
+}) 
+
+app.delete('/todos/:id', (req,res) => {
+  var id = req.params.id;
+  if(id <= todos.length){
+    var deletedTask = deleteTask(id);
+    res.status(200).json(deletedTask);
+  } else {
+    res.status(404).send('Not Found');
+  }
+})
+
+// app.listen(port, () => {
+//   console.log(`Server listening at http://localhost:${port}`);
+// });
+
+app.use((req,res,next)=>{
+    res.status(404).send('Not Found');
+})
 module.exports = app;
