@@ -30,8 +30,81 @@
  */
 
 const express = require("express")
-const PORT = 3000;
 const app = express();
+const PORT = 3000;
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+app.use(express.json());
+function postFunc1(req,res){
+  let user = req.body;
+  let userExists = false;
+  for(let i=0;i<users.length;i++){
+    if(users[i].email===user.email){
+      userExists = true;
+      break;
+    }
+  }
+  if (userExists) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+}
+
+function postFunc2(req,res){
+  let user = req.body;
+  let authUser = null;
+  for(let i=0;i<users.length;i++){
+    if(users[i].email===user.email&&users[i].password===user.password){
+      authUser = users[i];
+      break;
+    }
+  }
+  if (authUser) {
+    res.json({
+        firstName: authUser.firstName,
+        lastName: authUser.lastName,
+        email: authUser.email
+    });
+  } else {
+    res.sendStatus(401);
+  }
+}
+
+function middleware(req,res,next){
+  let user = req.headers;
+  let authUser = null;
+  for(let i=0;i<users.length;i++){
+    if(users[i].email===user.email&&users[i].password===user.password){
+      authUser = users[i];
+    }
+  }
+  if(authUser){
+    req.authorizedUser = authUser;
+    next();
+  }
+  else{
+    res.sendStatus(401);
+  }
+
+}
+
+function getFunc(req,res){
+  let authorizedUser = req.authorizedUser;
+  let arr = [];
+  for(let i=0;i<users.length;i++){
+    arr.push({
+      firstName: users[i].firstName,
+      lastName: users[i].lastName,
+      email: users[i].email
+    });
+  }
+  res.json({users : arr})
+}
+app.post('/signup',postFunc1);
+app.post('/login',postFunc2);
+app.get('/data',middleware,getFunc);
 
 module.exports = app;
