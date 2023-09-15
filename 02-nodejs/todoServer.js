@@ -46,4 +46,76 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todos = [];
+function callTodos(req,res){
+  res.json(todos);
+}
+function callbyId(req,res){
+  let todo = null;
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id === parseInt(req.params.id)){
+      todo = todos[i];
+    }
+  }
+  if(todo){
+    res.json(todo);
+  }else{
+    res.status(404).send();
+  }
+}
+
+
+function postTodos(req,res){
+  let todo = {
+    id : Math.floor(Math.random()*1000000),
+    title : req.body.title,
+    description : req.body.description,
+  };
+  todos.push(todo);
+  res.status(201).json(todo);
+}
+
+function putTodos(req,res){
+    let updatedTodo = null;
+    const updateId = parseInt(req.params.id); // Parse req.body.id to an integer
+
+    for (let i = 0; i < todos.length; i++) {
+      if (todos[i].id === updateId) { // Compare with the parsed ID
+      todos[i].title = req.body.title;
+      todos[i].description = req.body.description;
+      updatedTodo = todos[i]; // Store the updated item
+      break;
+      }
+    }
+    if (!updatedTodo) {
+      res.status(404).send();
+    }else{
+      res.json(updatedTodo);
+    }
+}
+ 
+function deleteTodo(req,res){
+  let found = false;
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id === parseInt(req.params.id)){
+      todos.splice(i,1);
+      found = true;
+    }
+  }
+  if(found){
+    res.status(200).send();
+  }else{
+    res.status(404).send();
+  }
+}
+
+app.get('/todos',callTodos);
+app.get('/todos/:id',callbyId);
+app.post('/todos',postTodos);
+app.put('/todos/:id',putTodos);
+app.delete('/todos/:id',deleteTodo);
+
+app.all('*',(req,res)=>{
+  res.status(404).send();
+})
 module.exports = app;
