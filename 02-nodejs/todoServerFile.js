@@ -39,74 +39,109 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
 const express = require('express');
-const bodyParser = require('body-parser');
-
+const fs = require('fs');
 const app = express();
-
+const bodyParser = require('body-parser')
 app.use(bodyParser.json());
 
-let todos = [];
 function callTodos(req,res){
-  res.json(todos);
-}
-function callbyId(req,res){
-  let todo = null;
-  for(let i=0;i<todos.length;i++){
-    if(todos[i].id === parseInt(req.params.id)){
-      todo = todos[i];
+  fs.readFile('todos.json','utf-8',(err,data)=>{
+    if(err){
+      throw err;
+    }else{
+      res.json(JSON.parse(data));
     }
-  }
-  if(todo){
-    res.json(todo);
-  }else{
-    res.status(404).send();
-  }
+  })
 }
 
+function callbyId(req,res){
+  fs.readFile('todos.json','utf-8',(err,data)=>{
+    if(err){
+      throw err;
+    }else{
+      let data2 = JSON.parse(data);
+      let todo = null;
+      for(let i=0;i<data2.length;i++){
+        if(data2[i].id === parseInt(req.params.id)){
+          todo = data2[i];
+        }
+      }
+      if(todo){
+        res.json(todo);
+      }else{
+        res.status(404).send();
+      }
+
+    }
+  })
+}
 
 function postTodos(req,res){
   let todo = {
-    id : Math.floor(Math.random()*1000000),
+    id: Math.floor(Math.random() * 1000000),
     title : req.body.title,
     description : req.body.description,
   };
-  todos.push(todo);
-  res.status(201).json(todo);
+  fs.readFile('todos.json','utf-8',(err,data)=>{
+    if(err){
+      throw err;
+    }else{
+      let data2 = JSON.parse(data);
+      data2.push(todo);
+      fs.writeFile('todos.json',JSON.stringify(data2),(err)=>{
+        if(err) throw err;
+        res.status(201).send(todo);
+      })
+    }    
+  })
 }
 
 function putTodos(req,res){
-    let updatedTodo = null;
-    const updateId = parseInt(req.params.id); // Parse req.body.id to an integer
-
-    for (let i = 0; i < todos.length; i++) {
-      if (todos[i].id === updateId) { // Compare with the parsed ID
-      todos[i].title = req.body.title;
-      todos[i].description = req.body.description;
-      updatedTodo = todos[i]; // Store the updated item
-      break;
+  const id = parseInt(req.params.id);
+  fs.readFile('todos.json','utf-8',(err,data)=>{
+    if(err) throw err;
+    let data2 = JSON.parse(data);
+    let newTodo = null;
+    for(let i=0;i<data2.length;i++){
+      if(data2[i].id === parseInt(req.params.id)){
+        data2[i].title = req.body.title;
+        data2[i].description = req.body.description;
+        newTodo = data2[i];
+        break;
       }
     }
-    if (!updatedTodo) {
-      res.status(404).send();
+    if(newTodo){
+      fs.writeFile('todos.json',JSON.stringify(data2),(err)=>{
+        if(err) throw err;
+        res.status(200).send(newTodo);
+      })
     }else{
-      res.json(updatedTodo);
+      res.status(404).send();
     }
+  })
 }
- 
-function deleteTodo(req,res){
-  let found = false;
-  for(let i=0;i<todos.length;i++){
-    if(todos[i].id === parseInt(req.params.id)){
-      todos.splice(i,1);
-      found = true;
+
+function deleteTodos(req,res){
+  fs.readFile('todos.json','utf-8',(err,data)=>{
+    let data2 = JSON.parse(data);
+    let found = false;
+    for(let i=0;i<data2.length;i++){
+      if(data2[i].id === parseInt(req.params.id)){
+        data2.splice(i,1);
+        found = true;
+        break;
+      }
+    }if(found){
+      fs.writeFile('todos.json',JSON.stringify(data2),(err)=>{
+      if(err) throw err;
+      res.status(200).send();
+    })
+    }else{
+      res.status(404).send();
     }
-  }
-  if(found){
-    res.status(200).send();
-  }else{
-    res.status(404).send();
-  }
+  })
 }
 
 app.get('/todos',callTodos);
@@ -118,4 +153,5 @@ app.delete('/todos/:id',deleteTodo);
 app.all('*',(req,res)=>{
   res.status(404).send();
 })
+
 module.exports = app;
