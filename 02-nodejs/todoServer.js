@@ -46,4 +46,66 @@ const app = express();
 
 app.use(bodyParser.json());
 
+let todo = []; 
+
+
+app.get('/todos', (req, res) => {
+  res.json(todo);
+});
+app.get('/todos/:id' , (req,res) =>{
+    const todos =  todo.findIndex(t => t.id === parseInt(req.params.id))
+    if(todos === -1){
+      res.sendStatus(404)
+    }
+    else{
+      res.json(todo[todos])
+    }
+})
+
+app.post('/todos' ,(req,res) =>{
+    
+      const obj  = {
+        id: Math.floor(Math.random()*1000000),
+        task:req.body.task,
+        description: req.body.description
+      }
+      todo.push(obj);
+      res.status(201).json(obj)
+
+})
+app.put('/todos/:id' ,(req,res) =>{
+
+    const todoIndex = todo.findIndex(t => t.id === parseInt(req.params.id))
+    if(todoIndex === -1){
+      res.status(404).send();
+
+    }
+    else{
+      todo[todoIndex].task = req.body.task;
+      todo[todoIndex].description = req.body.description;
+      res.json(todo[todoIndex]);
+    }
+    
+})
+
+app.delete('/todos/:id' ,(req,res) =>{
+  const index = todo.findIndex(t  =>t.id === parseInt(req.params.id))
+
+  if(index === -1){
+    res.sendStatus(404);
+  }
+  else{
+    todo.splice(index,1)
+    res.sendStatus(200)
+  }
+})
+
+app.all('*' , (req,res) =>{
+  res.sendStatus(404)
+})
+
+app.listen(3004,() =>{
+  console.log(`Server is listening on http://localhost:3000`);
+})
+
 module.exports = app;
