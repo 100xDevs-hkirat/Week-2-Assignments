@@ -39,11 +39,120 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+const STORAGE_PATH = path.join(__dirname, "store.json");
+
+//routes
+app.get("/todos", getAllTodos);
+app.get("/todos/:id", getTodoById);
+app.post("/todos", createTodo);
+app.put("/todos/:id", updateTodoById);
+app.delete("/todos/:id", removeTodoById);
+app.use((_, res) => {
+  res.status(404).end();
+});
+
+//handlers
+function getAllTodos(req, res) {
+  return readFromStorage()
+    .then((todos) => {
+      res.json(todos);
+    })
+    .catch((err) => {
+      throw err; // express automatically catches this
+    });
+}
+
+function getTodoById(req, res) {
+  const todoId = req.params.id;
+
+  return readFromStorage()
+    .then((todos) => {
+      const foundTodo = todos.find((todo) => todo.id === todoId);
+      if (foundTodo) res.json(foundTodo);
+      else res.status(404).send({ error: "Todo not found" });
+    })
+    .catch((err) => {
+      throw err;
+    });
+}
+
+function createTodo(req, res) {
+  const newTodo = req.body;
+  newTodo.id = uuidv4();
+
+  return readFromStorage()
+    .then((todos) => {
+      todos.push(newTodo);
+      return todos;
+    })
+    .then(writeToStorage)
+    .then(() => res.status(201).json({ id: newTodo.id }))
+    .catch((err) => {
+      throw err;
+    });
+}
+
+function updateTodoById(req, res) {
+  const todoId = req.params.id;
+  const fieldsToUpdate = req.body;
+
+  return readFromStorage()
+    .then((todos) => {
+      const foundTodoIndex = todos.findIndex((todo) => todo.id === todoId);
+
+      if (foundTodoIndex === -1)
+        res.status(404).send({ error: "Todo not found" });
+
+      todos[foundTodoIndex] = { ...todos[foundTodoIndex], ...fieldsToUpdate };
+      return todos;
+    })
+    .then(writeToStorage)
+    .then(() => res.end())
+    .catch((err) => {
+      throw err;
+    });
+}
+
+function removeTodoById(req, res) {
+  const todoId = req.params.id;
+
+  return readFromStorage()
+    .then((todos) => {
+      const foundTodoIndex = todos.findIndex((todo) => todo.id === todoId);
+      if (foundTodoIndex === -1)
+        res.status(404).send({ error: "Todo not found" });
+
+      todos.splice(foundTodoIndex, 1);
+      return todos;
+    })
+    .then(writeToStorage)
+    .then(() => res.end())
+    .catch((err) => {
+      throw err;
+    });
+}
+
+function readFromStorage() {
+  return fs.readFile(STORAGE_PATH, "utf8").then((data) => {
+    if (!data) return [];
+
+    return JSON.parse(data);
+  });
+}
+
+function writeToStorage(data) {
+  const stringifyData = JSON.stringify(data);
+  return fs.writeFile(STORAGE_PATH, stringifyData);
+}
 
 module.exports = app;
