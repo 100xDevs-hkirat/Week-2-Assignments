@@ -29,9 +29,91 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
+
+const users = [];
+
+app.post("/signup", handleSignUp);
+app.post("/login", handleLogin);
+app.get("/data", isAuthenticated, getAllUsers);
+app.use((_, res) => {
+  res.status(404).send("Route not found");
+});
+
+function handleSignUp(req, res) {
+  const { email, password, firstName, lastName } = req.body;
+
+  if (users.length > 0) {
+    const foundUserIndex = users.findIndex((user) => user.email === email);
+    if (foundUserIndex > -1) res.status(400).send("Email already exists");
+  }
+
+  users.push({
+    email,
+    password,
+    firstName,
+    lastName,
+  });
+
+  res.status(201).send("Signup successful");
+}
+
+function handleLogin(req, res) {
+  const { email, password } = req.body;
+
+  const foundUser = users.find(
+    (user) => user.email === email && user.password === password
+  );
+  if (!foundUser) res.status(401).send("Invalid Credentials");
+
+  res.json({
+    email: foundUser.email,
+    firstName: foundUser.firstName,
+    lastName: foundUser.lastName,
+    authToken: generateToken(24),
+  });
+}
+
+function generateToken(length) {
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let token = "";
+
+  for (let i = 0; i < length; i++) {
+    const index = Math.floor(Math.random() * charset.length);
+    token += charset[index];
+  }
+
+  return token;
+}
+
+function isAuthenticated(req, res, next) {
+  const { email, password } = req.headers;
+
+  const foundUserIndex = users.findIndex(
+    (user) => user.email === email && user.password === password
+  );
+
+  if (foundUserIndex > -1) next();
+  else res.status(401).send("Unauthorized");
+}
+
+function getAllUsers(req, res) {
+  const formattedUsers = users.map((user) => {
+    return {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+  });
+
+  res.json({ users: formattedUsers });
+}
 
 module.exports = app;
