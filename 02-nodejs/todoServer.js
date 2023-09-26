@@ -41,9 +41,77 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
+var allTodos = [];
+const PORT = 3000;
 
 app.use(bodyParser.json());
 
+app.get("/todos", (req,res) => {
+  res.json(allTodos);
+})
+
+app.get("/todos/:id", (req,res) => {
+  var queryId = req.params.id;
+  var returnObj = {};
+  if (allTodos.length > 0) {
+    allTodos.forEach((val) => {
+      if (val.id == queryId) {
+        returnObj = val;
+      }
+    })
+  }
+
+  if (returnObj.id != null) {
+    res.json(returnObj);
+  } else {
+    res.status(404).send("Not Found");
+  }
+})
+
+app.post("/todos", (req,res) => {
+  var addTodos = req.body;
+  var id = allTodos.length + 1;
+  if (addTodos != null) {
+    addTodos.id = id;
+    allTodos.push(addTodos);
+    res.status(201).send({"id": id});
+  }
+})
+
+app.put("/todos/:id", (req,res) => {
+  var id = req.params.id;
+  var updatedItem = req.body;
+  var index = null;
+  if(allTodos.length > 0) {
+    index = allTodos.findIndex((val) => val.id == id);
+    
+    if (index > -1) {
+      updatedItem.id = index + 1;
+      allTodos[index] = updatedItem;
+      res.status(200).send("found and updated");
+    }
+  }
+  if (index == -1) {
+    res.status(404).send("Not Found");
+  }
+})
+
+app.delete("/todos/:id", (req,res) => {
+  var id = req.params.id;
+  var index = null;
+  if(allTodos.length > 0) {
+    index = allTodos.findIndex((val) => val.id == id);
+    
+    if (index > -1) {
+      allTodos.splice(index, 1);
+      res.status(200).send("found and deleted");
+    }
+  }
+  if (index == -1) {
+    res.status(404).send("Not Found");
+  }
+})
+
+// app.listen(PORT);
 module.exports = app;

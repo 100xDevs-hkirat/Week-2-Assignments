@@ -113,5 +113,5 @@ app.get("/data", (req,res) => {
   }
 })
 
-app.listen(PORT);
+// app.listen(PORT);
 module.exports = app;
