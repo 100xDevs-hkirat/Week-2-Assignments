@@ -39,11 +39,140 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+  const fs = require("fs");
+  const express = require("express");
+  const { dirname } = require("path");
+  const app = express();
+  const port = 3000;
+  const bodyParser = require("body-parser");
+  const cors = require("cors")
+  class Post {
+    constructor(title, description, id) {
+      (this.title = title), (this.description = description), (this.id = id);
+    }
+  }
 
-const app = express();
+  app.use(cors());
+  app.use(bodyParser.json());
+  
+  // gets all the Ids
+  app.get("/todos", (req, res) => {
+    fs.readFile("a.json", "utf-8", (err, data) => {
+      try {
+        if (err) throw err;
+        res.status(200).sendFile(__dirname + "/a.json");
+      } catch (error) {
+        console.error("there is an error", error.message);
+      }
+    });
+  });
+  
+  // get a post identified by the id
+  
+  app.get("/todos/:id", (req, res) => {
+    const Id = req.params.id;
+    // var data = fs.readFileSync('a.json');
+    // var MyObject = JSON.parse(data);
+    var data = fs.readFileSync("a.json");
+    var MyObject = JSON.parse(data);
+    const Index = MyObject.findIndex((item) => item.id == Id);
+    if (Index == -1) {
+      res.status(404).send("No post found");
 
-app.use(bodyParser.json());
+      // res.send("No post found")
+    } else {
+      console.log(Index);
+      console.log(MyObject[Index]);
+      res.status(200).json(MyObject[Index]);
+    }
+  });
+  
+  // adds a new post
+  
+  app.post("/todos", (req, res) => {
+    const t = req.body.title;
+    const d = req.body.description;
+    console.log("the description is" + d);
+    const currentDate = new Date();
+    const timestamp = currentDate.getTime();
+    const NewPost = new Post(t, d, timestamp);
+  
+    var data = fs.readFileSync("a.json");
+    const MyObject = JSON.parse(data);
+    MyObject.push(NewPost);
+  
+    fs.writeFile("a.json", JSON.stringify(MyObject), function (err) {
+      try {
+        if (err) throw err;
+        // res.status(201).json({ id: timestamp });
+        res.status(201).send("Todo is updated")
+        console.log("The post is updated");
+      } catch (error) {
+        console.error("there is an error", error.message);
+      }
+    });
+  });
+  
+  app.put("/todos/:id", (req, res) => {
+    const Id = req.params.id;
+    const NewTitle = req.body.title;
+    const NewDescription = req.body.description;
+    // console.log("Id is"+Id)
+    var data = fs.readFileSync("a.json");
+    var MyObject = JSON.parse(data);
+    const Index = MyObject.findIndex((item) => item.id == Id);
+  
+    if (Index == -1) {
+      res.status(404).send("No post found");
+    } else {
+      if (NewTitle != undefined) {
+        MyObject[Index]["title"] = NewTitle;
+      }
+      if (NewDescription != undefined) {
+        MyObject[Index]["description"] = NewDescription;
+      }
+  
+      // console.log("index is "+Index)
+      fs.writeFile("a.json", JSON.stringify(MyObject), function (err) {
+        try {
+          if (err) throw err;
+          res.status(200).send("the post is updated");
+          console.log("The post is updated");
+        } catch (error) {
+          console.error("there is an error", error.message);
+        }
+      });
+    }
+  });
+  
+  // deletes the post item identified with the Id
+  app.delete("/todos/:id", (req, res) => {
+    const Id = req.params.id;
+    console.log("Id is" + Id);
+    var data = fs.readFileSync("a.json");
+    var MyObject = JSON.parse(data);
+    const Index = MyObject.findIndex((item) => item.id == Id);
+    if(Index==-1){
+      res.status(404).send("No Post found");
+    }else{
+      MyObject.splice(Index, 1);
+      console.log("index is " + Index);
+      fs.writeFile("a.json", JSON.stringify(MyObject), function (err) {
+        try {
+          if (err) throw err;
+          res.status(200).send("the post is deleted");
+          console.log("The post is deleted");
+        } catch (error) {
+          console.error("there is an error", error.message);
+
+
+        }
+      });
+    }
+  });
+
+  app.get('*', function(req, res){
+    res.status(404).send('No route found');
+  });
 
 module.exports = app;

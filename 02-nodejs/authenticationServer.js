@@ -28,10 +28,109 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
-
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const fs = require("fs");
+  const express = require("express");
+  const { dirname } = require("path");
+  const app = express();
+  const PORT = 3000;
+  const jwt = require("jsonwebtoken");
+  const crypto = require("crypto");
+  const port = 3000;
+  
+  class User {
+    constructor(username, firstname, lastname, password, id) {
+      (this.username = username),
+        (this.firstname = firstname),
+        (this.lastname = lastname),
+        (this.password = password),
+        (this.id = id);
+    }
+  }
+  
+  const bodyParser = require("body-parser");
+  app.use(bodyParser.json());
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  
+  app.post("/signup", (req, res) => {
+    let UserName = req.body.username;
+    var data = fs.readFileSync("b.json");
+    var MyObject = JSON.parse(data);
+    const Index = MyObject.findIndex((item) => item.username == UserName);
+    if (Index == -1) {
+      let FirstName = req.body.firstname;
+      let LastName = req.body.secondname;
+      let Password = req.body.password;
+      const currentDate = new Date();
+      const timestamp = currentDate.getTime();
+      const NewUser = new User(
+        UserName,
+        FirstName,
+        LastName,
+        Password,
+        timestamp
+      );
+      var data = fs.readFileSync("b.json");
+      const MyObject = JSON.parse(data);
+      MyObject.push(NewUser);
+  
+      fs.writeFile("b.json", JSON.stringify(MyObject), function (err) {
+        try {
+          if (err) throw err;
+          res.status(201).json({ id: timestamp });
+          console.log("The post is updated");
+        } catch (error) {
+          res.status(400)
+          console.error("there is an error", error.message);
+        }
+      });
+    } else {
+      res.status(400).send("User name already exists");
+    }
+  });
+  
+  app.get("/data", (req, res) => {
+    fs.readFile("b.json", "utf-8", (err, data) => {
+      try {
+        if (err) throw err;
+        res.status(200).sendFile(__dirname + "/b.json");
+      } catch (error) {
+        console.error("there is an error", error.message);
+      }
+    });
+  });
+  
+  app.post("/login", (req, res) => {
+    let UserName = req.body.username;
+    var data = fs.readFileSync("b.json");
+    var MyObject = JSON.parse(data);
+    const Index = MyObject.findIndex((item) => item.username == UserName);
+    if (Index != -1) {
+      // Generate a random cryptographic key
+      const generateSecretKey = () => {
+        return crypto.randomBytes(32).toString("hex");
+      };
+      const secretKey = generateSecretKey();
+      let FirstName = req.body.firstname;
+      let LastName = req.body.secondname;
+      const payload = {
+        firstname: FirstName,
+        lastname: LastName,
+        message: "logged in success",
+      };
+      const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+      console.log(token)
+      res.status(200).json(token);
+    } else {
+      res.status(401).send("INVALID USER CREDENTIALS");
+    }
+  });
+  
+  app.get('*', function(req, res){
+    res.send('no route found', 404);
+  });
+  
+  
+  module.exports = app;
+  
+  
+  
