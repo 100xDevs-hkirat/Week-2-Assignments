@@ -41,9 +41,116 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require('fs');
 const app = express();
+var allTodos = [];
+const PORT = 3000;
 
 app.use(bodyParser.json());
 
+app.get("/todos", (req,res) => {
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    res.json(JSON.parse(data));
+  })
+})
+
+app.get("/todos/:id", (req,res) => {
+  var queryId = req.params.id;
+
+  fs.readFile("todos.json", "utf-8", (err,data) => {
+    if (err) throw err;
+    var returnobj = {};
+    const todos = JSON.parse(data);
+    todos.forEach((val) => {
+      if(val.id == queryId) {
+        returnobj = val;
+      }
+    })
+
+    if (returnobj.id != null) {
+      res.json(returnobj);
+    } else {
+      res.status(404).send("Not Found");
+    }
+  })
+})
+
+app.post("/todos", (req,res) => {
+  const newtodo = {
+    id: Math.floor(Math.random() * 10000),
+    title: req.body.title,
+    description: req.body.description
+  }
+
+  fs.readFile("todos.json", "utf-8", (err,data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newtodo);
+
+    fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+      if (err) throw err;
+      res.status(201).send({"id": newtodo.id});
+    })
+  })
+})
+
+app.put("/todos/:id", (req,res) => {
+  var id = req.params.id;
+  var updatedItem = req.body;
+  updatedItem.id = id;
+  var index = null;
+
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+
+    if(todos.length > 0) {
+      index = todos.findIndex((val) => val.id == id);
+
+      if (index > -1) {
+        todos[index] = updatedItem;
+
+        fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+          if (err) throw err;
+          res.status(200).send("found and updated");
+        })
+      }
+
+      if (index == -1) {
+        res.status(404).send("Not Found");
+      }
+    }
+  })
+})
+
+app.delete("/todos/:id", (req,res) => {
+  var id = req.params.id;
+  var index = null;
+
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+
+    const todos = JSON.parse(data);
+
+    if(todos.length > 0) {
+      index = todos.findIndex((val) => val.id == id);
+
+      if (index > -1) {
+        todos.splice(index, 1);
+
+        fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+          if (err) throw err;
+          res.status(200).send("found and deleted");
+        })
+      }
+
+      if (index == -1) {
+        res.status(404).send("Not Found");
+      }
+    }
+  })
+})
+
+app.listen(PORT);
 module.exports = app;

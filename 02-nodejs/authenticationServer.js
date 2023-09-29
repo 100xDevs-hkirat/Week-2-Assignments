@@ -30,8 +30,88 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser")
+const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+var arrUsers = [];
 
+app.use(bodyParser.json())
+
+app.post("/signup", (req,res) => {
+  userExists = false;
+  var jsonObject = req.body;
+  if(arrUsers.length > 0) {
+    arrUsers.forEach((val) => {
+      if(jsonObject.email === val.email) {
+        userExists = true;
+      }
+    })
+  }
+
+  if (!userExists) {
+    jsonObject.uuid = uuidv4();
+    arrUsers.push(jsonObject);
+    res.status(201).send("Signup successful");
+  } else {
+    res.status(400).send("Username already exists");
+  }
+})
+
+app.post("/login", (req,res) => {
+  userFound = false;
+  requestedUser = {};
+  var authFields = req.body;
+  if(arrUsers.length > 0) {
+    arrUsers.forEach((val) => {
+      if(val.email === authFields.email && val.password === authFields.password) {
+        userFound = true;
+        requestedUser = val;
+      }
+    })
+  }
+
+  if(userFound) {
+    var token = jwt.sign({
+      username: authFields.username,
+      password: authFields.password
+    }, "privatekey");
+    res.json({
+      "email": requestedUser.email,
+      "firstName": requestedUser.firstName,
+      "lastName": requestedUser.lastName,
+      "token": token
+      });
+  } else {
+    res.status(401).send("Unauthorized user credentials");
+  }
+  
+})
+
+app.get("/data", (req,res) => {
+  var emailD = req.headers.email;
+  var passwordD = req.headers.password;
+  var returnObj = [];
+  if (emailD != null && emailD.trim() != "" && passwordD != null && passwordD.trim() != "") {
+    if(arrUsers.length > 0) {
+      arrUsers.forEach((val) => {
+        returnObj.push({
+          "firstName": val.firstName,
+          "lastName": val.lastName,
+          "id": val.uuid
+        });
+      });
+    }
+
+    res.status(200).send({
+      "users": returnObj
+    });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+})
+
+// app.listen(PORT);
 module.exports = app;
