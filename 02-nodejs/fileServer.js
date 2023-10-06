@@ -20,6 +20,47 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
 
+app.get('/files', (req, res) => {
+  const folderPath = './files/';
+  const jsonArray = [];
+
+  fs.readdir(folderPath, (err, files) => {
+    if(err){
+      res.status(404);
+      return;
+    }
+
+    files.forEach((file) => {
+      const jsonObject = {
+        "name": file,
+      };
+
+      jsonArray.push(jsonObject);
+    })
+
+    res.status(200).json(jsonArray);
+  })
+});
+
+app.get('/file/:filename', (req, res) => {
+  const filepath = path.join(__dirname, './files/', req.params.filename);
+
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.send(data);
+  });
+});
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+})
+
+app.listen(port, function(){
+  console.log(`Example app listening on server port $port`);
+});
 
 module.exports = app;
