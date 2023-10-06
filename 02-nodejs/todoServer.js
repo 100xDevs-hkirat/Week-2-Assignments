@@ -41,9 +41,103 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000;
 
 const app = express();
 
+var listOfItems = [];
+
 app.use(bodyParser.json());
+
+app.get('/todos', (req, res) => {
+  res.status(200).json(listOfItems);
+});
+
+app.get('/todos/:id', (req, res) => {
+  var idOfItem = req.params.id;
+  var check = null;
+
+  for(let i=0;i<listOfItems.length;i++){
+    if(idOfItem == listOfItems[i].id){
+      check = listOfItems[i];
+      break;
+    }
+  }
+
+  if(check){
+    res.status(200).json({
+      "title": check.title,
+      "completed": check.completed,
+      "description": check.description
+    });
+  }
+
+  else{
+    res.status(404).send("Item not found");
+  }
+})
+
+app.post('/todos', (req, res) => {
+  var newTodoItem = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  };
+
+  listOfItems.push(newTodoItem);
+  res.status(200);
+});
+
+app.put('/todos/:id', (req, res) => {
+  var found = null;
+  var idOfItem = req.params.id;
+
+  for(let i=0;i<listOfItems.length;i++){
+    if(idOfItem == listOfItems[i].id){
+      found = listOfItems[i];
+      break;
+    }
+  }
+
+  if(found){
+    var updatedObject = {
+      title: req.body.title,
+      description: req.body.description,
+      completed: req.body.completed
+    };
+
+    listOfItems.push(updatedObject);
+    res.status(200).send("Successful updation of data");
+  }
+
+  else{
+    res.status(404).send("Id not found");
+  }
+});
+
+app.delete('/todos/:id', (req, res) => {
+  var idToDelete = req.params.id;
+  var len = listOfItems.length;
+
+  for(let i=0;i<listOfItems.length;i++){
+    if(idToDelete == listOfItems[i].id){
+      listOfItems.splice(i, 1);
+      res.status(200).send("Deletion of data was done successfully");
+    }
+  }
+
+  if(len == listOfItems.length){
+    res.status(404).send("Id not found");
+  }
+});
+
+app.listen(port, () => {
+  console.log(`todo server listening on port 3000`);
+});
+
+app.all('*', (req, res) => {
+  res.status(404);
+})
 
 module.exports = app;
