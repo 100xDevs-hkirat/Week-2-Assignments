@@ -30,8 +30,87 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+var arr = [];
+
+app.post('/signup', (req, res) => {
+  var objectBody = req.body;
+
+  for(let i=0;i<arr.length;i++){
+    if(arr[i].username == objectBody.username){
+      res.status(400).send("Username already exists");
+      break;
+    }
+  }
+
+  arr.push(objectBody);
+  res.status(201).send("Account created successfully");
+})
+
+app.post('/login', (req, res) => {
+  var inputBody = req.body;
+  var checkuser = null;
+
+  for(let i=0;i<arr.length;i++){
+    if(arr[i].username == inputBody.username && arr[i].password == inputBody.password){
+      checkuser = arr[i];
+      break;
+    }
+  }
+
+  if(checkuser){
+    res.status(200).json({
+      firstname: checkuser.firstname,
+      lastname: checkuser.lastname,
+      email: checkuser.email
+    })
+  }
+  else{
+    res.status(401).send("Invalid Credentials");
+  }
+})
+
+app.get('/data', (req, res) => {
+  var username = req.headers.username;
+  var password = req.headers.password;
+  var check = false;
+
+  for(let i=0;i<arr.length;i++){
+    if(arr[i].username == username && arr[i].password == password){
+      check = true;
+      break;
+    }
+  }
+
+  if(check){
+    var returnedArr = [];
+    for(let i=0;i<arr.length;i++){
+      returnedArr.push({
+        firstname: arr[i].firstname,
+        lastname: arr[i].lastname,
+        email: arr[i].email
+      })
+    }
+
+    res.status(200).json(returnedArr)
+  }
+
+  else{
+    res.status(401).send("Failed");
+  }
+})
+
+app.all('*', (req, res) => {
+  res.status(404);
+})
+
+app.listen(PORT, () => {
+  console.log("Autentication server App listening on port");
+})
 
 module.exports = app;
