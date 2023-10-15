@@ -32,6 +32,120 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const jwtSecret = 'YOUR_SECRET_STRING_HERE';
+
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+users  = [ { "id": 1,
+"username": "spande" , 
+"password":"spande",
+"firstname":"swanand",
+"lastname":"pande"
+
+} ,]
+users = []
+
+app.post('/signup', (req,res)=> { 
+
+data = req.body
+usernamm = data.username
+userr = users.find((user)=> user.username===usernamm)
+if(userr)
+{
+  res.send(400).json({"message": "user already exists"})
+}
+user = {"id" : users.length + 1 , "username": data.username , "password": data.password , "firstName": data.firstName , "lastName":data.lastName , "email":data.email};
+
+users.push(user);
+
+res.status(201).send('Signup successful');
+
+
+})
+
+
+app.post('/login',(req,res)=> { 
+  dataa = req.body
+  // console.log(dataa)
+  // console.log(dataa.password)
+  username = dataa.username
+  password  = dataa.password
+
+  // console.log(password);
+  
+    userr = users.find((user)=> user.username===username)
+  if(userr)
+  {
+    if(userr.password ==password)
+    {
+      res.status(200).json({
+        firstName: userr.firstName,
+        lastName: userr.lastName,
+        email: userr.email
+    });
+
+    }
+    else
+    {
+      res.status(401).send( "Unauthorized")
+    }
+  }
+  else
+  {
+    res.status(401).send( "Unauthorized")
+  }
+
+
+
+  }
+ 
+)
+app.get('/data',(req,res)=> { 
+
+  username = req.headers.username ;
+  password = req.headers.password ; 
+
+
+  userr = users.find((user)=> user.username===username)
+
+
+  if(userr)
+  {
+    if(userr.password ==password)
+    {
+
+    userss = users.map((user)=> {
+
+      return [user.username,user.firstname,user.lastname];
+    })
+     res.status(200).json({"users": userss})
+
+    }
+    else
+    {
+      res.status(401).send( "Unauthorized")
+    }
+  }
+  else
+  {
+    res.status(401).send( "Unauthorized")
+  }
+
+
+
+
+
+
+})
+app.get('*', function(req, res){
+  res.status(404).send("invalid url");
+});
+
+  // app.listen(port, () => {
+  //   console.log(`Example app listening on port ${port}`)
+  // })
 
 module.exports = app;
