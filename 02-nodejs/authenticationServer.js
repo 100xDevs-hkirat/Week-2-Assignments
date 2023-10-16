@@ -34,4 +34,66 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+let id = 1;
+let userDB = [];
+
+app.post('/signup',(req,res)=>{
+  let user = req.body
+  for ( var i = 0 ; i < userDB.length; ++i){
+    if (userDB[i].email === user.email ){
+      res.status(400).send("User already exist");
+    }
+  }
+  user.id = id;
+  id++;
+  userDB.push(user);
+  res.status(201).send('Signup successful');
+})
+
+app.post('/login',(req,res)=>{
+  let loginDetails = req.body;
+  for ( var i = 0 ; i < userDB.length ; ++i){
+    if ( userDB[i].email === loginDetails.email && userDB[i].password === loginDetails.password ){
+      res.status(200).send({
+        email : userDB[i].email,
+        firstName : userDB[i].firstName,
+        lastName : userDB[i].lastName,
+        id : userDB[i].id,
+        //Temporarily using a random token
+        authToken : "absdfltawe124(012r__14rf*2001)(134__--z134"
+      });
+    }
+  }
+  res.status(401).send("Unauthorized");
+})
+
+app.get('/data',(req,res)=>{
+  let username = req.headers.email;
+  let password = req.headers.password;
+
+  let userFound = false;
+  for ( var i = 0 ; i < userDB.length; ++i ){
+    if ( userDB[i].email === username && userDB[i].password === password ){
+      userFound = true;
+      break;
+    }
+  }
+
+  if ( userFound ){
+    let data = [];
+    for ( var i = 0 ; i < userDB.length; ++i ){
+      data.push({
+        email : userDB.email,
+        firstName : userDB.firstName,
+        lastName : userDB.lastName
+      })
+    }
+    res.status(200).send({users : data});
+  }
+  res.status(401).send("Unauthorized");
+})
+
+//app.listen(3000,()=>{console.log("server started")});
 module.exports = app;
