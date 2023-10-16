@@ -43,10 +43,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require("fs");
 const { randomUUID } = require('crypto');
+const cors = require("cors")
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors())
 
 app.get("/todos", (req, res) => {
   fs.readFile("./files/todos.json", "utf-8", (err, content) => {
@@ -159,6 +161,6 @@ app.delete("/todos/:id", function(req, res) {
   })
 })
 
-// app.listen(3000)
+app.listen(3000)
 
 module.exports = app;
