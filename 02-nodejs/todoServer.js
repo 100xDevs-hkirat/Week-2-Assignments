@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port = 3000;
 const app = express();
 
 app.use(bodyParser.json());
 
 module.exports = app;
+
+let todos = []
+function generateId() {
+  let id = new Date().getUTCMilliseconds();
+  return id}
+function findTodoIndex(id) {
+    function callback(el) {
+      if (el.id == id) {
+      return true
+      } else {
+        return false
+      }
+    }
+  let todoIndex = todos.findIndex(callback);
+  return todoIndex
+}
+function sendTodos(req, res) {
+  let body = todos
+  res.json(body)
+}
+function sendTodoByID(req, res) {
+  let todo = todos.find((t) => t.id == req.params.id)
+  if(todo) {
+  res.json(todo)
+} else {
+  res.sendStatus(404)
+}}
+
+function createTodos(req, res) {
+  let id = generateId()
+  let newTodo = {...req.body, id: id};
+  todos.push(newTodo);
+  res.status(201).json({id: id});
+}
+function updateTodo(req, res) {
+  console.log(typeof(req.params.id))
+
+  let todoIndex = findTodoIndex(req.params.id);
+  if(todos[todoIndex]) {
+    let newTodo = {...todos[todoIndex], ...req.body};
+    todos[todoIndex] = newTodo;
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404)
+  }
+}
+
+function deleteTodo(req, res) {
+  let todoIndex = findTodoIndex(req.params.id);
+  if(todos[todoIndex]) {
+    todos = todos.filter(el => el.id !== todos[todoIndex].id)
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(404)
+  }
+}
+
+app.get('/todos', sendTodos)
+
+app.post('/todos', createTodos);
+
+app.get('/todos/:id', sendTodoByID);
+
+app.put('/todos/:id', updateTodo)
+
+app.delete('/todos/:id', deleteTodo)
+app.get('*', function(req, res){
+  res.sendStatus(404);
+});
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})

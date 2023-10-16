@@ -19,7 +19,38 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const port = 3000;
+const bodyParser = require("body-parser");
 const app = express();
 
+app.use(bodyParser.json());
+function getSingleFile(req, res) {
+    const fileName = req.params.name;
+    console.log(fileName)
+    fs.readFile(`./files/${fileName}`, 'utf8',  (err, data) => {
+        if (err) {
+            res.status(404).send('File not found');
+        }
+        res.json(data);
+        console.log(data)
+    });
+}
+function getAllFiles(req, res) {
+        fs.readdir(`./files/`, 'utf8',  (err, files) => {
+            if (err) {
+                res.status(500).send('Files no Found')
+            }
+            res.json(files)
+        })
 
+}
+app.get('/file/:name', getSingleFile)
+app.get('/files', getAllFiles)
+app.get('*', function(req, res){
+    res.status(404).send('Route not found');
+});
 module.exports = app;
+
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`)
+})
