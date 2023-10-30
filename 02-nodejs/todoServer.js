@@ -40,10 +40,190 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const util = require('util');
+const fs = require('fs').promises;
 const bodyParser = require('body-parser');
 
 const app = express();
+const _ID_PREFIX = 'id:';
+const _DATA_FILE = 'data.json';
 
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+  console.log(req.url);
+  console.log(req.method);
+  next();
+})
+// Handler declarations for /todos
+app.get('/todos', getAllToDos);
+app.post('/todos', createToDo);
+
+// Handler declarations for /todos/:id
+app.get('/todos/:id', getTodo);
+app.put('/todos/:id', putTodo);
+app.delete('/todos/:id', deleteTodo);
+
+// Helper functions
+function deleteById(obj, id) {
+  obj.todo_count -= 1;
+  var key = _ID_PREFIX + id;
+  if(obj.hasOwnProperty(key)) {
+    delete obj[key];
+    return true;
+  }
+  return false;
+}
+
+function _addToDoHelper(obj, todo, res) {
+  if(!obj) {
+    obj = {
+      next_id: 1,
+      todo_count: 0
+    };
+  }
+  obj[_ID_PREFIX + obj.next_id] = todo;
+  obj.next_id += 1;
+  obj.todo_count += 1;
+
+  // Write the object to the file
+  fs.writeFile(_DATA_FILE, jsonToStr(obj)).then(() => {
+      console.log('Data written to file successfully');
+      console.log('Total ' + obj.todo_count + ' tasks now.');
+      res.status(201).send(
+        {
+          "message": "Task added successfully.",
+          "id": obj.next_id - 1,
+          "total_tasks": obj.todo_count
+        }
+      );
+    }).catch((err) => {
+      console.error('Error writing to file:', err);
+      res.status(500).send('Error writing to file');
+    });
+}
+
+function updateById(obj, id, todo) {
+  var key = _ID_PREFIX + id;
+  if(obj.hasOwnProperty(key)) {
+    obj[key] = todo;
+    return true;
+  }
+  return false;
+}
+
+function strToJson(str) {
+  return JSON.parse(str);
+}
+
+function jsonToStr(json) {
+  return JSON.stringify(json, null, 2);
+}
+
+// Handler functions
+function createToDo(req, res) {
+  var todo = req.body;
+
+  if(!todo.hasOwnProperty('title')) {
+    res.status(400).send('The body should contain title.');
+    return;
+  }
+
+  fs.readFile(_DATA_FILE, 'utf8').then(data => {
+    console.log('Data file already there, adding todo..');
+    console.log('Todo to be added:\n' + jsonToStr(todo));
+    _addToDoHelper(strToJson(data), todo, res);
+    }).catch(err => {
+      console.log(err);
+      if(err.code === 'ENOENT') {
+        console.log('Data file not there, creating file and adding todo..');
+        _addToDoHelper(null, todo, res);
+      }
+      else {
+        console.error('Data file not accessible.');
+        res.status(500).send('Sorry, unable to create To Do at this moment.');
+      }
+    });
+}
+
+function getAllToDos(req, res) {
+  fs.readFile(_DATA_FILE).then(data => {
+    var obj = strToJson(data);
+    var result = [];
+    Object.entries(obj).forEach(([key, value]) => {
+      if(key.startsWith(_ID_PREFIX))
+        result.push(value);
+    });
+    res.status(200).send(result);
+  }).catch(err => {
+    res.status(500).send('Sorry, unable to read todos at this moment.');
+  });
+}
+
+function getTodo(req, res) {
+  console.log('Getting by id.');
+  var id = req.params.id;
+  fs.readFile(_DATA_FILE).then(data => {
+    var obj = strToJson(data);
+    console.log('Key to find - ' + _ID_PREFIX + id);
+    if(obj.hasOwnProperty(_ID_PREFIX + id)) {
+      obj[_ID_PREFIX + id].id = parseInt(id);
+      res.status(200).send(obj[_ID_PREFIX + id]);
+    }
+    else {
+      res.status(404).send('No task found with id = ' + id);
+    }
+  }).catch(err => {
+    res.status(500).send('Sorry, unable to read todos at this moment.');
+  });
+}
+
+function deleteTodo(req, res) {
+  var id = req.params.id;
+
+  fs.readFile(_DATA_FILE).then(data => {
+    var obj = strToJson(data);
+    console.log('Key to delete - ' + _ID_PREFIX + id);
+    if(obj.hasOwnProperty(_ID_PREFIX + id)) {
+      deleteById(obj, id);
+      fs.writeFile(_DATA_FILE, jsonToStr(obj)).then(() => {
+        res.status(200).send('Task with id ' + id + ' deleted successfully!');
+      }).catch(err => {
+        res.status(500).send('Sorry, unable to write updated todos at this moment.');
+      })
+    }
+    else {
+      res.status(404).send('No task found with id = ' + id);
+    }
+  }).catch(err => {
+    res.status(500).send('Sorry, unable to read todos at this moment.');
+  });
+}
+
+function putTodo(req, res) {
+  var id = req.params.id;
+  var todo = req.body;
+  if(!todo.hasOwnProperty('title')) {
+    res.status(400).send('The body should contain title.');
+    return;
+  }
+  fs.readFile(_DATA_FILE).then(data => {
+    var obj = strToJson(data);
+    console.log('Key to find - ' + _ID_PREFIX + id);
+    if(updateById(obj, id, todo)) {
+      fs.writeFile(_DATA_FILE, jsonToStr(obj)).then(() => {
+        res.status(200).send('Task with id ' + id + ' updated successfully!');
+      }).catch(err => {
+        res.status(500).send('Sorry, unable to write updated todos at this moment.');
+      })
+    }
+    else {
+      res.status(404).send('No task found with id = ' + id);
+    }
+  }).catch(err => {
+    res.status(500).send('Sorry, unable to read todos at this moment.');
+  });
+}
+
+// app.listen(3000, () => {console.log('Listening at 3000')});
 
 module.exports = app;
