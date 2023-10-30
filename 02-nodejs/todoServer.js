@@ -43,7 +43,73 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+const port = 3001;
 
 app.use(bodyParser.json());
+
+// Todos
+let todos = [];
+
+////////////////////
+//Route Handling
+////////////////////
+
+// GET todos
+app.get('/todos', (req, res) => res.status(200).json(todos)) 
+
+// GET todos by id
+app.get('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let todo = todos.find(todo => todo.id === Number(id))
+  todo 
+    ? res.status(200).json(todo)
+    : res.status(404).send('Not found')
+});
+
+//POST new todo
+app.post('/todos', (req, res) => {
+  let newTodoObject = {
+    id: Math.floor(Math.random() * 10000),
+    title: req.body.title,
+    description: req.body.description
+  }
+  if (newTodoObject) {
+    todos.push(newTodoObject);
+    res.status(201).json(newTodoObject)
+  } else { 
+    res.status(404).send('Not found')
+  }
+})
+
+// PUT update todo by id
+app.put('/todos/:id', (req, res) => { 
+  let id = req.params.id;
+  let todo = todos.find(todo => todo.id === Number(id))
+  if (todo) { 
+    todo.description = req.body.description;
+    todo.title = req.body.title;
+    res.status(200).json(todo)
+  } else {
+    res.status(404).send('Not found')
+  }    
+})
+
+// DELETE remove todo by id
+app.delete('/todos/:id', (req, res) => { 
+  let id = req.params.id;
+  let todo = todos.find(todo => todo.id === Number(id))
+  if (todo) {
+    todos = todos.filter(todo => todo.id !== Number(id))
+    res.status(200).json(todos)
+  } else { 
+    res.status(404).send('Not found')
+  }
+})
+
+// 404 Not Found
+app.get('*', (req, res) => res.status(404).send('Not found'))
+
+// Listen to port
+app.listen(port, () =>  console.log(`Week 2 app listening on port ${port}`))
 
 module.exports = app;
