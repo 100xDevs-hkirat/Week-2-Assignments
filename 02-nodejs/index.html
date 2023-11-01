@@ -1,0 +1,125 @@
+<head>
+    <title>
+        TODO app
+    </title>
+</head>
+
+
+<script>
+    function deleteDone(){
+        console.log("done deleting");
+    }
+    function deleteTodo(id){
+        console.log(id);
+        fetch ("http://localhost:3000/todos/"+ id,{
+
+            //method:"GET"
+            method:"DELETE",
+            headers:{
+                "Content-Type":"application/json"
+            }
+        }).then(deleteDone)
+    }
+
+    function TodosCallback(data){
+        console.log(data);
+        var parentElement=document.getElementById("mainArea");
+        // parentElement.innerHTML=JSON.stringify(data);//insert them into html hora h 
+        for(var i =0; i<data.length;i++){
+            var childElement=document.createElement("div");
+
+                var grandChildElement1=document.createElement("span");
+                grandChildElement1.innerHTML=data[i].title;
+
+                var grandChildElement2=document.createElement("span");
+                grandChildElement2.innerHTML=data[i].description
+
+                var grandChildElement3=document.createElement("button");
+                grandChildElement3.innerHTML="Delete";
+                grandChildElement3.setAttribute("onClick","deleteTodo(" + data[i].id +")"); 
+
+
+                childElement.appendChild(grandChildElement1)
+                childElement.appendChild(grandChildElement2)
+                childElement.appendChild(grandChildElement3)
+
+            
+            parentElement.appendChild(childElement);
+        }
+        
+    }
+    function getdataCallback(resp){
+        resp.json().then(TodosCallback);
+    }
+    function getdata(){ 
+        fetch("http://localhost:3000/todos",{
+            method:"GET",
+        }).then(getdataCallback);  
+    }
+
+    getdata();
+
+
+    function parsedResponse (data){
+        console.log(data);
+        var parentElement=document.getElementById("mainArea");
+        
+        
+            var childElement=document.createElement("div");
+
+                var grandChildElement1=document.createElement("span");
+                grandChildElement1.innerHTML=data.title;
+
+                var grandChildElement2=document.createElement("span");
+                grandChildElement2.innerHTML=data.description
+
+                var grandChildElement3=document.createElement("button");
+                grandChildElement3.innerHTML="Delete"
+
+
+                childElement.appendChild(grandChildElement1)
+                childElement.appendChild(grandChildElement2)
+                childElement.appendChild(grandChildElement3)
+
+            
+            parentElement.appendChild(childElement);
+        
+    }
+    function callback(resp){
+        resp.json().then(parsedResponse);
+    }
+    function onPress(){
+        var title=document.getElementById("title").value;//fetching the value which is inside in (browser title page of html.)
+        var description=document.getElementById("description").value;//fetched itt
+
+        fetch ("http://localhost:3000/todos",{
+            //method:"GET"
+            method:"POST",
+            body:JSON.stringify({
+                title:title,
+                description:description
+            }),
+            headers:{
+                "Content-Type":"application/json"
+            }
+        }).then(callback)
+    }
+</script>
+
+
+<body>
+    Todo title
+    <input type="text" id="title"></input>
+    <br>
+    Todo Description
+    <input type="text" id="description"></input>
+    <br>
+    <button onclick="onPress()"> send todo </button>
+     <!--how do you add js variables into html ?????????????????--> 
+    <div id="mainArea">
+        hi there! 
+        <!--now go to in your callback where you are logging the data, rather than logging write something like this... var parent element = document -->
+    </div>
+</body> 
+
+
