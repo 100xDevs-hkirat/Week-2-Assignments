@@ -28,7 +28,7 @@
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
-    Request Body: { "title": "Buy groceries", "completed": true }
+    Rcompletedequest Body: { "title": "Buy groceries", "": true }
     
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
@@ -39,11 +39,102 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+  const express = require('express');
+  const fs = require('fs');
+  const bodyParser = require('body-parser');
+  
+  const app = express();
+  app.use(bodyParser.json());
+  
+  // In-memory storage for todo items
+  let todos = [];
+  
+  // Helper function to save todos to a file
+  function saveTodosToFile() {
+    fs.writeFileSync('todos.json', JSON.stringify(todos));
+  }
+  
+  // Helper function to load todos from a file
+  function loadTodosFromFile() {
+    try {
+      const fileData = fs.readFileSync('todos.json');
+      todos = JSON.parse(fileData);
+    } catch (error) {
+      todos = [];
+    }
+  }
+  
+  // Load todos from file on server start
+  loadTodosFromFile();
+  
+  // GET /todos - Retrieve all todo items
+  app.get('/todos', (req, res) => {
+    res.json(todos);
+  });
+  
+  // GET /todos/:id - Retrieve a specific todo item by ID
+  app.get('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const todo = todos.find((todo) => todo.id === id);
+  
+    if (todo) {
+      res.json(todo);
+    } else {
+      res.status(404).json({ error: 'Todo not found' });
+    }
+  });
+  
+  // POST /todos - Create a new todo item
+  app.post('/todos', (req, res) => {
+    const { title, description } = req.body;
+    const id = Date.now().toString(); // Generate unique ID using timestamp
+  
+    const newTodo = { id, title, description };
+    todos.push(newTodo);
+    saveTodosToFile();
+  
+    res.status(201).json({ id });
+  });
+  
+  // PUT /todos/:id - Update an existing todo item by ID
+  app.put('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const { title, description } = req.body;
+  
+    const todo = todos.find((todo) => todo.id === id);
+  
+    if (todo) {
+      todo.title = title || todo.title;
+      todo.description = description || todo.description;
+      saveTodosToFile();
+      res.sendStatus(200);
+    } else {
+      res.status(404).json({ error: 'Todo not found' });
+    }
+  });
+  
+  // DELETE /todos/:id - Delete a todo item by ID
+  app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const index = todos.findIndex((todo) => todo.id === id);
+  
+    if (index !== -1) {
+    const toberemoved = todos[index]
+      todos = todos.filter((todos)=>todos!==toberemoved)
+      saveTodosToFile();
+      res.sendStatus(200);
+    } else {
+      res.status(404).json({ error: 'Todo not found' });
+    }
+  });
+  
+  // 404 Not Found for any other route
+  app.use((req, res) => {
+    res.sendStatus(404);
+  });
+  
+  // Start the server
 
-const app = express();
-
-app.use(bodyParser.json());
+  
 
 module.exports = app;
