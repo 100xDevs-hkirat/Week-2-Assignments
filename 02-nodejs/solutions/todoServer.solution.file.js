@@ -6,20 +6,7 @@ const app = express();
 
 app.use(bodyParser.json());
 
-function findIndex(arr, id) {
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i].id === id) return i;
-  }
-  return -1;
-}
 
-function removeAtIndex(arr, index) {
-  let newArray = [];
-  for (let i = 0; i < arr.length; i++) {
-    if (i !== index) newArray.push(arr[i]);
-  }
-  return newArray;
-}
 
 app.get('/todos', (req, res) => {
   fs.readFile("todos.json", "utf8", (err, data) => {
@@ -79,6 +66,21 @@ app.put('/todos/:id', (req, res) => {
     }
   });
 });
+
+function findIndex(arr, id) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return i;
+  }
+  return -1;
+}
+
+function removeAtIndex(arr, index) {
+  let newArray = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i !== index) newArray.push(arr[i]);
+  }
+  return newArray;
+}
 
 app.delete('/todos/:id', (req, res) => {
 

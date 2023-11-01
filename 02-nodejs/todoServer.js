@@ -43,62 +43,149 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require("fs");
+const { isUtf8 } = require('buffer');
 const app = express();
+const path = require("path");
+const cors=require("cors");
 
 
 app.use(bodyParser.json());
+app.use(cors()); 
 
-let todos=[];
 
+app.get('/todos', (req,res)=>{
+  fs.readFile("todos.json", "utf-8", (err, data)=>{
+    if(err) throw err;
+    res.json(JSON.parse(data));
+  });
+});
 
-app.get('/todos',(req,res)=>{
-  res.json(todos);
-})
-
-app.get('/todos/:id',(req,res)=>{
-const todo= todos.find(todo => todo.id===parseInt(req.params.id))
-if(!todo){
-  res.status(404).send();
-}else{
-  res.json(todo);
-}
-})
-
-app.post('/todos',(req,res)=>{
-  const newtodo = {
-    id: Math.floor(Math.random() * 100000),
+app.post('/todos', (req,res)=>{
+  const newTodo={
+    id: Math.floor(Math.random()*10000),
     title: req.body.title,
-    description : req.body.description
-  }
-  todos.push(newtodo);
-  res.status(201).send(newtodo);
+    description: req.body.description
+  };
+  fs.readFile("todos.json", "utf-8", (err,data)=>{
+    if(err) throw err;
+    const todos =  JSON.parse(data);
+    todos.push(newTodo);
 
+    fs.writeFile("todos.json", JSON.stringify(todos), (err)=>{
+      if (err) throw err;
+      res.status(201).json(newTodo);
+    });
+  });
 });
 
-app.put('/todos/:id',(req,res)=>{
-  const todoIndex=todos.findIndex(todo => todo.id===parseInt(req.params.id))
-  if(todoIndex === -1){
-    res.status(404).send();
-  }else{
-    todos[todoIndex].title=req.body.title;
-    todos[todoIndex].description=req.body.description;
-    res.json(todos[todoIndex]);
+function findIndex(arr, id) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].id === id) return i;
   }
-})
-
-app.delete('/todos/:id',(req,res)=>{
-const todoIndex=todos.findIndex(todo => todo.id===parseInt(req.params.id));
-if(todoIndex===-1){
-  res.status(404).send();
-}else{
-  todos.splice(todoIndex,1);
-  res.status(200).send();
+  return -1;
 }
-})
 
-app.use((req,res,next)=>{
-  res.status(404).send("nakli saale dalle")
+function removeAtIndex(arr, index) {
+  let newArray = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i !== index) newArray.push(arr[i]);
+  }
+  return newArray;
+}
+
+app.delete('/todos/:id', (req, res) => {
+
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    let todos = JSON.parse(data);
+    const todoIndex = findIndex(todos, parseInt(req.params.id));
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos = removeAtIndex(todos, todoIndex);
+      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.status(200).send();
+      });
+    }
+  });
 });
 
-module.exports = app;
+app.get("/",(req,res)=>{
+  res.sendFile(path.join(__dirname, "index.html"));
+})
+
+// app.use((req,res)=>{
+//   res.status(404).send();
+// })
+
+app.listen(3000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// app.get('/todos',(req,res)=>{
+//   res.json(todos);
+// })
+
+// app.get('/todos/:id',(req,res)=>{
+// const todo= todos.find(todo => todo.id===parseInt(req.params.id))
+// if(!todo){
+//   res.status(404).send();
+// }else{
+//   res.json(todo);
+// }
+// })
+
+// app.post('/todos',(req,res)=>{
+//   const newtodo = {
+//     id: Math.floor(Math.random() * 100000),
+//     title: req.body.title,
+//     description : req.body.description
+//   }
+//   todos.push(newtodo);
+//   res.status(201).send(newtodo);
+
+// });
+
+// app.put('/todos/:id',(req,res)=>{
+//   const todoIndex=todos.findIndex(todo => todo.id===parseInt(req.params.id))
+//   if(todoIndex === -1){
+//     res.status(404).send();
+//   }else{
+//     todos[todoIndex].title=req.body.title;
+//     todos[todoIndex].description=req.body.description;
+//     res.json(todos[todoIndex]);
+//   }
+// })
+
+// app.delete('/todos/:id',(req,res)=>{
+// const todoIndex=todos.findIndex(todo => todo.id===parseInt(req.params.id));
+// if(todoIndex===-1){
+//   res.status(404).send();
+// }else{
+//   todos.splice(todoIndex,1);
+//   res.status(200).send();
+// }
+// })
+
+// app.use((req,res,next)=>{
+//   res.status(404).send("nakli saale dalle")
+// });
+
+// module.exports = app;
