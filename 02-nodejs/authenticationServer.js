@@ -29,9 +29,86 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express");
+  const app = express();
+  const bodyParser = require("body-parser");
+  
+  app.use(bodyParser.json());
+  
+  const users = [];
+  
+  function createUser(req, res) {
+    const { email, password, firstName, lastName } = req.body;
+  
+    const existingUser = users.find((user) => user.email === email);
+    if (existingUser) {
+      res.status(400).send("User already exists.");
+      return;
+    }
+  
+    const newUser = {
+      id: users.length + 1,
+      email,
+      password,
+      firstName,
+      lastName,
+    };
+  
+    users.push(newUser);
+    res.status(201).send("Signup successful");
+  }
+  
+  function loginUser(req, res) {
+    const { email, password } = req.body;
+  
+    const user = users.find(
+      (user) => user.email === email && user.password === password
+    );
+  
+    if (user) {
+      res.status(200).json({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email, // Include the email in the response
+      });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  }
+  
+  function fetchUserData(req, res) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Basic ")) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+  
+    const credentials = Buffer.from(authHeader.split(" ")[1], "base64").toString();
+    const [email, password] = credentials.split(":");
+  
+    const user = users.find(
+      (user) => user.email === email && user.password === password
+    );
+  
+    if (!user) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+  
+    const userData = users.map((user) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email, // Include the email in the response
+    }));
+  
+    res.status(200).json({ users: userData });
+  }
+  
+  app.post("/signup", createUser);
+  app.post("/login", loginUser);
+  app.get("/data", fetchUserData);
+  
+  module.exports = app;
+  
