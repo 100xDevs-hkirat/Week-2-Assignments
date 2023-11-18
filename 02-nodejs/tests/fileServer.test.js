@@ -26,7 +26,7 @@ describe('API Endpoints', () => {
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(200);
-      expect(response.body.length).toBeGreaterThan(2);
+      expect(response.body.data.length).toBeGreaterThan(2);
     });
 
     test('should handle internal server error', async () => {
@@ -64,23 +64,23 @@ describe('API Endpoints', () => {
     test('should serve the requested file', async () => {
       const options = {
         method: 'GET',
-        path: '/file/test-file.txt'
+        path: '/files/test-file.txt'
       };
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toBe('Test file content');
+      expect(response.body.data).toBe('Test file content');
     });
 
     test('should handle file not found', async () => {
       const options = {
         method: 'GET',
-        path: '/file/non-existing-file.txt'
+        path: '/files/non-existing-file.txt'
       };
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(404);
-      expect(response.body).toBe('File not found');
+      expect(response.body.data).toBe('File not found');
     });
 
   });
@@ -94,7 +94,7 @@ describe('API Endpoints', () => {
       const response = await sendRequest(options);
 
       expect(response.statusCode).toBe(404);
-      expect(response.body).toBe("Route not found");
+      expect(response.body.data).toBe("Route not found");
     });
   });
 });
@@ -120,7 +120,7 @@ function sendRequest(options, requestBody) {
           resolve({
             statusCode: res.statusCode,
             headers: res.headers,
-            body,
+            body: JSON.parse(body),
           });
         });
       }

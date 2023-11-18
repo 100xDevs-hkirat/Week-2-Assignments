@@ -41,9 +41,126 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require("fs");
+const { randomUUID } = require('crypto');
+const cors = require("cors")
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors())
+
+app.get("/todos", (req, res) => {
+  fs.readFile("./files/todos.json", "utf-8", (err, content) => {
+    if (err) {
+      res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+    } else {
+      res.send({data: JSON.parse(content)})
+    }
+  })
+})
+
+app.post("/todos", (req, res) => {
+  fs.readFile("./files/todos.json", "utf-8", (err, content) => {
+    if (err) {
+      res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+    } else {
+      let todos = JSON.parse(content)
+      let id = randomUUID()
+      let newTodo = {...req.body, id}
+      todos.push(newTodo)
+
+      fs.writeFile("./files/todos.json", JSON.stringify(todos), (err) => {
+        if (err) {
+          console.log(err);
+          res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+        } else {
+          res.status(201).json(newTodo)
+        }
+      })
+    }
+  })
+})
+
+app.get("/todos/:id", function(req, res) {
+  let todoId = req.params.id
+  fs.readFile("./files/todos.json", "utf-8", (err, content) => {
+    if (err) {
+      res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+    } else {
+      let found = false
+      for (todo of JSON.parse(content)) {
+        if (todo.id === todoId) {
+          found = true
+          res.send(todo)
+        }
+      }
+      if (!found) {
+        res.status(404).json({data: `TODO with id: ${todoId} not found ;(`})
+      }
+    }
+  })
+})
+
+app.put("/todos/:id", function(req, res) {
+  let todoId = req.params.id
+  fs.readFile("./files/todos.json", "utf-8", (err, content) => {
+    if (err) {
+      res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+    } else {
+      let found = false
+      let todos = JSON.parse(content)
+      for (todo of todos) {
+        if (todo.id === todoId) {
+          found = true
+          todo.title = req.body.title
+          todo.description = req.body.description
+        }
+      }
+      if (!found) {
+        res.status(404).json({data: `TODO with id: ${todoId} not found ;(`})
+      } else {
+        fs.writeFile("./files/todos.json", JSON.stringify(todos), (err) => {
+          if (err) {
+            res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+          } else {
+            res.status(200).send({data: `TODO with id: ${todoId} updated :)`})
+          }
+        })
+      }
+    }
+  })
+})
+
+app.delete("/todos/:id", function(req, res) {
+  let todoId = req.params.id
+  fs.readFile("./files/todos.json", "utf-8", (err, content) => {
+    if (err) {
+      res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+    } else {
+      let todos = JSON.parse(content)
+      let index = -1
+      for (let [i, todo] of todos.entries()) {
+        if (todo.id === todoId) {
+          index = i
+        }
+      }
+      if (index === -1) {
+        res.status(404).json({data: `TODO with id: ${todoId} not found ;(`})
+      } else {
+        todos.splice(index, 1)
+        fs.writeFile("./files/todos.json", JSON.stringify(todos), (err) => {
+          if (err) {
+            res.status(500).json({data: "Unable to read file of TODOs :( Please try again after some time :)"})
+          } else {
+            res.status(204).send()
+          }
+        })
+      }
+    }
+  })
+})
+
+app.listen(3000)
 
 module.exports = app;

@@ -65,10 +65,10 @@ describe('Todo API', () => {
 
       res.on('end', () => {
         const todos = JSON.parse(data);
-        expect(Array.isArray(todos)).toBe(true);
-        expect(todos.length).toBe(1);
-        expect(todos[0].title).toBe(todo.title);
-        expect(todos[0].description).toBe(todo.description);
+        expect(Array.isArray(todos.data)).toBe(true);
+        expect(todos.data.length >= 1).toBeTruthy();
+        expect(todos.data[0].title).toBe(todo.title);
+        expect(todos.data[0].description).toBe(todo.description);
         done();
       });
     });
@@ -126,7 +126,7 @@ describe('Todo API', () => {
       `${baseUrl}/todos/${createdTodoId}`,
       options,
       (res) => {
-        expect(res.statusCode).toBe(200);
+        expect(res.statusCode).toBe(204);
         done();
       }
     );

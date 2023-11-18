@@ -30,8 +30,99 @@
  */
 
 const express = require("express")
+const fs = require("fs")
+const bodyParser = require("body-parser")
+const uuid = require("uuid")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json())
+
+app.post("/signup", (req, res) => {
+  fs.readFile("./files/users.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).json({data: "Not able to open the Users file."})
+    } else {
+      let users = JSON.parse(data)
+      let email = req.body.email
+      if (users[email]) {
+        res.status(400).json({data: "User already exists."})
+      } else {
+        let user = {
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          password: req.body.password,
+          id: uuid.v4()
+        }
+        users[email] = user
+
+        fs.writeFile("./files/users.json", JSON.stringify(users), (err) => {
+          if (err) {
+            res.status(500).json({data: "Not able to open the Users file."})
+          } else {
+            // res.status(201).json({...user, email})
+            res.status(201).json({data: "Signup successful"})
+          }
+        })
+      }
+    }
+  })
+})
+
+app.post("/login", (req, res) => {
+  fs.readFile("./files/users.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).json({data: "Not able to open the Users file."})
+    } else {
+      let users = JSON.parse(data)
+      let email = req.body.email
+      if (users[email]) {
+        if (users[email].password !== req.body.password) {
+          res.status(401).json({data: "Unauthorized"})
+        } else {
+          res.json({data: {
+            firstName: users[email].firstName,
+            lastName: users[email].lastName,
+            id: users[email].id
+          }})
+        }
+      } else {
+        res.status(404).json({data: "User not found."})
+      }
+    }
+  })
+})
+
+app.get("/data", (req, res) => {
+  fs.readFile("./files/users.json", "utf-8", (err, data) => {
+    if (err) {
+      res.status(500).json({data: "Not able to open the Users file."})
+    } else {
+      let users = JSON.parse(data)
+      let email = req.headers.email
+      if (users[email]) {
+        if (users[email].password !== req.headers.password) {
+          res.status(401).json({data: "Unauthorized"})
+        } else {
+          let toReturn = []
+          for (const [key, value] of Object.entries(users)) {
+            toReturn.push({
+              email: key,
+              firstName: value.firstName,
+              lastName: value.lastName,
+              id: value.id
+            })
+          }
+          res.json(toReturn)
+        }
+      } else {
+        res.status(404).json({data: "User not found."})
+      }
+    }
+  })
+})
+
+// app.listen(3000)
 
 module.exports = app;
