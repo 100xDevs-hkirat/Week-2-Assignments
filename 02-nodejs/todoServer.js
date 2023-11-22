@@ -41,9 +41,101 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs= require('fs');
 
 const app = express();
+const port= 3000;
 
 app.use(bodyParser.json());
+
+function findIdIdx(arr, id){
+  for(let i=0; i<arr.length; i++){
+    if(arr[i].id === id){
+      return i;
+    }
+  }
+  return -1
+}
+
+app.get("/todos", (req, res) => {
+  //Retrieve all todo items
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if(err) res.send(err)
+    res.status(200).send(data)
+  })
+})
+
+app.get("/todos/:id", (req, res) => {
+  //Retrieve a specific todo item by ID
+  
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if(err) res.status(500).send("Error loading items")
+  
+    const todoItems= JSON.parse(data)
+    const result= findIdIdx(todoItems, parseInt(req.params.id))
+
+    if(result === -1) 
+      res.status(404).send(`ID not found!`)
+    else
+      res.status(200).json(todoItems[result])
+  })
+})
+
+app.post("/todos", (req, res) => {
+  //Create a new todo item
+  const newTodo= req.body
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if(err) res.status(500).send("file note open")
+    var todoItems= JSON.parse(data)
+    todoItems.push(newTodo)
+
+    fs.writeFile("./todos.json", JSON.stringify(todoItems), "utf-8", (wrErr) => {
+      if(wrErr) res.status(500).send("Error: Item not Added")
+      res.status(201).send(`Success: Item added ${JSON.stringify(newTodo)}`)
+    })
+  })
+})
+
+app.put("/todos/:id", (req, res) => {
+  //Update an existing todo item by ID
+  const id= parseInt(req.params.id)
+  const newTodo= req.body
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if(err) res.status(500).send("file not open")
+    var todoItems= JSON.parse(data)
+    const idx= findIdIdx(todoItems, id)
+    if(idx === -1)
+      res.status(404).send("Item ")
+    todoItems.splice(idx, 1)
+    todoItems.push(newTodo)
+    
+    fs.writeFile("./todos.json", JSON.stringify(todoItems), (wrErr) => {
+      if(wrErr) res.status(500).send("error: file not updated!")
+      res.status(200).send("Success: Item was found and updated")
+    })
+  })
+})
+
+app.delete("/todos/:id", (req, res) => {
+  //Delete a todo item by ID
+  const id= parseInt(req.params.id)
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    if(err) res.status(500).send("file not open")
+    var todoItems= JSON.parse(data)
+    const idx= findIdIdx(todoItems, id)
+    if(idx === -1)
+      res.status(404).send("Item ")
+    todoItems.splice(idx, 1)
+    
+    fs.writeFile("./todos.json", JSON.stringify(todoItems), (wrErr) => {
+      if(wrErr) res.status(500).send("error: file not updated!")
+      res.status(200).send("Success: Item was Deleted")
+    })
+  })
+})
+
+app.listen(port, () => {
+  console.log(`listning on port ${port}`)
+})
 
 module.exports = app;
