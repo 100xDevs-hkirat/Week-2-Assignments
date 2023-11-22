@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "homework",
+    "completed": false,
+    "desc": "complete your homework before evening."
+  },
+  {
+    "id": 2,
+    "title": "clean the house",
+    "completed": false,
+    "desc": "clean the all rooms except first floor bedroom."
+  },
+  {
+    "id": 3,
+    "todo": "do laundry",
+    "completed": false,
+    "desc": "wash clothes and dry them"
+  },
+  {
+    "id": 5,
+    "todo": "learn Backend Development",
+    "completed": true,
+    "desc": "complete the harkirat's course and practice new things"
+  },
+  {
+    "id": 6,
+    "todo": "Go to gym",
+    "completed": false,
+    "desc": "complete the leg day challenge"
+  }
+]
