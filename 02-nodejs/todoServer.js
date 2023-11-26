@@ -42,8 +42,115 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const port = 3000;
+
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get("/", (req, res) => {
+  res.send("Todo List API");
+});
+
+let todos = [];
+
+app.get("/todos", (req, res) => {
+  res.status(200).send(todos)
+});
+
+const findTodo = (id) => {
+  const todo = todos.find((todo) => todo.id == id);
+  return todo || -1;
+};
+
+const getId = (idParam) => {
+  const id = parseInt(idParam, 10);
+  if (isNaN(id)) {
+    return -1;
+  } else {
+    return id;
+  }
+};
+
+app.get("/todos/:id", (req, res) => {
+  const id = getId(req.params.id);
+  if (id === -1) {
+    res.status(404).send(`Error: invalid ID ${req.params.id}.`);
+  } else {
+    const todo = findTodo(id);
+    if (todo !== -1) {
+      res.status(200).send(todo);
+    } else {
+      res.status(404).send(`Error: ID not found.`);
+    }
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const title = req.body.title;
+  const desc = req.body.description;
+  const comp = req.body.completed;
+  if (!title && !desc) {
+    res.status(404).send(`Error: Todo not found.`)
+  } else {
+    const id = todos.length === 0 ? 1 : todos[todos.length - 1].id + 1;
+    todos.push({
+      id: id,
+      title: title,
+      description: desc,
+      completed: !!comp
+    });
+    res.status(201).send({
+      id: id
+    });
+  }
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = getId(req.params.id);
+  if (id === -1) {
+    res.status(404).send(`Error: invalid ID ${req.params.id}.`);
+  } else {
+    const idx = todos.findIndex((todo) => todo.id == id);
+    if (idx !== -1) {
+      const title = req.body.title;
+      const desc = req.body.description;
+      const comp = req.body.completed;
+      todos[idx] = {
+        id: id,
+        title: title,
+        description: desc,
+        completed: !!comp
+      };
+      res.status(200).send(`ID ${id} updated.`);
+    } else {
+      res.status(404).send(`Error: ID not found.`);
+    }
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = getId(req.params.id);
+  if (id === -1) {
+    res.status(404).send(`Error: invalid ID ${req.params.id}.`);
+  } else {
+    const idx = todos.findIndex((todo) => todo.id == id);
+    if (idx !== -1) {
+      todos.splice(idx, 1);
+      res.status(200).send(`ID ${id} deleted.`);
+    } else {
+      res.status(404).send(`Error: ID not found.`);
+    }
+  }
+});
+
+app.get("*",(req,res)=>{
+  res.status(404).send("Error PAGE NOT FOUND.")
+})
+
+//Comment listen when running test
+app.listen(port, () => {
+console.log("Listening on ", port);
+});
 
 module.exports = app;
