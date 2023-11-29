@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <title>TODO App</title>
+  </head>
+  <script>
+    function onPress() {
+      fetch("http://localhost:3000/todos", {
+        method: "GET",
+        mode: "cors",
+        referrerPolicy: "no-referrer",
+      }).then(async (response) => {
+        const res = await response.json();
+        console.log(res);
+      });
+    }
+  </script>
+  <body>
+    Todo Title
+    <input type="text" id="title" /><br /><br />
+    Todo Description
+    <input type="text" id="desc" /><br /><br />
+    <button onclick="onPress()">Send Todo</button>
+  </body>
+</html>
