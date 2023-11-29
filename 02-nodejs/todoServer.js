@@ -42,15 +42,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const cors = require('cors'); // for external requests
 
 const port = 3000;
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.get("/", (req, res) => {
-  res.send("Todo List API");
+  res.sendFile(__dirname + "/index.html");
 });
 
 let todos = [];
