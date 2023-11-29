@@ -41,6 +41,7 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const port = 3000;
 
@@ -54,8 +55,22 @@ app.get("/", (req, res) => {
 
 let todos = [];
 
+const updateTodos = () => {
+  fs.writeFile("todos.json", JSON.stringify(todos), (err) => { if (err) throw err });
+}
+
+app.use((req, res, next) => {
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) {
+      throw err;
+    }
+    todos = JSON.parse(data);
+    next();
+  });
+})
+
 app.get("/todos", (req, res) => {
-  res.status(200).send(todos)
+  res.status(200).send(todos);
 });
 
 const findTodo = (id) => {
@@ -100,6 +115,7 @@ app.post("/todos", (req, res) => {
       description: desc,
       completed: !!comp
     });
+    updateTodos();
     res.status(201).send({
       id: id
     });
@@ -122,6 +138,7 @@ app.put("/todos/:id", (req, res) => {
         description: desc,
         completed: !!comp
       };
+      updateTodos();
       res.status(200).send(`ID ${id} updated.`);
     } else {
       res.status(404).send(`Error: ID not found.`);
@@ -137,6 +154,7 @@ app.delete("/todos/:id", (req, res) => {
     const idx = todos.findIndex((todo) => todo.id == id);
     if (idx !== -1) {
       todos.splice(idx, 1);
+      updateTodos();
       res.status(200).send(`ID ${id} deleted.`);
     } else {
       res.status(404).send(`Error: ID not found.`);
@@ -144,13 +162,13 @@ app.delete("/todos/:id", (req, res) => {
   }
 });
 
-app.get("*",(req,res)=>{
+app.all("*", (req, res) => {
   res.status(404).send("Error PAGE NOT FOUND.")
 })
 
 //Comment listen when running test
 app.listen(port, () => {
-console.log("Listening on ", port);
+  console.log("Listening on ", port);
 });
 
 module.exports = app;
