@@ -30,8 +30,89 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser")
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const users = [];
+
+app.use(bodyParser.json());
+
+app.get("/", (req, res) => {
+  res.send("Authentication Server");
+});
+
+app.post("/signup", (req, res) => {
+  const id = users.length === 0 ? 1 : users[users.length - 1].id + 1;
+  if (users.some((user) => user.username === req.body.username)) {
+    res.status(400).send("Username already exists!");
+  } else {
+    users.push({
+      id: id,
+      username: req.body.username,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email
+    });
+    res.status(201).send("Signup successful");
+  }
+});
+
+const isValidUser = (username, password, sendUser = false) => {
+  const userIdx = users.findIndex((user) => {
+    if (user.username === username && user.password === password) {
+      return true;
+    }
+    return false;
+  });
+
+  if (userIdx != -1) {
+    if (sendUser) {
+      return users[userIdx];
+    } else {
+      return true;
+    }
+  } else {
+    return false;
+  }
+};
+
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  const currentUser = isValidUser(username, password, true);
+
+  if (currentUser) {
+    res.status(200).send({
+      id: currentUser.id,
+      email: currentUser.email,
+      firstName: currentUser.firstName,
+      lastName: currentUser.lastName
+    });
+  } else {
+    res.status(401).send("Invalid username or password");
+  }
+});
+
+app.get("/data", (req, res) => {
+  const username = req.headers.username;
+  const password = req.headers.password;
+  if (isValidUser(username, password)) {
+    res.send({ users });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+app.listen(PORT, () => {
+  console.log("Listening on", PORT);
+});
 
 module.exports = app;
