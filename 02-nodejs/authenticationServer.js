@@ -26,6 +26,7 @@
 
   - For any other route not defined in the server return 404
 
+
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
