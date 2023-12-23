@@ -26,12 +26,91 @@
 
   - For any other route not defined in the server return 404
 
+
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const e = require("express");
+  const express = require("express")
+  const PORT = 3000;
+  const app = express();
+  app.use(express.json());
+  
+  users = [];
+  
+  function generateId() {
+    return Math.floor(Math.random() * 100000);
+  };
+  
+  function signup(req,res) {
+    const user = req.body;
+    let userAlreadyExists = false;
+    for (let i=0; i<users.lenght; i++) {
+      if (users[i].username === user.username){
+        userAlreadyExists = true;
+        break;
+      };
+    }
+    if (userAlreadyExists){
+      res.sendStatus(400);
+    }else{
+      users.push(user);
+      res.status(201).send("Signup successful");
+    }
+  }
+  
+  function login (req, res) {
+    var user = req.body;
+    let userFound = null;
+    for (var i = 0; i<users.length; i++) {
+      if (users[i].email === user.email && users[i].password === user.password) {
+          userFound = users[i];
+          break;
+      }
+    }
+  
+    if (userFound) {
+      res.json({
+          firstName: userFound.firstName,
+          lastName: userFound.lastName,
+          email: userFound.email
+      });
+    } else {
+      res.sendStatus(401);
+    }
+  };
+  
+  function getData(req, res){
+    var email = req.headers.email;
+    var password = req.headers.password;
+    let userFound = false;
+    for (var i = 0; i<users.length; i++) {
+      if (users[i].email === email && users[i].password === password) {
+          userFound = true;
+          break;
+      }
+    }
+  
+    if (userFound) {
+      let usersToReturn = [];
+      for (let i = 0; i<users.length; i++) {
+          usersToReturn.push({
+              firstName: users[i].firstName,
+              lastName: users[i].lastName,
+              email: users[i].email
+          });
+      }
+      res.json({
+          users
+      });
+    } else {
+      res.sendStatus(401);
+    }
+  };
+  
+  app.post('/login', login);
+  app.post('/signup', signup);
+  app.get('/data', getData);
+  
+  module.exports = app;
+  
