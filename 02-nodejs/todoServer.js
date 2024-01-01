@@ -39,11 +39,120 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+const fs = require('fs')
 const express = require('express');
 const bodyParser = require('body-parser');
+const { log } = require('console');
+app = express()
+var port = 3000;
+app.listen(port,()=>{
+  console.log(`Listening on port - ${port}`);
+})
 
-const app = express();
 
+
+var filePath = '/Users/namanagrawal/Desktop/Codes/100x/Assignments/Week_2/Week-2-Assignments/02-nodejs/ToDoList.txt'
+
+let toDos = [];
 app.use(bodyParser.json());
 
-module.exports = app;
+//Middleware to get the data from the file.
+
+app.use((req,res,next)=>{ 
+  fs.readFile(filePath,'utf8',(err,data)=>{
+    if(err){
+      console.log("Error in reading File");
+    }
+    toDos = JSON.parse(data);
+  })
+  next();
+})
+
+function IdFinder(id) {
+  for(var i=0;i<toDos.length;i++){
+    if(toDos[i].id === id){
+      return i;
+    }
+  }
+  return -1;
+}
+
+function requestPost(req,res){
+  res.status(200).send(toDos);
+}
+function requestIdElement(req,res){
+  console.log(req.params.id);
+  const index = IdFinder(parseInt(req.params.id));
+  console.log("Index at - "+index);
+  if(index==-1){
+      res.status(404).send(req.params.id + " - ID not found!")
+  }
+  else{
+    res.status(200).send(toDos[index])
+  }
+}
+function addingElement(req,res) {
+  toDos.push(req.body)
+  fs.writeFile(filePath,JSON.stringify(toDos),(err,data)=>{
+    if(err){
+      res.status(404);
+      console.log("Error in writing the file back!!")
+    }
+  })
+  res.status(201);
+  console.log(toDos);
+}
+function modifyingElement(req,res){
+  var index = IdFinder(parseInt(req.params.id));
+  
+  if(index==-1){
+    res.status(404);
+    console.log("ID Doesn't Exits!");
+  }
+  else{
+    toDos[index].title = req.body.title;
+    toDos[index].completed = req.body.completed;
+    toDos[index].description = req.body.description;
+    console.log(toDos);
+    fs.writeFile(filePath,JSON.stringify(toDos),(err,data)=>{
+      if(err){
+        res.status(404);
+        console.log("Error in writing the file back!!")
+      }
+    })
+
+  }
+}
+
+
+function deleteElement(req,res){
+  var index = IdFinder(parseInt(req.params.id));
+  console.log(index);
+  if(index==-1){
+    res.status(404);
+    console.log("ID Doesn't Exits!");
+  }
+  else{
+    res.status(200);
+    toDos.splice(index,1);
+    console.log(toDos);
+    fs.writeFile(filePath,JSON.stringify(toDos),(err,data)=>{
+      if(err){
+        res.status(404);
+        console.log("Error in writing the file back!!")
+      }
+    })
+  }
+}
+app.get('/todos',requestPost);
+app.get('/todos/:id',requestIdElement);
+app.post('/todos',addingElement);
+app.put('/todos/:id',modifyingElement);
+app.delete('/todos/:id',deleteElement);
+
+
+
+
+
+
+//module.exports = app;

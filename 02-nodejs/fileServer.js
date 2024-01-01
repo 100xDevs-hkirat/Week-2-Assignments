@@ -20,6 +20,47 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
+var fileNames;
+const folderPath = '/Users/namanagrawal/Desktop/Codes/100x/Assignments/Week_2/Week-2-Assignments/02-nodejs/files';
 
+app.listen(port,()=>{
+  console.log('Listening in port - '+ port);
+})
+
+function MiddlewareToReadFilesName(req,res,next) {
+  fs.readdir(folderPath,(err,files)=>{
+    if(err){
+      console.log("Error in reading the Files name - "+err);
+      return;
+    }
+    else{
+      fileNames = files;
+      next();
+    }
+  })
+}
+app.use(MiddlewareToReadFilesName);
+
+function getFilesName(req,res){
+  res.status(200).send(fileNames);
+}
+
+function giveFileData(req,res){
+  var filePath = folderPath+"/"+req.params.filename;
+  console.log(filePath);
+  fs.readFile(filePath,'utf8',(err,data)=>{
+    if(err){
+      res.status(404).send("Incorrect File selected");
+      console.log("Error in getting the file data - " + err);
+    }
+    else{
+      res.status(200).send(data);
+    }
+  })
+}
+
+app.get("/files",getFilesName);
+app.get("/file/:filename",giveFileData);
 
 module.exports = app;
