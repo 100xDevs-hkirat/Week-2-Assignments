@@ -39,11 +39,116 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+  // npx jest todoServer.js
+
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const app = express();
 
 app.use(bodyParser.json());
 
-module.exports = app;
+
+function findIndex(arr, id){
+  for(let i=0; i<arr.length;i++){
+    if(arr[i].id===id)
+    return i;
+  }
+  return -1;
+}
+
+function removeAtIndex(arr, index){
+  const newArray = [];
+  for(let i=0;i<arr.length;i++){
+    if(i!=index)newArray.push(arr[i]);
+  }
+  return newArray;
+}
+
+app.get("/todos", (req, res)=>{
+  fs.readFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", "utf8", (err, data)=>{
+    if(err) throw err;
+    res.json(JSON.parse(data));
+  });
+});
+
+app.get("/todos/:id", (req, res)=>{
+  fs.readFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", "utf8", (err, data)=>{
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    const todoIndex = findIndex(todos, parseInt(req.params.id));
+    if(todoIndex===-1){
+      res.status(404).send();
+    }else {
+      res.json(todos[todoIndex]);
+    }
+  });
+});
+
+app.post("/todos", (req, res)=>{
+  const newTodo={
+    id: Math.floor(Math.random()*1000000),
+    title: req.body.title,
+    description: req.body.description
+  };
+  fs.readFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", "utf8", (err, data)=>{
+    if(err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", JSON.stringify(todos), (err)=>{
+      if(err)throw err;
+      res.status(201).json(newTodo);
+    });
+  });
+});
+
+app.put("/todos/:id", (req, res)=>{
+  fs.readFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", "utf8", (err, data)=>{
+    if(err) throw err;
+    else{
+      const todos = JSON.parse(data);
+      const todoIndex = findIndex(todos, parseInt(req.params.id));
+      if(todoIndex==-1)
+      res.status(404).send("Not found");
+    else{
+      const updatedTodo={
+        id: todos[todoIndex].id,
+        title: req.body.title,
+        description: req.body.description
+      };
+        todos[todoIndex]=updatedTodo;
+        fs.writeFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", JSON.stringify(todos),(err)=>{
+          if(err) throw err;
+          res.status(200).json(updatedTodo);
+        });
+      }
+    }
+  });
+});
+
+app.delete("/todos/:id", (req, res)=>{
+  fs.readFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", "utf8", (err, data)=>{
+    if(err) throw err;
+    let todos = JSON.parse(data);
+    const todoIndex = findIndex(todos, parseInt(req.params.id));
+    if(todoIndex==-1){
+      res.status(404).send();
+    }else{
+      todos = removeAtIndex(todos, todoIndex);
+      fs.writeFile("D:\\Programming\\Harkirat\\Week-2-Assignments\\02-nodejs\\todo.json", JSON.stringify(todos), (err)=>{
+        if(err) throw err;
+        res.status(200).json(todos);
+      })
+    }
+  })
+})
+
+
+app.use((req, res, next)=>{
+  res.status(404).send();
+} )
+
+// module.exports = app;
+
+app.listen(3000);
