@@ -71,4 +71,6 @@ app.use((req, res, next) => {
   res.status(404).send();
 });
 
-module.exports = app;
+// module.exports = app;
+
+app.listen(3000);
