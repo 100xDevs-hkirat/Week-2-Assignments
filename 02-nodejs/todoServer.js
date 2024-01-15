@@ -46,4 +46,53 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var todoList=[];
+
+app.post('/todos', (req , res) => {
+  let object=req.body;
+  object.id=todoList.length+1;
+  todoList.push(object);
+  let length=todoList.length;
+  res.status(201).send({
+    id : length
+  })
+})
+
+app.get('/todos', (req, res) => {
+  res.status(200).send(todoList);
+})
+
+app.get('/todos/:id', (req, res) => {
+  let id=parseInt(req.params.id);
+  if(id>todoList.length){
+    res.status(404).send("Not Found");
+  }
+  res.status(200).send(todoList[id-1]);
+})
+
+app.put('/todos/:id', (req, res) => {
+  let found=false;
+  let title=req.body.title;
+  let discription=req.body.discription;
+  let id=parseInt(req.params.id);
+  if(id<=todoList.length){
+    id--;
+    todoList[id].title=title;
+    todoList[id].discription=discription;
+    res.sendStatus(200);
+  }
+  res.status(404).send("Not Found");
+})
+
+app.delete('/todos/:id', (req, res) => {
+  let id=parseInt(req.params.id);
+  id--;
+  if(id<todoList.length){
+    todoList.splice(id , 1);
+    res.sendStatus(200);
+  }
+  res.status(404).send("Not Found");
+  
+})
+
 module.exports = app;
