@@ -30,8 +30,91 @@
  */
 
 const express = require("express")
+var bodyParser = require('body-parser');
+
 const PORT = 3000;
 const app = express();
+
+app.use(bodyParser.json());
+
+const users = [];
+
+app.post('/signup', (req, res) => {
+
+    if (users.length > 0) {
+
+        const filteredUsers = users.filter(item => item.username === req.body.username);
+
+        if (filteredUsers.length > 0) {
+            res.status(401).send("Bad Request")
+        }
+        else {
+            users.push({
+                id: users.length,
+                username: req.body.username,
+                password: req.body.password,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName
+            });
+
+            res.status(201).send("Created")
+        }
+    }
+    else {
+        users.push({
+            id: users.length,
+            username: req.body.username,
+            password: req.body.password,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName
+        });
+
+        res.status(201).send("Created")
+    }
+});
+
+app.post("/login", (req, res) => {
+
+    const { username, password } = req.body;
+
+    const loggedInUser = users.filter(item => item.username === username && item.password === password);
+
+    if (loggedInUser.length > 0) {
+        res.status(200).json({
+            token: loggedInUser?.[0].id
+        });
+    }
+    else {
+        res.status(401).send("Unauthorized");
+    }
+});
+
+app.get("/data", (req, res) => {
+
+    const { username, password } = req.headers;
+
+    const filteredUsers = users.filter(item => item.username === username && item.password === password);
+
+    if (filteredUsers.length > 0) {
+        res.status(200).json({
+            users: filteredUsers.map(item => ({
+                firstName: item.firstName,
+                lastName: item.lastName,
+                id: item.id
+            }))
+        });
+    }
+    else {
+        res.status(401).send("Unauthorized");
+    }
+
+});
+
+app.use((req, res) => {
+    res.status(404).send("404 Not Found!");
+});
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.listen(PORT);
 
 module.exports = app;

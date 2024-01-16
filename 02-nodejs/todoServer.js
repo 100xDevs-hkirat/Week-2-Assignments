@@ -40,10 +40,173 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get("/todos", (req, res) => {
+    fs.readFile('./files/todo.txt', 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).send("Fetching Todos Failed");
+        }
+
+        res.status(200).json({
+            todos: data !== "" ? JSON.parse(data) : []
+        });
+    })
+});
+
+app.get("/todos/:id", (req, res) => {
+
+    const { id } = req.params;
+
+    fs.readFile('./files/todo.txt', 'utf-8', (err, data) => {
+        if (err) {
+            res.status(500).send("Fetching Todos Failed");
+        }
+        else {
+
+            const existingData = data !== "" ? [...JSON.parse(data)] : [];
+
+            const filteredData = existingData.filter(item => item.id === parseInt(id));
+
+            if (filteredData.length > 0) {
+                res.status(200).json({
+                    todos: filteredData?.[0]
+                });
+            }
+            else {
+                res.status(404).send("Not Found!");
+            }
+        }
+    })
+});
+
+app.post('/todos', (req, res) => {
+    fs.readFile('./files/todo.txt', 'utf-8', (err, data) => {
+        if (err) {
+            res.status(500).send("Fetching Todos Failed");
+        }
+        else {
+
+            const updatedData = data !== "" ? [...JSON.parse(data)] : [];
+
+            updatedData.push({
+                id: updatedData.length,
+                ...req.body
+            });
+
+            fs.writeFile('./files/todo.txt', JSON.stringify(updatedData), err => {
+                if (err) {
+                    res.status(500).send("Adding Todo Failed!");
+                }
+                else {
+                    res.status(201).send({
+                        id: updatedData.length - 1
+                    });
+                }
+            })
+        }
+    })
+});
+
+app.put("/todos/:id", (req, res) => {
+
+    const { id } = req.params;
+
+    fs.readFile('./files/todo.txt', 'utf-8', (err, data) => {
+        if (err) {
+            res.status(500).send("Fetching Todos Failed");
+        }
+        else {
+
+            const existingData = data !== "" ? [...JSON.parse(data)] : [];
+
+            let itemFound = false;
+
+            const updatedData = [];
+
+            for (let i of existingData) {
+                if (i.id === parseInt(id)) {
+                    itemFound = true;
+
+                    updatedData.push({
+                        id: i.id,
+                        ...req.body
+                    });
+                }
+                else {
+                    updatedData.push(i);
+                }
+            }
+
+            if (itemFound) {
+                fs.writeFile('./files/todo.txt', JSON.stringify(updatedData), err => {
+                    if (err) {
+                        res.status(500).send("Adding Todo Failed!");
+                    }
+                    else {
+                        res.status(200).send("Todo Item Updated Succesfully")
+                    }
+                })
+            }
+            else {
+                res.status(404).send("Item Not Found");
+            }
+        }
+    })
+});
+
+app.delete("/todos/:id", (req, res) => {
+    const { id } = req.params;
+
+    fs.readFile('./files/todo.txt', 'utf-8', (err, data) => {
+        if (err) {
+            res.status(500).send("Fetching Todos Failed");
+        }
+        else {
+
+            const existingData = data !== "" ? [...JSON.parse(data)] : [];
+
+            let itemFound = false;
+
+            const updatedData = [];
+
+            for (const i of existingData) {
+                if (i.id !== parseInt(id)) {
+                    updatedData.push(i);
+                }
+                else {
+                    itemFound = true;
+                }
+            }
+
+            if (itemFound) {
+
+                fs.writeFile('./files/todo.txt', JSON.stringify(updatedData), err => {
+                    if (err) {
+                        res.status(500).send("Deleting Todo Failed!");
+                    }
+                    else {
+                        res.status(200).send("Todo Item deleted Succesfully");
+                    }
+                })
+
+            }
+            else {
+                res.status(404).send("Item Not Found");
+            }
+        }
+    })
+});
+
+app.all("*", (req, res) => {
+    res.status(404).send("Route Not Found!");
+});
+
+app.listen(3000);
 
 module.exports = app;
