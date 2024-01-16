@@ -21,5 +21,50 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+app.get("/files", (req, res) => {
+
+    const reqPath = req.path;
+
+    const dirPath = path.join(__dirname, reqPath);
+
+    fs.readdir(dirPath, (err, files) => {
+
+        if (err) {
+            res.status(401).send("unauthorized");
+        }
+        else {
+            if (files.length > 0) {
+                res.status(200).json({
+                    files
+                });
+            }
+            else {
+                res.status(401).send("files Not Exist");
+            }
+        }
+    });
+});
+
+app.get('/files/:fileName', (req, res) => {
+
+    const reqPath = req.path;
+
+    const filePath = path.join(__dirname, reqPath);
+
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            res.status(400).send("File not found");
+        }
+        else {
+            res.status(200).send(data);
+        }
+    });
+});
+
+app.all("*", (req, res) => {
+    res.status(404).send("Route Not Found!");
+});
+
+app.listen(3000);
 
 module.exports = app;
