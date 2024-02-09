@@ -16,7 +16,7 @@ function handlereq2(req, res) {
   arr.push(req.body); // Push the parsed request body into the arr array
   res.send("ok");
 }
-
+// chilling 
 app.get('/', handlereq);
 app.post('/', handlereq2);
 
