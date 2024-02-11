@@ -41,9 +41,81 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const uuid = require('uuid');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let myTodos={};
+
+const createNewTodo = (req,res)=>{
+  const item=req.body;
+  const id= uuid.v4();
+  myTodos[id]={id, ...item};
+  res.status(201).json({"id": id});
+}
+
+const returnAllTodos=(req,res)=>{
+  let todoArr=[];
+
+  for(let item in myTodos)todoArr.push(myTodos[item]);
+
+  res.status(200).json(todoArr);
+}
+
+const returnTodoByID=(req,res)=>{
+  const {id}=req.params;
+
+  if(myTodos[id])
+  {
+    res.status(200).json(myTodos[id]);
+  }
+  else
+  {
+    res.sendStatus(404);
+  }
+}
+
+const updateTodo = (req,res)=>{
+  const {id}=req.params;
+  if(myTodos[id])
+  {
+    myTodos[id]=req.body;
+    res.sendStatus(200);
+  }
+  else
+  {
+    res.sendStatus(404);
+  }
+}
+const deleteTodo = (req,res)=>{
+  const {id}=req.params;
+  if(myTodos[id])
+  {
+    delete myTodos[id];
+    res.sendStatus(200);
+  }
+  else
+  {
+    res.sendStatus(404);
+  }
+}
+
+//routes of the app required
+app.get('/todos',returnAllTodos);
+app.get('/todos/:id',returnTodoByID);
+app.post('/todos',createNewTodo);
+app.put('/todos/:id', updateTodo);
+app.delete('/todos/:id',deleteTodo);
+
+app.use((req,res,next)=>{
+  res.sendStatus(404);
+})
+
+//App Listener
+app.listen('5500',()=>{
+  console.log('The app is listening, Please tell');
+})
 
 module.exports = app;
