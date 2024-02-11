@@ -29,7 +29,7 @@
         res.status(200).json(files);
       } 
       catch (error) {
-        res.status(500).json({error: "Internal Server Error"});
+        res.sendStatus(500);
       }
     };
     
