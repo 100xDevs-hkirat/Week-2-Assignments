@@ -34,4 +34,106 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+//IMPORT THE BODY PARSER MIDDLEWARE
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
+//IMPORT JWT AND CREATE A SECRET KEY
+const jwt = require('jsonwebtoken');
+const SECRET_KEY = "100xDEV";
+
+//USERS DATA
+let usersCount = 0;
+const USERS = [];
+
+
+//BASIC CHECKPOINT
+app.get('/',(req,res)=>{
+  res.send("Everyting is OK");
+})
+
+
+//SIGNUP ROUTE
+app.post('/signup',(req,res)=>{
+
+  if(!req.body.email || !req.body.password)
+    return res.status(401).send("Password or Email missing");
+
+  const user = USERS.find((user)=> user.email == req.body.email);
+
+  if(user)
+    return res.status(401).send("User Already Exists");
+
+  USERS.push({
+    userName : req.body.userName,
+    firstName : req.body.firstName,
+    lastName : req.body.lastName,
+    email : req.body.email,
+    password : req.body.password,
+    userId : usersCount++,
+  })
+
+  res.status(201).send("Signup successful");
+})
+
+
+//LOGIN ROUTE
+app.post('/login',(req,res)=>{
+
+  if(!req.body.email || !req.body.password)
+    return res.status(401).send('Unauthorized');
+
+  const user = USERS.find((user)=> user.email == req.body.email);
+
+  if(!user)
+    return res.status(401).json({msg : "No user found. Kindly Signup First"});
+
+  if(user.password != req.body.password)
+    return res.status(401).json({ msg : "Password is Incorrect "})
+
+  const token = jwt.sign({
+    userId: user.userId,
+  },SECRET_KEY);
+
+  return res.status(200).json({email:user.email,firstName:user.firstName, lastName : user.lastName,token});
+
+})
+
+
+//DATA ROUTE
+app.get('/data',(req,res)=>{
+
+  const email = req.headers.email;
+  const password =req.headers.password;
+
+  if(!email || !password)
+    return res.status(401).send('Unauthorized');
+  const user = USERS.find((user)=> user.email == email);
+
+  if(!user)
+    return res.status(401).json({msg:"Create an Account first"});
+
+  if(user.password != password)
+    res.status(401).json({msg : "Invalid Credentials"});
+
+  const users = USERS.map((user) => ({
+    email : user.email,
+    id: user.userId,
+    firstName : user.firstName,
+    lastName : user.lastName,
+  }))
+
+
+  res.json({users});
+
+})
+  
+
+//authenticationServer.js
+
+//SERVER LISTENING
+// app.listen(PORT,()=>{
+//   console.log("App is listening on the Port");
+// })
+
 module.exports = app;
