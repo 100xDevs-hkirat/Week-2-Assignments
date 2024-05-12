@@ -41,9 +41,82 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+
+const port = 3000;
 
 const app = express();
 
+function middleware1 (req, res, next){
+  fs.readFile('todos.json', 'utf8', (err, data) => {
+    if (err) throw err;
+    req.todos = JSON.parse(data);
+    next();
+  })
+}
+
 app.use(bodyParser.json());
 
+app.get('/todos', middleware1, (req, res) => {
+  return res.send(req.todos)
+})
+
+app.get('/todos/:id',middleware1, (req, res) => {
+  const todoIndex = parseInt(req.params.id);
+  const todo = req.todos.find(todo => todo.id === todoIndex);
+  if (!todo)
+    return res.status(404).send();
+  return res.json(todo);
+})
+
+app.post('/todos', middleware1, (req, res) => {
+  const newTodo = {
+    id: req.todos.length + 1,
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  };
+  req.todos.push(newTodo);
+  fs.writeFile('todos.json',  JSON.stringify(req.todos), (err) => {
+    if(err) throw err;
+    res.status(201).json(newTodo);
+  })
+})
+
+app.put('/todos/:id', middleware1, (req, res) => {
+  const todoIndex = parseInt(req.params.id);
+  if (!req.todos[todoIndex - 1]) 
+    return res.status(404).json({ error: 'Todo not found' });
+  
+  req.todos[todoIndex-1].title = req.body.title;
+  req.todos[todoIndex-1].completed = req.body.completed;
+  req.todos[todoIndex-1].description = req.body.description;
+
+  fs.writeFile('todos.json', JSON.stringify(req.todos), (err) => {
+    if (err) 
+      return res.status(500).json({ error: 'Internal server error' });
+    return res.status(200).json({ message: 'Todo updated successfully' });
+  });
+})
+
+app.delete('/todos/:id', middleware1, (req,res) => {
+  const todoIndex = parseInt(req.params.id);
+  if (!req.todos[todoIndex - 1]) 
+    return res.status(404).json({ error: 'Todo not found' });
+
+  req.todos.splice(todoIndex-1,1);
+  fs.writeFile('todos.json', JSON.stringify(req.todos), (err) => {
+    if(err) throw err;
+    return res.status(200).json({ message: 'Todo deleted successfully' });
+  });
+})
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
 module.exports = app;
+
+// app.listen(port, () => {
+//   console.log(`App listening on port ${port}`)
+// })
