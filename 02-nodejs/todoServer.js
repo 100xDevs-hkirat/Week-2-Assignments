@@ -39,11 +39,142 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuid } = require("uuid");
 const app = express();
-
+const fs = require("fs");
 app.use(bodyParser.json());
+// 1.GET /todos - Retrieve all todo items
+// Description: Returns a list of all todo items.
+// Response: 200 OK with an array of todo items in JSON format.
+// Example: GET http://localhost:3000/todos
+
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    res.send(JSON.parse(data));
+  });
+});
+// 2.GET /todos/:id - Retrieve a specific todo item by ID
+//     Description: Returns a specific todo item identified by its ID.
+//     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
+//     Example: GET http://localhost:3000/todos/123
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  let todo = null;
+  let todos = [];
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    todos = JSON.parse(data);
+    for (let i = 0; i < todos.length; i++) {
+      if (todos[i].id === id) {
+        todo = { ...todos[i] };
+        break;
+      }
+    }
+    if (todo) {
+      res.status(200).send(todo);
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+// 3. POST /todos - Create a new todo item
+// Description: Creates a new todo item.
+// Request Body: JSON object representing the todo item.
+// Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+// Example: POST http://localhost:3000/todos
+// Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+  const uniqueId = uuid();
+  const newTodo = {
+    title: title,
+    description: description,
+    id: uniqueId,
+  };
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+      if (err) throw err;
+      //res.status(201).json(todos)
+      res.status(201).send({ id: uniqueId });
+    });
+  });
+});
+
+// 4. PUT /todos/:id - Update an existing todo item by ID
+//     Description: Updates an existing todo item identified by its ID.
+//     Request Body: JSON object representing the updated todo item.
+//     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+//     Example: PUT http://localhost:3000/todos/123
+//     Request Body: { "title": "Buy groceries", "completed": true }
+
+app.put("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const { title, description } = req.body;
+  let isPresent = false;
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    for (let i = 0; i < todos.length; i++) {
+      if (todos[i].id === id) {
+        isPresent = true;
+        todos[i] = { title: title, description: description, id: id };
+        break;
+      }
+    }
+    if (isPresent) {
+      fs.writeFile("todos.json", JSON.stringify(todos), (err) => {
+        if (err) throw err;
+        res.status(200).send("Updated");
+      });
+    } else {
+      res.status(404).send("id:", id);
+    }
+  });
+});
+// 5. DELETE /todos/:id - Delete a todo item by ID
+//     Description: Deletes a todo item identified by its ID.
+//     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+//     Example: DELETE http://localhost:3000/todos/123
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  let isPresent = false;
+  fs.readFile("todos.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const todos = JSON.parse(data);
+    for (let i = 0; i < todos.length; i++) {
+      if (todos[i].id === id) {
+        isPresent = true;
+        todos.splice(i, 1);
+        break;
+      }
+    }
+    if (isPresent) {
+      fs.writeFile('todos.json',JSON.stringify(todos),(err)=>{
+        if(err) throw err;
+        res.status(200).send("Found and deleted");
+      })
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+// - For any other route not defined in the server return 404
+app.all("*", (req, res) => {
+  res.status(404).send("Route not defined");
+});
+
+// app.listen(3000, () => {
+//   console.log("server started");
+// });
 
 module.exports = app;
