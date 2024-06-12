@@ -22,4 +22,31 @@ const path = require('path');
 const app = express();
 
 
+app.get('/files', (req, res) => {
+  fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+    if (err) {
+      return res.status(500).send('Internal Server error');
+    }
+    res.status(200).json(files);
+  });
+})
+
+app.get('/file/:name', (req, res) => {
+  const filename = req.params.name;
+
+  if (fs.existsSync(`./files/${filename}`)) {
+    res.status(200).send(fs.readFileSync(`./files/${filename}`, 'utf-8'))
+  } else {
+    res.status(404).send('File not found')
+  }
+})
+
+app.use((req, res, next) => {
+  res.status(404).send('Route not found')
+})
+
+// app.listen(3000, () => {
+//   console.log(`App listening on port ${3000}`)
+// })
+
 module.exports = app;
