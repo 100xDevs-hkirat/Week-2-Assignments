@@ -16,10 +16,62 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+function getFiles(req, res) {
+  const path = "./files";
+  let files = [];
+  fs.readdir(path, (err, contents) => {
+    if (err) {
+      res.status(500).send("error");
+      return;
+    }
+    for (const content of contents) {
+      files.push({ filename: content });
+    }
+    res.status(200).send(files);
+  });
+}
+function showFile(res, location) {
+  fs.readFile(location, "utf-8", (err, data) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+    res.status(200).send(data);
+  });
+}
+function getFile(req, res) {
+  const filename = req.params.filename;
+  const location = "./files";
+  fs.readdir(location, (err, contents) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+    for (const content of contents) {
+      if (content == filename) {
+        showFile(res, path.join(location, content));
+        return;
+      }
+    }
+    res.status(404).send("File not found");
+    return;
+  });
+}
+
+app.get("/files", getFiles);
+app.get("/file/:filename", getFile);
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+  next();
+});
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server is listening in port ${port}`);
+});
 
 module.exports = app;

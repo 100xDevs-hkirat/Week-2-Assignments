@@ -29,9 +29,134 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const fs = require("fs");
+const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
+const User = require("./user");
+const jwt = require("jsonwebtoken");
+
+const secretKey = "yourSecretKey";
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
+
+// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+function equalsIgnoreCase(str1, str2) {
+  return str1.toLowerCase() === str2.toLowerCase();
+}
+
+function addUser(res, users, path) {
+  updatedUsers = JSON.stringify(users);
+  fs.writeFile(path, updatedUsers, (err) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+  });
+}
+
+function createUser(req, res) {
+  const username = req.body.email;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const password = req.body.password;
+  const path = "./users.json";
+  fs.readFile(path, "utf-8", (err, data) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+    const users = JSON.parse(data);
+    for (let user of users) {
+      if (equalsIgnoreCase(user.username, username)) {
+        res.status(400).send("user already exists");
+        return;
+      }
+    }
+    const hashedPassword = bcrypt.hashSync(password, salt);
+    let user = new User(
+      uuidv4(),
+      username,
+      firstName,
+      lastName,
+      hashedPassword
+    );
+    users.push(user);
+    addUser(res, users, path);
+    res.status(201).send("Signup successful");
+    return;
+  });
+}
+
+function auhtorizeUser(req, res) {
+  const username = req.body.email;
+  const password = req.body.password;
+  const path = "./users.json";
+  fs.readFile(path, "utf-8", (err, data) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+    const users = JSON.parse(data);
+    for (let user of users) {
+      if (equalsIgnoreCase(username,user.username)&&bcrypt.compareSync(password, user.password)) {
+        const payload = {
+          email: user.username,
+          firstName: user.firstname,
+          lastName: user.lastname,
+        };
+        const token = jwt.sign(payload, secretKey);
+        res.status(200).send(payload);
+        return;
+      }
+    }
+    res.status(401).send("Unauthorized");
+    return;
+  });
+}
+
+function getUsers(req, res) {
+  const username = req.headers.email;
+  const password = req.headers.password;
+  const path = "./users.json";
+  fs.readFile(path, "utf-8", (err, data) => {
+    if (err) {
+      res.status(404).send("error");
+      return;
+    }
+    const users = JSON.parse(data);
+    const modifiedUser = users.map((obj) => {
+      const { password, ...rest } = obj;
+      return rest;
+    });
+    const response = {users:modifiedUser};
+    for (let user of users) {
+      if (equalsIgnoreCase(username,user.username)&&bcrypt.compareSync(password, user.password)) {
+        res.status(200).send(response);
+        return;
+      }
+    }
+    res.status(401).send("Unauthorized");
+    return;
+  });
+}
+
+app.post("/signup", createUser);
+app.post("/login", auhtorizeUser);
+app.get("/data", getUsers);
+
+app.use((req, res, next) => {
+  res.status(404).send("Route not found");
+  next();
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on ${PORT}`);
+});
 module.exports = app;

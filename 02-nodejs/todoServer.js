@@ -39,11 +39,125 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+const Todo = require("./todo");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+function displayAllTodos(req, res) {
+  fs.readFile("./todoList.json", "utf-8", (err, data) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+    res.status(200).send(data);
+  });
+}
+
+function displayGivenTodo(req, res) {
+  const id = req.params.id;
+  fs.readFile("./todoList.json", "utf-8", (err, data) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+    const todos = JSON.parse(data);
+    for (todo of todos) {
+      if (todo.id == id) {
+        res.send(todo);
+        return;
+      }
+    }
+    res.status(404).send("error");
+    return;
+  });
+}
+function addData(todos) {
+  const updatedData = JSON.stringify(todos);
+  fs.writeFile("./todoList.json", updatedData, (err) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+  });
+}
+function createTodo(req, res) {
+  const todo = new Todo(
+    uuidv4(),
+    req.body.title,
+    req.body.completed,
+    req.body.description
+  );
+  fs.readFile("./todoList.json", "utf-8", (err, data) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+    const todos = JSON.parse(data);
+    todos.push(todo);
+    addData(todos);
+    res.status(201).send({ id: todo.id });
+  });
+}
+
+function updateTodo(req, res) {
+  const id = req.params.id;
+  fs.readFile("./todoList.json", "utf-8", (err, data) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+    let todos = JSON.parse(data);
+    for (uid in todos) {
+      if (todos[uid].id == id) {
+        const title = (req.body.title == null)?todos[uid].title:req.body.title;
+        const completed =(req.body.completed == null)?todos[uid].completed:req.body.completed;
+        const description =(req.body.description == null)?todos[uid].description:req.body.description;
+        const todo = new Todo(id, title, completed, description);
+        todos[uid] = todo;
+        addData(todos);
+        res.send("updated todo");
+        return;
+      }
+    }
+    res.status(404).send("error");
+    return;
+  });
+}
+function deleteTodo(req, res) {
+  const id = req.params.id;
+  fs.readFile("./todoList.json", "utf-8", (err, data) => {
+    if (err) {
+      res.send("error");
+      return;
+    }
+    let todos = JSON.parse(data);
+    for (uid in todos) {
+      if (todos[uid].id == id) {
+        todos.splice(uid, 1);
+        addData(todos);
+        res.send("deleted todo");
+        return;
+      }
+    }
+    res.status(404).send("error");
+    return;
+  });
+}
+app.get("/todos", displayAllTodos);
+app.get("/todos/:id", displayGivenTodo);
+app.post("/todos", createTodo);
+app.put("/todos/:id", updateTodo);
+app.delete("/todos/:id", deleteTodo);
+
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server is running in port ${port}`);
+});
 
 module.exports = app;
