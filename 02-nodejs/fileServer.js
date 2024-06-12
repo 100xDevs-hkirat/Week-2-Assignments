@@ -21,5 +21,32 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const route_checker = (req, res, next) =>{
+  if(req.url.includes('/file'))
+    next();
+    else{
+      res.status(404).send('Route not found');
+    }
+}
+app.use(route_checker);
+
+const fetchAllFiles = (req, res) => {
+  const readDirec = (err, files) => {
+    err ? res.status(500).send('Internal server error') : 
+      res.status(200).send(files);  
+  }
+ fs.readdir(path.resolve(__dirname, './files'), readDirec);
+}
+const fetchSpecficFileContent = (req, res) => {
+  const filename = req.params['filename'];
+  const fileRead = (err, data) => {
+    err ? res.status(404).send('File not found') : res.status(200).send(data);
+  }
+  fs.readFile(path.resolve(__dirname, `./files/${filename}`), "utf-8", fileRead);
+}
+app.get('/files', fetchAllFiles);
+app.get('/file/:filename', fetchSpecficFileContent);
+
+//app.listen(3010, console.log(`server is running on 3010`));
 
 module.exports = app;

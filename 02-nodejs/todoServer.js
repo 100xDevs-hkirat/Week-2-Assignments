@@ -41,9 +41,94 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+let todo_list = [];
+const fs = require('fs');
+const path = require('path');
+const {v4: uuidv4} = require('uuid');
 const app = express();
 
 app.use(bodyParser.json());
+const route_checker = (req, res, next) =>{
+  if(req.url.includes('/todos'))
+    next();
+    else{
+      res.status(404).send('Not Found');
+    }
+}
+app.use(route_checker);
+
+const fetchAllTodoItems = (req, res) => {
+  // const readContent = (err, data) => {
+  //   if(!err){
+  //     const lines = data.trim().split('\n');
+  //     for(item of lines.map((line) => JSON.parse(line)))
+  //     todo_list.push(...item);
+  //   }
+  //   res.status(200).send(todo_list);
+  // }
+  // fs.readFile(path.resolve(__dirname, 'TodoListFile.json'), 'utf8', readContent);
+  res.status(200).send(todo_list);
+}
+
+const fetchSpecificTodoItem = (req, res) => {
+  const id = req.params['id'];
+  let found = false;
+  todo_list.forEach((item) => {
+    if(item.id === id){
+      found = true;
+      res.status(200).send(item);
+    }
+  });
+  // If no match is found send back an error message with status code of 'Not Found'
+  if(!found){
+    res.status(404).send('Not Found');
+  }
+}
+const createTodo = (req, res) => {
+  req.body.id = uuidv4();
+  todo_list.push(req.body);
+  fs.appendFile(path.resolve(__dirname, 'TodoListFile.json'), JSON.stringify(todo_list) + '\n', (err) => {});
+  res.status(201).send({id: req.body.id});
+}
+const updateTodoItem = (req, res) => {
+  const itemToUpdateId = req.params["id"];
+  let found = false;
+  todo_list.forEach((item) => {
+    if(item.id === itemToUpdateId){
+      found = true;
+      if(req.body.title) item.title = req.body.title;
+      if(req.body.completed) item.completed = req.body.completed;
+      if(req.body.description) item.description = req.body.description; 
+      res.status(200).send(item);
+    }
+  });
+  // If no match is found send back an error message with status code of 'Not Found'
+  if(!found){
+    res.status(404).send('Not Found');
+  }
+} 
+const deleteTodoItem = (req, res) => {
+  const itemIdToDelete = req.params['id'];
+  let found = false, indexCounter = 0;
+  todo_list.forEach((item) => {
+    if(item.id === itemIdToDelete){
+      found = true;
+      todo_list.splice(indexCounter, 1);
+      res.status(200).send('Item Deleted Successfully');
+    }
+    indexCounter += 1;
+  });
+  // If no match is found send back an error message with status code of 'Not Found'
+  if(!found){
+    res.status(404).send('Not Found');
+  }
+}
+app.get('/todos', fetchAllTodoItems);
+app.get('/todos/:id', fetchSpecificTodoItem);
+app.post('/todos', createTodo);
+app.put('/todos/:id', updateTodoItem);
+app.delete('/todos/:id', deleteTodoItem);
+
+//app.listen(3010, console.log(`server is running on 3010`));
 
 module.exports = app;
