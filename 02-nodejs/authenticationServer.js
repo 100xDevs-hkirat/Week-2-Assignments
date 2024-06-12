@@ -29,9 +29,79 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express");
+  const bodyParser = require("body-parser");
+  const uuid = require("uuid");
+  const PORT = 3000;
+  const app = express();
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  app.use(bodyParser.json());
+  const users = [];
+  
+  //User sign up
+  app.post("/signup", (req, res) => {
+    const { email, password, firstName, lastName } = req.body;
+  
+    const userExists = users.some((user) => user.email === email);
+    if (userExists) res.status(400).send("Username already exists");
+  
+    const id = uuid.v4();
+    const user = {
+      id,
+      email,
+      password,
+      firstName,
+      lastName,
+    };
+  
+    users.push(user);
+    res.status(201).send("Signup successful");
+  });
+  
+  //User Login
+  app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+  
+    const userExists = users.find(
+      (user) => user.email === email && user.password === password
+    );
+  
+    if (userExists) {
+      const token = uuid.v4();
+      res.json({ authToken:token,...userExists });
+    }
+  
+    res.send(401).send("Unauthorized");
+  });
+  
+  // Middleware
+  function authenticate(req, res, next) {
+    const { email, password } = req.headers;
+  
+    // Check if userExists
+    const userExists = users.find(
+      (user) => user.email === email && user.password === password
+    );
+    if (userExists) {
+      next(); // Proceed to the next middleware/route handler
+    } else {
+      res.status(401).send('Unauthorized'); // Invalid credentials
+    }
+  }
+  
+  app.get('/data',authenticate,(req,res)=>{
+    const userData = users.map(user => {
+      const { id, firstName, lastName } = user;
+      return { id, firstName, lastName };
+    });
+  
+    res.status(200).json({ users: userData });
+  })
+  
+  // for all other routes, return 404
+  app.use((req, res, next) => {
+    res.status(404).send("Route not found");
+  });
+  
+  module.exports = app;
+  
