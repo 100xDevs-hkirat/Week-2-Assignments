@@ -29,9 +29,88 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express")
+  const port = 3000;
+  const bodyParser = require('body-parser');
+  const app = express();
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  app.use(bodyParser.json());
+  const users = [];
+  
+  app.post('/signup',(req,res)=>{
+    const { username, password, firstName, lastName } = req.body;
+  
+    const existingUser = users.find(user => user.username === username);
+    if (existingUser) {
+      return res.status(400).send("Username already exists");
+    }
+    const userId= Math.floor(Math.random() * 1000000);
+    const newUser = {
+      id: userId,
+      username,
+      password,
+      firstName,
+      lastName
+    };
+    users.push(newUser);
+  
+    res.status(201).send("User created successfully");
+  });
+  
+  app.post('/login' ,(req,res)=>{
+    const { username, password } = req.body;
+  
+    const user = users.find(user => user.username === username && user.password === password);
+    if(!user){
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const authToken = generateAuthToken();
+  
+    // Return user details and authentication token
+    res.status(200).json({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      authToken
+    });
+  
+  });
+  
+  app.get('/data',(req,res)=>{
+    const { username, password } = req.headers;
+    if (!username || !password) {
+      return res.status(401).send('Username and password are required');
+    }
+  
+    
+    const authenticatedUser = users.find(user => user.username === username && user.password === password);
+    if (!authenticatedUser) {
+      return res.status(401).send('Invalid username or password');
+    }
+  
+    
+    const userDetails = users.map(user => ({
+      id: user.id,
+      firstname: user.firstname,
+      lastname: user.lastname
+    }));
+  
+    
+    const responseData = {
+      users: userDetails
+    };
+  
+    res.status(200).json(responseData);
+  });
+  
+  function generateAuthToken() {
+    // Generate a random token (dummy implementation in this example)
+    return Math.random().toString(36).substring(7);
+  }
+  
+  app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`)
+  })
+  
+  
+  module.exports = app;
