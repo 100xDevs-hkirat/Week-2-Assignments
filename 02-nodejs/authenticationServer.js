@@ -34,4 +34,95 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+var userData = [];
+var autoId = 1;
+
+app.use(express.json())
+ 
+app.post('/signup', (req, res) => {
+  const email = req.body.email || null;
+  const password = req.body.password || null;
+  const firstName = req.body.firstName || null;
+  const lastName = req.body.lastName || null;
+  if (!validateRequest(email, password, firstName, lastName)) { res.status(400).send('Bad Request'); return; }
+  if (!getUserByEmail(email)) {
+    const currentId = autoId++;
+    userData.push({ id: currentId, email, password, firstName, lastName });
+    res.status(201).send('Signup successful')
+  }
+  else {
+    res.status(404).send('User Already Exist');
+  }
+})
+
+app.post('/login', (req, res) => {
+  const email = req.body.email || null;
+  const password = req.body.password || null;
+  validateRequest(email, password, "firstName", "lastName");
+  const currentUser = getUserByEmail(email);
+  if (currentUser) {
+    if (currentUser.password === password) {
+      const response = {
+        id: currentUser.id,
+        firstName: currentUser.firstName,
+        lastName: currentUser.lastName,
+        email : currentUser.email,
+        authToken: "tk_ijdfejwfi" 
+      }
+      res.status(200).json(response);
+    }
+    else
+      res.status(401).send('Unauthorized');
+  }
+  else {
+    res.status(404).send('User not found');
+  }
+})
+
+
+// why are we not using authToken to login
+app.get('/data', (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  const currentUser = getUserByEmail(email);
+  if (currentUser.password !== password) {
+    res.status(401).send('Unauthorized');
+    return;
+  }
+  var response = [];
+  userData.forEach((user) => {
+    const currentUserDetail = {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user.id
+    }
+    response.push(currentUserDetail);
+  })
+  res.status(200).json({ users: response })
+})
+
+
+function getUserByEmail(email) {
+  const currentUser = userData.find((user) => {
+    if (user.email === email)
+      return true;
+    return false;
+  }) || null;
+  return currentUser;
+}
+
+function validateRequest(email, password, firstName, lastName) {
+  if (email && password && firstName && lastName) {
+    return true;
+  }
+  return false;
+}
+
+
+
+// app.listen(PORT, () => {
+//   console.log(`Example app listening on port ${PORT}`)
+// })
+
 module.exports = app;
