@@ -39,11 +39,77 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
+const PORT = 5000;
 
 const app = express();
 
 app.use(bodyParser.json());
 
+const todos = [];
+
+app.get("/todos", (req, res) => {
+  res.send(todos);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const todo = todos.find((todo) => todo.id === id);
+  if (!todo) {
+    res.status(404).send();
+  } else {
+    res.json(todo);
+  }
+});
+
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+  if (!title || !description) {
+    res.status(400);
+    throw new Error("Invalid todo");
+  }
+  const newTodo = {
+    id: uuidv4(),
+    title,
+    description,
+  };
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  const { title, description } = req.body;
+  const id = req.params.id;
+  const todoIndex = todos.findIndex((t) => parseInt(t.id) === parseInt(id));
+
+  if (!title || !description || todoIndex === -1) {
+    res.status(400);
+    throw new Error("Invalid todo");
+  } else {
+    todos[todoIndex].title = title;
+    todos[todoIndex].description = description;
+    res.send("To do updated");
+  }
+});
+
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  const todoIndex = todos.findIndex((t) => t.id === id);
+  if (todoIndex === -1) {
+    res.status(400).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+});
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 module.exports = app;
