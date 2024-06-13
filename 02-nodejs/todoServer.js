@@ -41,9 +41,67 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+var globalid=0;
 const app = express();
 
 app.use(bodyParser.json());
+let todos=[];
+app.get('/todos',(req,res)=>{
+    res.status(200).send(todos);
+});
+app.get('/todos/:id',(req,res)=>{
+    const id=req.params.id;
+    if(id==null)res.status(404).send('id not sepcified');
+    let todobj=todos.findIndex(todo=>todo.id==id);
+    //console.log(todobj);
+    if(todobj==-1){
+        res.sendStatus(404);
+    }
+    else{
+        res.status(200).json(todos[todobj]);
+    }
+});
+app.put('/todos/:id',(req,res)=>{
+    const id=req.params.id;
+    if(id==null)res.status(404).send('id not sepcified');
+    let todobj=todos.findIndex(todo=>todo.id==id);
+    //console.log(todobj)
+    if(todobj==-1){
+        res.sendStatus(404);
+    }
+    else{
+        let tosend=req.body;
+        tosend["id"]=String(id);
+        todos[todobj]=tosend;
+        res.sendStatus(200);
+    }
+});
 
+app.post('/todos/',(req,res)=>{
+    let todoobj=req.body;
+    todoobj["id"]=String(globalid);
+    globalid+=1;
+    if(todoobj)
+    {
+      todos.push(todoobj);
+      res.status(201).json({"id":todoobj["id"]});
+    }
+    else{
+      console.log("unable to add todo item")
+      res.sendStatus(404);
+    }
+});
+app.delete('/todos/:id',(req,res)=>{
+  const id=req.params.id;
+  if(id==null)res.status(404).send('id not sepcified');
+  let todobj=todos.findIndex(todo=>todo.id==id);
+  if(todobj==-1){
+      res.sendStatus(404);
+  }
+  else{
+      todos.splice(todobj,1);
+      res.sendStatus(200);
+  }
+});
+//app.listen(3000)
 module.exports = app;
