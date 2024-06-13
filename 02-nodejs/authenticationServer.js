@@ -30,8 +30,78 @@
  */
 
 const express = require("express")
+const uuid = require('uuid');
+const bodyParser = require('body-parser')
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+const users = [];
+
+app.post('/signup',(req, res) => {
+  if(getUserWithEmail(req.body.email, users) != null){
+    res.status(400).send("user already exists");
+  }else{
+    const user = {
+      id: uuid.v4(),
+      email: req.body.email,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName
+    };
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+  
+});
+
+app.post('/login',(req, res) => {
+  const user = getUserWithEmailPassword(req.body.email, req.body.password, users)
+  if(user != null){
+    const responseBody = {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      authToken: uuid.v4()
+    }
+    res.status(200).send(responseBody);
+  }else{
+    res.status(401).send("Invalid Credentials!");
+  }
+});
+
+app.get('/data',(req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  if(getUserWithEmailPassword(email, password, users) != null){
+    res.send({users:users});
+  }else{
+    res.sendStatus(401);
+  }
+});
+
+/* app.listen(PORT,() => {
+  console.log(`authenticationServer is listening at port ${PORT}`);
+}); */
+
+function getUserWithEmailPassword(email, password, users){
+  for(let user of users){
+    if(email === user.email && password === user.password){
+      return user;
+    }
+  }
+  return null;
+}
+
+function getUserWithEmail(email, users){
+  for(let user of users){
+    if(email === user.email){
+      return user;
+    }
+  }
+  return null;
+}
 
 module.exports = app;
