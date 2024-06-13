@@ -29,9 +29,83 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
+var bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+
+require("dotenv").config();
+
 const PORT = 3000;
 const app = express();
+
+app.use(bodyParser.json());
+
+const users = [];
+
+const signupHandler = (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  if (!email || !password || !firstName || !lastName) {
+    return res.status(400).json({ msg: "Missing required fields" });
+  }
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email) {
+      return res.status(400).json({ msg: "email already in use" });
+    }
+  }
+  users.push({ email, password, firstName, lastName, id: uuidv4() });
+  return res.status(201).send("Signup successful");
+};
+
+const loginHandler = (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ msg: "Missing required fields" });
+  }
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+      const payload = { userId: users[i].id };
+      const secretKey = process.env.SECRET_KEY;
+      const options = { expiresIn: "15m" };
+      const token = jwt.sign(payload, secretKey, options);
+      return res.status(200).json({
+        email: users[i].email,
+        lastName: users[i].lastName,
+        firstName: users[i].firstName,
+        authToken: token,
+      });
+    }
+  }
+  return res.status(401).json({ msg: "Invalid credentials" });
+};
+
+const getDataHandler = (req, res) => {
+  const { email, password } = req.headers;
+  // if (!email || !password) {
+  //   return res.status(400).json({ mesg: "Missing required fields" });
+  // }
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+      const usersData = users.map((val) => {
+        let temp = { ...val };
+        delete temp.password;
+        delete temp.email;
+        return temp;
+      });
+      return res.status(200).json({ users: usersData });
+    }
+  }
+  return res.status(401).send("Unauthorized");
+};
+
+app.post("/signup", signupHandler);
+app.post("/login", loginHandler);
+app.get("/data", getDataHandler);
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Route not found" });
+});
+// app.listen(PORT);
 
 module.exports = app;
