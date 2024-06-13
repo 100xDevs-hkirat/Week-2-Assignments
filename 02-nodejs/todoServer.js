@@ -43,7 +43,83 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+const port = 3000;
 app.use(bodyParser.json());
+
+let todos = [];
+let id = 1;
+
+function indexOfTodo(todoId){
+  for(let i in todos){
+    const curTodo = todos[i]
+    if(curTodo.id === todoId){
+      return i;
+    }
+ }
+
+ return -1;
+ 
+}
+
+app.get("/todos",function(req,res){
+  res.status(200).json(todos)
+})
+
+app.get("/todos/:todoId",function(req,res){
+    const todoInd = indexOfTodo(parseInt(req.params.todoId));
+
+    if(todoInd !== -1){
+      res.status(200).json(todos[todoInd])
+    }else{
+      res.sendStatus(404)
+    }
+
+  })
+
+app.post("/todos",function(req,res){
+  const todo = req.body
+  todo['id'] = id++;
+  todos.push(todo)
+  res.status(201).json(todo)
+})
+/*
+PUT /todos/:id - Update an existing todo item by ID
+Description: Updates an existing todo item identified by its ID.
+Request Body: JSON object representing the updated todo item.
+Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+Example: PUT http://localhost:3000/todos/123
+Request Body: { "title": "Buy groceries", "completed": true }
+*/
+app.put("/todos/:todoId",function(req,res){
+  const todoInd = indexOfTodo(parseInt(req.params.todoId));
+  if(todoInd != -1){
+      const todo = todos[todoInd]
+      todo.title = req.body.title;
+      todo.completed = req.body.completed;
+      res.status(200).send(todo)
+  }else{
+    res.sendStatus(404)
+  }
+})
+/* DELETE /todos/:id - Delete a todo item by ID
+    Description: Deletes a todo item identified by its ID.
+    Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+    Example: DELETE http://localhost:3000/todos/123
+*/ 
+app.delete("/todos/:todoId",function(req,res){
+  const todoInd = indexOfTodo(parseInt(req.params.todoId));
+  if(todoInd != -1){
+    todos.splice(todoInd,1)
+    res.sendStatus(200)
+  }else{
+    res.sendStatus(404)
+  }
+})
+
+
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+// })
+
 
 module.exports = app;
