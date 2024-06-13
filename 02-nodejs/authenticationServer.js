@@ -28,10 +28,112 @@
 
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
-
-const express = require("express")
+const jwt = require("jsonwebtoken");
+const express = require("express");
+const bodyparser = require("body-parser");
 const PORT = 3000;
 const app = express();
+const secret = "jndfvjnienf";
+app.use(bodyparser.json());
+let users = [];
+function validUser(req, res, next) {
+  let headerUserName = req.headers.email;
+  let headerPassword = req.headers.password;
+  let userPresent = users.find((user) => {
+    return user.email === headerUserName;
+  });
+  if (
+    userPresent == undefined ||
+    userPresent.password !== headerPassword ||
+    userPresent.email != headerUserName
+  ) {
+    return res.sendStatus(401);
+  } else {
+    res.status(200).send(users);
+  }
+}
+function generateId(arr) {
+  if (arr.length) {
+    return arr[arr.length - 1].id + 1;
+  } else {
+    return 1;
+  }
+}
+app.post("/signup", (req, res) => {
+  let bodyUserName = req.body.email;
+  let bodyPassword = req.body.password;
+  let bodyFirstName = req.body.firstName;
+  let bodyLastName = req.body.lastName;
+  let userPresent = users.find((user) => {
+    return user.email === bodyUserName;
+  });
+  if (userPresent == undefined) {
+    let userObject = {
+      id: generateId(users),
+      email: bodyUserName,
+      password: bodyPassword,
+      firstName: bodyFirstName,
+      lastName: bodyLastName,
+    };
+    users.push(userObject);
+  } else {
+    return res.sendStatus(400);
+  }
+  res.status(201).send("Signup successful");
+});
+app.post("/login", (req, res) => {
+  let bodyUserName = req.body.email;
+  let bodyPassword = req.body.password;
+  let userPresent = users.find((user) => {
+    return user.email === bodyUserName;
+  });
+  if (
+    userPresent == undefined ||
+    userPresent.password !== bodyPassword ||
+    userPresent.email != bodyUserName
+  ) {
+    return res.sendStatus(401);
+  } else {
+    const token = jwt.sign(
+      {
+        id: userPresent.id,
+      },
+      secret
+    );
+    res.status(200).json({
+      email: bodyUserName,
+      firstName: userPresent.firstName,
+      lastName: userPresent.lastName,
+      authentication: token,
+    });
+  }
+});
+app.get("/data", (req, res) => {
+  let headerUserName = req.headers.email;
+  let headerPassword = req.headers.password;
+  let userPresent = users.find((user) => {
+    return user.email === headerUserName;
+  });
+  if (
+    userPresent == undefined ||
+    userPresent.password !== headerPassword ||
+    userPresent.email != headerUserName
+  ) {
+    return res.sendStatus(401);
+  } else {
+    let validUserdata = {
+      firstName: userPresent.firstName,
+      lastName: userPresent.lastName,
+      users: [
+        {
+          email: headerUserName,
+          password: headerPassword,
+        },
+      ],
+    };
+    res.status(200).send(validUserdata);
+  }
+});
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;

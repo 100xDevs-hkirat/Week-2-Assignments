@@ -39,11 +39,124 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
 const app = express();
-
+const bodyParser = require("body-parser");
+const cors = require("cors");
 app.use(bodyParser.json());
+app.use(cors());
+let todos = [
+  { id: 123, title: "class", description: "morning 7.30AM" },
+  { id: 774754, title: "go to gym", description: "7.am" },
+  { id: 593269, title: "asbr", description: "ijdijs" },
+  { id: 283587, title: "", description: "" },
+  { id: 223912, title: "djjbijwd", description: "nd jks" },
+  { id: 26315, title: "sleep", description: "10" },
+  { id: 527587, title: "jsnjd", description: "djhbkja" },
+];
+// todos = fs.readFileSync("todoData.json", "utf-8", (err) => {
+//   if (err) {
+//     console.log(err);
+//   }
+// });
+// todos = JSON.parse(todos);
+function creteId() {
+  var id = Math.floor(Math.random() * 1000000);
+  return id;
+}
+// console.log(todos);
+app.get("/todos", (req, res) => {
+  res.status(200).send(todos);
+});
+app.get("/todos/:id", (req, res) => {
+  const idparams = req.params["id"];
+  let idTodos = todos.find((todo) => {
+    return todo.id == idparams;
+  });
+  // console.log(idparams);
+  if (idTodos == undefined) {
+    return res.sendStatus(404);
+  }
+  // console.log(idTodos);
+  res.status(200).send(idTodos);
+});
+app.post("/todos", (req, res) => {
+  let todoTitle = req.body.title;
+  let todoDescription = req.body.description;
+  let id = creteId();
+  let todoObject = {
+    id: id,
+    title: todoTitle,
+    description: todoDescription,
+  };
 
-module.exports = app;
+  todos.push(todoObject);
+  // fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //   }
+  // });
+  // console.log(todos);
+  res.status(201).json(todoObject);
+});
+app.put("/todos/:id", (req, res) => {
+  const idPut = req.params["id"];
+  let indexOfTodo;
+  let todoId = todos.find((todo, index) => {
+    indexOfTodo = Number(index);
+    return todo.id == idPut;
+  });
+  // console.log(idPut);
+  if (todoId === undefined) {
+    return res.sendStatus(404);
+  }
+  let todoTitle = req.body.title;
+  let todoDescription = req.body.description;
+  let todoObject = {
+    id: Number(idPut),
+    title: todoTitle,
+    description: todoDescription,
+  };
+  todos[indexOfTodo] = todoObject;
+  // fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //   }
+  // });
+  // console.log(todos);
+  res.sendStatus(200);
+});
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
+  // let indexDel;
+  // let toDele = todos.find((todo, index) => {
+  //   indexDel = index;
+  //   return Number(todo.id) === Number(id);
+  //   // return todo.id === id;
+  // });
+  // if (toDele == undefined) {
+  //   return res.sendStatus(404);
+  // }
+  // todos = todos.slice(0, indexDel).concat(todos.slice(indexDel, todos.length));
+  let indexDel = todos.findIndex((todo) => todo.id === parseInt(id));
+  if (indexDel === -1) {
+    return res.sendStatus(404);
+  } else {
+    res.status(200).json(todos[indexDel]);
+    todos.splice(indexDel, 1);
+  }
+
+  console.log(todos);
+  // fs.writeFile("todoData.json", JSON.stringify(todos), (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //   }
+  // });
+  // console.log(todos);
+});
+app.get("/*", (req, res) => {
+  res.sendStatus(404);
+});
+app.listen(3000, () => {
+  console.log("Listining in 3000");
+});
