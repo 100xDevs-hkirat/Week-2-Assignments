@@ -1,3 +1,4 @@
+"use strict";
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
   - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
@@ -41,9 +42,134 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const {v4: uuidv4} = require('uuid')
+const fs = require('fs');
 
 const app = express();
 
 app.use(bodyParser.json());
+
+/** utils start */
+const constructTodo = (todo) => {
+  return {
+    id: uuidv4(),
+    ...todo,
+  };
+}
+
+const todoDBPath = './db/todoDB.json';
+
+const writeTodosToFile = (todos) => {
+  fs.writeFileSync(todoDBPath, JSON.stringify({todos}));
+}
+
+const readTodosFromFile = () => {
+  const data = fs.readFileSync(todoDBPath, 'utf8');
+  const todos = JSON.parse(data).todos;
+  return todos;
+}
+/** utils end */
+
+/** TodoList class start */
+class TodoList {
+  constructor() {
+    this.todos = readTodosFromFile();
+  }
+
+  getTodos() {
+    return this.todos;
+  }
+
+  getTodoById(id) {
+    return this.todos.find(todo => todo.id === id);
+  }
+
+  createNewTodo(todo) {
+    const newTodo = constructTodo(todo);
+    this.todos.push(newTodo);
+    writeTodosToFile(this.todos);
+    return newTodo;
+  }
+
+  updateTodoById(id, todo) {
+    const index = this.todos.findIndex(todo => todo.id === id);
+    if (index === -1) {
+      return null;
+    }
+    this.todos[index] = {
+      ...this.todos[index],
+      ...todo,
+    };
+    writeTodosToFile(this.todos);
+    return this.todos[index];
+  }
+
+  deleteTodoById(id) {
+    const index = this.todos.findIndex(todo => todo.id === id);
+    if (index === -1) {
+      return null;
+    }
+    writeTodosToFile(this.todos);
+    return this.todos.splice(index, 1)[0];
+  }
+}
+/** TodoList class end */
+
+const todoList = new TodoList();
+
+/** controllers start */
+const getTodos = (req, res) => {
+  res.status(200).send(todoList.getTodos());
+}
+
+const getTodo = (req, res) => {
+  const todo = todoList.getTodoById(req.params.id);
+  if (!todo) {
+    res.status(404).send();
+    return;
+  }
+  res.status(200).send(todo);
+}
+
+const createTodo = (req, res) => {
+  const todo = todoList.createNewTodo({
+    ...req.body,
+  });
+  res.status(201).send({
+    id: todo.id,
+  });
+}
+
+const updateTodo = (req, res) => {
+  const todo = todoList.updateTodoById(req.params.id, {
+    ...req.body,
+  });
+  if (!todo) {
+    res.status(404).send();
+    return;
+  }
+  res.status(200).send(todo);
+}
+
+const deleteTodo = (req, res) => {
+  const todo = todoList.deleteTodoById(req.params.id);
+  if (!todo) {
+    res.status(404).send();
+    return;
+  }
+  res.status(200).send(todo);
+}
+/** controllers end */
+
+/** Routes start */
+app.get('/todos', getTodos);
+app.get('/todos/:id', getTodo);
+app.post('/todos', createTodo);
+app.put('/todos/:id', updateTodo);
+app.delete('/todos/:id', deleteTodo);
+app.use((_req, res) => res.status(404).send());
+/** Routes end */
+
+// app.listen(3000, () => console.log('Server listening on port 3000'));
 
 module.exports = app;

@@ -29,9 +29,75 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+/* Todos:
+  1. Create file based DB
+  2. Hash passwords
+*/
 
-module.exports = app;
+const express = require('express')
+const { v4: uuidv4 } = require('uuid')
+const PORT = 3000
+const app = express()
+
+app.use(express.json())
+
+const users = []
+
+/* utils */
+const findUserByEmail = (email) => {
+  return new Promise((resolve, reject) => {
+    const user = users.find((user) => user.email === email)
+    if (!user) {
+      return resolve(null)
+    }
+    return resolve(user)
+  })
+}
+
+app.post('/signup', async (req, res) => {
+  const { email, password, firstName, lastName } = req.body
+  const user = await findUserByEmail(email)
+  if (user) {
+    return res.status(400).json({ message: 'User already exists' })
+  }
+  const newUser = {
+    id: uuidv4(),
+    email,
+    password,
+    firstName,
+    lastName,
+  }
+  users.push(newUser)
+
+  return res.status(201).send('Signup successful')
+})
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  const userWithPassword = await findUserByEmail(email)
+  if (userWithPassword.password !== password) {
+    return res.status(401).json({ message: 'Invalid credentials' })
+  }
+  const { password: userPassword, ...user } = userWithPassword
+  return res.status(200).json(user)
+})
+
+app.get('/data', async (req, res) => {
+  const { email, password } = req.headers
+  const userWithPassword = await findUserByEmail(email)
+  if (userWithPassword.password !== password) {
+    return res.status(401).send('Unauthorized')
+  }
+  const usersWithoutPassword = users.map(({ password, ...user }) => user)
+  return res.status(200).json({ users: usersWithoutPassword })
+})
+
+app.all('*', (req, res) => {
+  return res.status(404).json({ message: 'Route not found' })
+})
+
+// app.listen(PORT, () => {
+//   console.log(`Server listening on port ${PORT}`)
+// })
+
+module.exports = app
