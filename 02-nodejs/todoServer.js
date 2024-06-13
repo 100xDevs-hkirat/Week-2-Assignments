@@ -39,11 +39,69 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  const express = require("express");
+  const bodyParser = require("body-parser");
+  
+  let todos = [];
+  const app = express();
+  
+  app.use(bodyParser.json());
+  // function todobyid(todo){
+  //   return todo.id === id;
+  // }
+  //first task -- sending the todo array
+  function firsttask(req, res) {
+    res.json(todos);
+  }
+  //task-2 grabing the id if the todo
+  function secondtask(req, res) {
+    const reqid = req.params.id;
+    const todo = todos.find((t) => t.id === reqid);
+    if (todo) {
+      res.json(todo);
+    } else {
+      res.status(404).send();
+    }
+  }
+  //task-3 sending the json object from the body
+  function thirdtask(req, res) {
+    const id = Date.now().toString();
+    var obj = {
+      id: id,
+      title: req.body.title,
+      //"completed": req.body.completed,
+      description: req.body.description,
+    };
+    console.log(obj);
+    todos.push(obj);
+    res.status(201).json(obj);
+  }
+  
+  app.put("/todos/:id", (req, res) => {
+    const todoIndex = todos.findIndex((t) => t.id === req.params.id);
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } else {
+      todos[todoIndex].title = req.body.title;
+      todos[todoIndex].description = req.body.description;
+      res.json(todos[todoIndex]);
+    }
+  });
+  function fifthtask(req, res) {
+    const id = parseInt(req.params.id);
+    const index = todos.find((t) => t.id === id);
+    if (index === -1) {
+      res.status(404).send();
+    } else {
+      todos.splice(index, 1);
+      res.status(200).send();
+    }
+  }
+  
+  app.get("/todos", firsttask);
+  app.get("/todos/:id", secondtask);
+  app.post("/todos", thirdtask);
+  app.delete("/todos/:id", fifthtask);
+  
+  module.exports = app;

@@ -40,8 +40,13 @@ describe('API Tests', () => {
   });
 
   it('should allow a user to login', async () => {
+    const email = 'example@example.com';
+    const password = 'password';
+    const firstName = 'kirat';
+    const lastName = 'juneja';
+  
     const requestBody = JSON.stringify({ email, password });
-
+  
     const options = {
       method: 'POST',
       path: '/login',
@@ -50,19 +55,20 @@ describe('API Tests', () => {
         'Content-Length': requestBody.length,
       },
     };
-
+  
     const response = await sendRequest(options, requestBody);
-
+  
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
-
+  
     const responseBody = JSON.parse(response.body);
     expect(responseBody.email).toBe(email);
     expect(responseBody.firstName).toBe(firstName);
     expect(responseBody.lastName).toBe(lastName);
-
+  
     authToken = responseBody.authToken;
   });
+  
 
   it('should return unauthorized for accessing protected data without authentication', async () => {
     const options = {
