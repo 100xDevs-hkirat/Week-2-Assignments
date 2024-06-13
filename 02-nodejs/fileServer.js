@@ -20,6 +20,42 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const filesDirectory = path.join(__dirname, 'files');
 
+// GET /files - Returns a list of files present in `./files/` directory
+app.get('/files', (req, res) => {
+  fs.readdir(filesDirectory, (err, files) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(files);
+  });
+});
+
+// GET /file/:filename - Returns content of given file by name
+app.get('/file/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(filesDirectory, filename);
+  
+  fs.readFile(filePath, 'utf8', (err, content) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        res.status(404).send('File not found');
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+      return;
+    }
+    res.send(content);
+  });
+});
+
+// Handle other routes
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
 
 module.exports = app;

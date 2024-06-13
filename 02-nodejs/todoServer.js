@@ -45,5 +45,97 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.json());
+const todos = [];
 
+//* Retrieve all todo items
+app.get('/todos', (req,res) => {
+  try {
+    return res.status(200).json(todos);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+})
+
+//* Retrieve a specific todo item by ID
+app.get('/todos/:id', (req,res) => {
+  try {
+    const id = req.params.id;
+    todos.forEach(todo => {
+      if(todo.id === id){
+        return res.status(201).json(todo);
+      }
+    })
+  } catch (error) {
+    return res.status(404).json(error);
+  }
+})
+
+//* Create a new todo item
+app.post('/todos', (req,res) => {
+  try {
+
+    const {title, description, completed} = req.body;
+
+    function generateRandomToken() {
+      let token = '';
+      const characters = '0123456789ABCDEF';
+      
+      for (let i = 0; i < 16; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        token += characters.charAt(randomIndex);
+      }
+      
+      return token;
+    }
+    const id = generateRandomToken();
+    todos.push({id, title, description, completed});
+
+    return res.status(201).json(id);
+    
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+})
+
+//* Update the todo
+app.put('/todos/:id', (req,res) => {
+  try {
+    const id = req.params.id;
+    const {title, description, completed} = req.body;
+    let todoWithId = todos.forEach(todo => {
+      if(todo.id === id ){
+        return todo
+      }
+    });
+    if(!todoWithId){
+      return res.status(404).send("Todo doesn't exists with this id");
+    }
+    todoWithId.title = title;
+    todoWithId.description = description;
+    todoWithId.completed = completed;
+
+    return res.status(201).json(todoWithId);
+  } catch (error) {
+    return res.status(404).json(error);
+  }
+})
+
+//* Delete todo
+app.delete('/todos/:id', async(req,res) => {
+  try {
+    const id = req.params.id;
+    let index = 0;
+    let todoWithId = todos.forEach(todo => {
+      index += 1;
+      if(todo.id === id ){
+        return todo
+      }
+    });
+    todos.splice(index - 1, 1);
+
+    return res.status(201).json(todos);
+  } catch (error) {
+    return res.status(404).json(error);
+  }
+})
 module.exports = app;
