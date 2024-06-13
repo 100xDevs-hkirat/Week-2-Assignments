@@ -1,0 +1,19 @@
+{
+  "name": "mern-practice1",
+  "version": "1.0.0",
+  "description": "Each assignment has its respective instructions for the setup, running, testing and submitting it.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parv97/MERN-Practice1.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/parv97/MERN-Practice1/issues"
+  },
+  "homepage": "https://github.com/parv97/MERN-Practice1#readme"
+}
