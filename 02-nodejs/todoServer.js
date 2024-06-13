@@ -1,3 +1,4 @@
+
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
   - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
@@ -40,10 +41,107 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const PORT = 3001;
 const bodyParser = require('body-parser');
 
 const app = express();
 
+const { v4: uuidv4 } = require("uuid");
+
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+let TODO = [];
+
+//  1.GET /todos - Retrieve all todo items
+// Description: Returns a list of all todo items.
+// Response: 200 OK with an array of todo items in JSON format.
+// Example: GET http://localhost:3000/todos
+
+app.get("/todos", (req, res) => {
+
+ 
+
+  
+  res.status(200).json(TODO);
+})
+
+app.get("/todos/:id", (req, res) => {
+  const todoId = req.params.id;
+  console.log(todoId)
+  console.log(typeof todoId)
+  console.log(TODO)
+  const todo = TODO.find((todo) => todo.id === todoId);
+
+  if (!todo) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+
+  res.status(200).json(todo);
+})
+
+app.post("/todos",(req,res)=>{
+  const todo = req.body;
+  const ID =  uuidv4();
+  todo.id = ID;
+  
+  TODO.push(todo);
+  console.log(TODO)
+
+  res.status(201).json(todo)
+
+})
+
+app.put("/todos/:id", (req, res) => {
+  const todoId = req.params.id;
+  const updatedTodo = req.body;
+
+  // Find the index of the todo with the specified ID
+  const todoIndex = TODO.findIndex((todo) => todo.id === todoId);
+
+  // If the todo with the specified ID doesn't exist, return a 404 error
+  if (todoIndex === -1) {
+    res.status(404).send("Todo not found");
+    return;
+  }
+
+  // Update the properties of the todo object at the specified index
+  TODO[todoIndex] = {
+    ...TODO[todoIndex],
+    ...updatedTodo,
+  };
+
+  res.status(200).json(TODO[todoIndex]);
+});
+
+app.delete('/todos/:id', (req, res) => {
+  const todoId = req.params.id;
+
+  // Find the index of the todo with the specified ID
+  const todoIndex = TODO.findIndex((todo) => todo.id === todoId);
+
+  // If the todo with the specified ID doesn't exist, return a 404 error
+  if (todoIndex === -1) {
+    res.status(404).send('Todo not found');
+    return;
+  }
+
+  // Remove the todo item from the TODO array
+  const deletedTodo = TODO.splice(todoIndex, 1);
+
+  res.status(200).json(deletedTodo);
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+
+})
+
+
 
 module.exports = app;
