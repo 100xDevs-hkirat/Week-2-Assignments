@@ -32,6 +32,66 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const { v4: uuidv4 } = require('uuid');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+let users = [];
+
+app.use(express.json());
+
+app.post("/signup", function (req, res) {
+  const { email, password, firstName, lastName } = req.body;
+  for(const user of users) {
+    if(user.username === email){
+      res.send(400);
+      return;
+    }
+  }
+  let currentUser ={
+    id: uuidv4(),
+    email,
+    password,
+    firstName,
+    lastName,
+  }
+  users.push(currentUser);
+  res.status(201).send("Signup successful");
+  
+})
+
+app.post("/login", function (req, res) {
+  const { email, password } = req.body;
+  for(let user of users){
+    if(user.email === email && user.password === password){
+      res.status(200).send({
+        id:user.id,
+        email:user.email,
+        firstName:user.firstName,
+        lastName:user.lastName,
+      });
+      return;
+    }
+  }
+  res.send(401);
+})
+
+app.get("/data",(req,res)=>{
+  const {email,password}=req.headers;
+  for(let user of users){
+    if(user.email === email && user.password === password){
+      const response=users.map((user)=>{
+        return {
+          id:user.id,
+          firstName:user.firstName,
+          lastName:user.lastName,
+        }
+      })
+      res.send({"users":response});
+      return;
+    }
+  }
+  res.send(401);
+})
+
 
 module.exports = app;

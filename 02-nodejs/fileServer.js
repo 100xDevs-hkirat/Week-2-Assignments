@@ -21,5 +21,34 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+// app.use(express.static(path.join(__dirname, 'files')));
+
+
+app.get('/files', function(req, res){
+  fs.readdir(path.join(__dirname,"files"),(err,files)=>{
+    if(err){
+      res.send(500)
+    }
+    res.json(files);
+  });
+})
+
+app.get('/files/:filename', function(req, res){
+  let filename = req.params.filename;
+  if(fs.existsSync(path.join(__dirname,"files",filename))){
+    res.sendFile(path.join(__dirname,"files",filename));
+  }else{
+    res.status(404).send('File not found');
+  }
+})
+
+app.all("*",(req,res)=>{
+  res.status(404).send('Route not found');
+})
+
+
+// app.listen(3000, function(){
+//   console.log('File server listening on port 3000');
+// })
 
 module.exports = app;
