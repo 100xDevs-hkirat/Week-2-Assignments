@@ -29,9 +29,105 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const fs = require("fs");
+const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+const session = require("express-session");
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+const users = [];
 
+app.use(
+  session({
+    secret: "token",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+//user signup
+app.post("/signup", (req, resp) => {
+  const user = {
+    id: Math.floor(Math.random() * 1000000),
+    email: req.body.email,
+    password: req.body.password,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+  };
+  const index = users.findIndex((item) => item.email == user.email);
+  if (index != -1) {
+    resp.status(401).send("User already exist ,please login");
+  } else {
+    users.push(user);
+    fs.appendFile(
+      "/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files/user.txt",
+      JSON.stringify(user),
+      (err, data) => {
+        if (err) {
+          resp
+            .status(401)
+            .send("Unable to add the user , please try again later");
+        } else {
+          resp.status(200).send("User successfully added");
+        }
+      }
+    );
+  }
+});
+
+//user login
+app.post("/login", (req, resp) => {
+  const cred = {
+    email: req.body.email,
+    password: req.body.password,
+  };
+  const user = users.find((item) => item.email == cred.email);
+  if (user && user.password == cred.password) {
+    const token = jwt.sign(user, "MIRAW6", { expiresIn: "1h" });
+    req.session.token = token;
+    resp.send(
+      JSON.stringify(
+        "First Name :" +
+          user.firstName +
+          " Last Name :" +
+          user.lastName +
+          " token :" +
+          req.session.token
+      )
+    );
+  } else {
+    resp.status(404).send("User does not exist , please signup first");
+  }
+});
+
+// all users list
+app.get("/allUsers", (req, resp) => {
+  const access_token = req.session.token;
+  if (!access_token) {
+    return resp.status(401).send("Unauthorized access");
+  }
+  try {
+    const decode_token = jwt.verify(access_token, "MIRAW6");
+  } catch (err) {
+    return resp
+      .status(404)
+      .send("Some problem while retrieving the users list " + err);
+  }
+  const data = users.map((user) => {
+    return {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+  });
+  const response = {
+    USERS: data,
+  };
+  resp.status(200).send(response);
+});
+app.listen(PORT, () => {
+  console.log(`Server started at port : ${PORT}`);
+});
 module.exports = app;

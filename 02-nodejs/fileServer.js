@@ -16,10 +16,46 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
+//to get all files in a directory
+app.get("/files", (req, resp) => {
+  fs.readdir(
+    "/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files",
+    (err, files) => {
+      if (err) {
+        return resp
+          .status(404)
+          .send("Problem while retrieving the files " + err);
+      } else {
+        resp.status(200).send(JSON.stringify(files));
+      }
+    }
+  );
+});
 
+//to get particular file content
+app.get("/file/:filename", (req, resp) => {
+  const filename = req.params.filename;
+  console.log(filename);
+  fs.readFile(
+    `/Users/akash/Desktop/MERN/Week-2-Assignments/02-nodejs/files/${filename}`,
+    (err, data) => {
+      if (err) {
+        return resp.status(401).send("Error while reading the file " + err);
+      } else {
+        resp.status(200).send(data);
+      }
+    }
+  );
+});
+app.use((req, res, next) => {
+  res.status(404).send("Route is not defined");
+});
+app.listen(3000, () => {
+  console.log("Server running at port 3000");
+});
 module.exports = app;

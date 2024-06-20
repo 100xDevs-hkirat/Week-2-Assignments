@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index HTML</title>
+</head>
+<script>
+    function todosCallback(data) {
+        console.log(data);
+        var parentElement = document.getElementById("todo");
+        parentElement.innerHTML = JSON.stringify(data);
+    }
+
+    function getDataCallback(resp) {
+        resp.json().then(todosCallback);
+    }
+    function add() {
+        fetch("http://localhost:5000/all", {
+            method: "GET",
+            // body: JSON.stringify({
+            //     id: Math.random(1000) * 10000,
+            //     title: title,
+            //     description: description
+            // }),
+            // headers: {
+            //     "Content-Type": "application/json"
+            // }
+        }).then(getDataCallback);
+        // alert("button hit");
+    }
+</script>
+
+<body>
+    <div>
+        <h1>
+            TO DO APP
+        </h1>
+        <form>
+            <label name="title">
+                <h3>Title</h3>
+            </label>
+            <input type="text" id="title" />
+            <label name="description">
+                <h3>Description</h3>
+            </label>
+            <input type="text" id="description" />
+            <button onclick="add()">Add</button>
+        </form>
+        <div id="todo">
+        </div>
+    </div>
+</body>
+
+</html>
