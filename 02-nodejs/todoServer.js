@@ -41,9 +41,80 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000
+
+const fs = require('fs')
 
 const app = express();
 
+const TODO_LIST = JSON.parse(fs.readFileSync("./TodoFile.txt"))
+
+//const TODO_LIST = []
+
 app.use(bodyParser.json());
+
+app.get('/todos',(req,res)=>{
+	res.status(200).json(TODO_LIST)	
+})
+
+app.get('/todos/:id',(req,res)=>{
+	if(req.params.id){
+		let id =  parseInt(req.params.id)
+		const todoById = TODO_LIST.find(todo => todo.id === id)
+		if(todoById){
+			res.status(200).json(todoById)
+		}else{
+			res.status(404).send("TODO Item Not found")
+		}
+	}else{
+		res.status(200).json(TODO_LIST)	
+	}
+})
+
+app.post('/todos',(req,res)=>{
+	const { title, completed, description } = req.body
+	const id = TODO_LIST.length+1 
+	const newTodo = { id , title , completed, description }
+  	TODO_LIST.push(newTodo)
+	fs.writeFileSync('./TodoFile.txt', JSON.stringify(TODO_LIST))
+	res.status(201).json({ "id": id })
+})
+
+app.put('/todos/:id',(req,res)=>{
+	if(req.params.id){
+		let id =  parseInt(req.params.id)
+		let index = TODO_LIST.findIndex(x => x["id"] === id)
+		if(index === -1){
+			res.status(404).send("Todo Not found")
+		}else{
+			const { title, completed, description } = req.body
+			TODO_LIST[index]["title"] = title
+			TODO_LIST[index]["completed"] = completed
+			TODO_LIST[index]["description"] = description
+			fs.writeFileSync('./TodoFile.txt', JSON.stringify(TODO_LIST))
+			res.status(200).send("Updated")
+			
+		}
+	}
+})
+
+app.delete('/todos/:id',(req,res)=>{
+	if(req.params.id){
+		let id =  parseInt(req.params.id)
+		let index = TODO_LIST.findIndex(x => x["id"] === id)
+		if(index === -1){
+			res.status(404).send("Todo Not found")
+		}else{
+			TODO_LIST.splice(index,1)
+			res.status(200).send("Deleted")
+		}
+	}else{
+		res.status(404).send("No ID specified")
+	}
+})
+
+app.get('*', (req, res)=>{
+  res.status(404).send("No such route");
+})
 
 module.exports = app;
