@@ -46,4 +46,76 @@ const app = express();
 
 app.use(bodyParser.json());
 
+var todos=[];
+var count=0;
+
+app.get('/todos', (req,res)=>{
+  res.status(200).json(todos);
+})
+
+app.post('/todos', (req,res)=>{
+  count++;
+  let todo={
+    id: count,
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  }
+  todos.push(todo);
+  res.status(201).json({id: count});
+})
+
+app.get('/todos/:id',(req,res)=>{
+  let id=req.params.id;
+  let sent=true;
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id==id){
+      res.status(200).json(todos[i]);
+      sent=false;
+      break;
+    }
+  }
+  if(sent){
+    res.status(404).send("Not found");
+  }
+})
+
+app.put('/todos/:id', (req,res)=>{
+  let id=req.params.id;
+  let sent=true;
+  let todo={
+    id: id,
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  }
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id==id){
+      todos[i]=todo;
+      res.status(200).json(todo);
+      sent=false;
+      break;
+    }
+  }
+  if(sent){
+    res.status(404).send("Not found");
+  }
+})
+
+app.delete('/todos/:id', (req,res)=>{
+  let id=req.params.id;
+  let sent=true;
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id==id){
+      todos.splice(i,1);
+      res.status(200).send("Deletion done");
+      sent=false;
+      break;
+    }
+  }
+  if(sent){
+    res.status(404).send("Not found");
+  }
+})
+
 module.exports = app;

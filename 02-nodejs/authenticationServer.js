@@ -30,8 +30,81 @@
  */
 
 const express = require("express")
+var count=0;
+var bodyParser=require("body-parser")
+var usersData=[];
 const PORT = 3000;
 const app = express();
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.post('/signup', (req,res)=>{
+  let response=req.body;
+  for(let i=0;i<usersData.length;i++){
+    if(usersData[i].username==response.username){
+      res.status(400).send("Bad request");
+      return;
+    }
+  }
+    count++;
+    let responseObject={
+      userId: count,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      password: response.password,
+      email: response.email
+    }
+    usersData.push(responseObject);
+    res.status(201).send("Signup successful");
+})
+
+app.post('/login', (req,res)=>{
+  let requestBody=req.body;
+  let sent=true;
+  for(let i=0; i<usersData.length;i++){
+    if(usersData[i].username==requestBody.username){
+      if(usersData[i].password==requestBody.password){
+        let response={
+          userId: usersData[i].userId,
+          firstName: usersData[i].firstName,
+          lastName: usersData[i].lastName,
+          email: usersData[i].email
+        }
+        res.status(200).send(response);
+        sent=false;
+        break;
+      }
+    }
+  }
+  if(sent){
+    res.status(401).send("Unauthorized");
+  }
+
+})
+
+app.get('/data', (req, res)=>{
+  let requestBody=req.headers;
+  let sent=true;
+  for(let i=0; i<usersData.length;i++){
+    if(usersData[i].email==requestBody.email){
+      if(usersData[i].password==requestBody.password){
+        let protectedData=[];
+        for(let j=0;j<usersData.length;j++){
+          let data={
+            id: usersData[j].userId,
+            firstName: usersData[j].firstName,
+            lastName: usersData[j].lastName
+          }
+          protectedData.push(data);
+        }
+        res.status(200).json({users: protectedData});
+        sent =false;
+        break;
+      }
+    }
+  }
+  if(sent){
+    res.status(401).send("Unauthorized");
+  }
+})
 
 module.exports = app;
