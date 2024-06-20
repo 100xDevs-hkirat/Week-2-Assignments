@@ -39,11 +39,115 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const app = express();
 
+let TODOS = [];
+
 app.use(bodyParser.json());
+
+const writeTodo = () => {
+  fs.writeFile("./files/todoData.txt", JSON.stringify(TODOS), (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
+};
+
+const readTodo = () => {
+  fs.readFile("./files/todoData.txt", "utf8", (err1, content) => {
+    if (err1) {
+      console.log("Error while reading contents of the folder: " + err1);
+      return null;
+    } else {
+      //console.log(JSON.parse(content));
+      if (content.length > 0) TODOS = JSON.parse(content);
+      //console.log(TODOS);
+    }
+  });
+};
+
+//let TODOS = readTodo();
+readTodo();
+app.get("/todos", (req, res) => {
+  //readTodo();
+  if (TODOS.length > 0) {
+    return res.json(TODOS);
+  }
+});
+app.get("/todos/:id", (req, res) => {
+  //readTodo();
+  if (TODOS.length === 0) {
+    return res.status(404).send("No todo added");
+  }
+
+  let selectedTodo = TODOS.find((todo) => todo.id == req.params.id);
+  //console.log(selectedTodo + "======" + req.params.id);
+  if (!selectedTodo) {
+    return res.status(404).send("Todo not found");
+  }
+
+  res.json(selectedTodo);
+});
+app.put("/todos/:id", (req, res) => {
+  //readTodo();
+  let todoid = req.params.id;
+  let { title, completed } = req.body;
+  todoid = TODOS.findIndex((todo) => todo.id == todoid);
+  if (todoid == -1) {
+    return res.sendStatus(404);
+  }
+  TODOS[todoid].title = title;
+  TODOS[todoid].completed = completed;
+
+  writeTodo();
+
+  return res.json(TODOS[todoid]);
+});
+
+app.delete("/todos/:id", (req, res) => {
+  //readTodo();
+  let todoid = req.params.id;
+  todoid = TODOS.findIndex((todo) => todo.id == todoid);
+  if (todoid == -1) {
+    return res.sendStatus(404);
+  }
+  TODOS.splice(todoid, 1);
+  writeTodo();
+  return res.sendStatus(200);
+});
+
+//{ "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+app.post("/todos", (req, res) => {
+  //readTodo();
+  let { title, completed, description } = req.body;
+  if (!title) {
+    return res.status(400).send("Empty title received! Enter a valid title");
+  }
+  let id = TODOS.length + 1;
+
+  TODOS.push({
+    id: id,
+    title: title,
+    completed: completed,
+    description: description,
+  });
+
+  writeTodo();
+
+  return res.status(201).json({ id: id });
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Route not found");
+});
+
+/* let port = 3003;
+app.listen(3003, function () {
+  console.log(`Demo application is listening on port ${port}`);
+}); */
 
 module.exports = app;
