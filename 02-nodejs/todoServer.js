@@ -10,26 +10,26 @@
     Description: Returns a list of all todo items.
     Response: 200 OK with an array of todo items in JSON format.
     Example: GET http://localhost:3000/todos
-    
+
   2.GET /todos/:id - Retrieve a specific todo item by ID
     Description: Returns a specific todo item identified by its ID.
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
-    
+
   3. POST /todos - Create a new todo item
     Description: Creates a new todo item.
     Request Body: JSON object representing the todo item.
     Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
     Example: POST http://localhost:3000/todos
     Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
-    
+
   4. PUT /todos/:id - Update an existing todo item by ID
     Description: Updates an existing todo item identified by its ID.
     Request Body: JSON object representing the updated todo item.
     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
     Example: PUT http://localhost:3000/todos/123
     Request Body: { "title": "Buy groceries", "completed": true }
-    
+
   5. DELETE /todos/:id - Delete a todo item by ID
     Description: Deletes a todo item identified by its ID.
     Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
@@ -39,11 +39,137 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
+
+
+
+ 
+const express = require('express');
+const fs=require("fs");
+const bodyParser = require('body-parser');
+//const port=3000;
 const app = express();
 
 app.use(bodyParser.json());
+//var users=[];
+
+app.get('/todos', (req, res) => {
+  fs.readFile("todos.json", "utf8", (err, data) => {
+    if (err) throw err;
+    res.json(JSON.parse(data));
+  });
+});
+
+app.get('/todos/:id',(req,res)=>{
+  let ansid=0;
+  
+ fs.readFile("todos.json", "utf-8", (err,data)=>{
+  let userFound=null;
+  if(err) throw err;
+  const todos=JSON.parse(data);
+  let uid=parseInt(req.params.id);
+
+  for(let i=0;i<todos.length;i++){
+    if(todos[i].id===uid){
+      userFound=true;
+      ansid=i;
+      break;
+    }
+
+  }
+
+  if(userFound){
+    res.json(todos[ansid]);
+  }else{
+    res.status(404).send();
+  }
+
+
+ });
+});
+
+app.post('/todos',(req,res)=>{
+  let ob=req.body;
+  
+  let uid=Math.floor(Math.random()*1000000);
+  ob.id=uid;
+ 
+  fs.readFile("todos.json","utf-8",(err,data)=>{
+    if(err) throw err;
+    const todos=JSON.parse(data);
+    todos.push(ob);
+    fs.writeFile("todos.json",JSON.stringify(todos),(err)=>{
+      if(err) throw err;
+      res.status(201).json(ob);
+    });
+  });
+});
+
+app.put('/todos/:id',(req,res)=>{
+  let id= parseInt(req.params.id);
+  let ob=req.body;
+  let userFound=false;
+  let updatedTodo={};
+ let ansin=0;
+  fs.readFile("todos.json",'utf-8',(err,data)=>{
+    if(err) throw err;
+    const todos=JSON.parse(data);
+    for(let i=0;i<todos.length;i++){
+      if(todos[i].id===id){
+        userFound=true;
+       
+        updatedTodo={
+          id:todos[i].id,
+          title:ob.title,
+          description:ob.description
+        }
+        todos[i]=updatedTodo;
+        ansin=i;
+        break;
+      }
+    }
+    if(userFound){
+
+      fs.writeFile("todos.json",JSON.stringify(todos),(err)=>{
+        if(err) throw err;
+        res.status(200).json(updatedTodo);
+      })
+
+    }else{
+      res.status(404).send();
+    }
+
+
+
+  })
+  
+
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  let uid=parseInt(req.params.id);
+  let userFound=false;
+  fs.readFile("todos.json",'utf-8',(err,data)=>{
+    if(err) throw err;
+    let todos=JSON.parse(data);
+    todos=todos.filter(obj=>obj.id!==uid);
+    fs.writeFile("todos.json",JSON.stringify(todos),(err)=>{
+      if(err) throw err;
+      res.status(200).send();
+    })
+   
+  })
+})
+
+
+
+
+
+
+
+
+
+
 
 module.exports = app;
+
