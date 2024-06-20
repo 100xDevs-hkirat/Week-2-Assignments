@@ -46,4 +46,98 @@ const app = express();
 
 app.use(bodyParser.json());
 
+// Server port
+var port = 3000;
+
+// Create an array for storing TODOs
+var todo = [];
+
+
+
+// Create a new TODO
+app.post('/todos', createTodo);
+
+function createTodo(req, res){
+  const newTodo = {
+    id: Math.floor(Math.random() * 1000000), // random Id generator
+    title: req.body.title,
+    description: req.body.description
+  };
+
+  todo.push(newTodo);
+
+  res.status(201).send(newTodo);
+}
+
+
+
+// Get TODO using id
+app.get('/todos/:id', (req, res) => {
+  const todoId = req.params.id;
+
+  const foundElement = todo.find(obj => obj.id === parseInt(todoId));
+
+  if (foundElement){
+    res.status(200).send(foundElement);
+  }
+  else{
+    res.status(404).send();
+  }
+});
+
+
+
+// Get all TODOs
+app.get('/todos', (req, res) => {
+  if (todo.length != 0){
+    res.status(200).send(todo);
+  }
+  else{
+    res.status(200).send("No todo to show");
+  }
+});
+
+
+
+// Update a todo
+app.put('/todos/:id', (req, res) => {
+  const todoId = req.params.id;
+
+  const index = todo.findIndex(obj => obj.id === parseInt(todoId));
+
+  if (index != -1){
+    todo[index].title = req.body.title;
+    todo[index].description = req.body.description;
+    res.status(200).send();
+  }
+  else{
+    res.status(404).send();
+  }
+});
+
+
+
+// Delete a todo
+app.delete('/todos/:id', (req, res) => {
+  const todoId = req.params.id;
+
+  const index = todo.findIndex(obj => obj.id === parseInt(todoId));
+
+  if (index != -1){
+    todo.splice(index,1);
+    res.status(200).send();
+  }
+  else{
+    res.status(404).send();
+  }
+});
+
+
+
+// Start the listener
+function started(){
+  console.log(`TODO Server listening on port: ${port}`);
+}
+app.listen(port, started);
+
 module.exports = app;
