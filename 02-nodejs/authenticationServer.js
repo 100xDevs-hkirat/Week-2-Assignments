@@ -30,8 +30,75 @@
  */
 
 const express = require("express")
+const bodyParser = require("body-parser")
+const { v4: uuidv4 } = require('uuid')
 const PORT = 3000;
 const app = express();
+const jwt = require('jsonwebtoken')
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+let users = []
+app.use(bodyParser.json())
+
+app.post("/signup",(req,res)=>{
+  const found = users.find(user => user.email == req.body.email)
+  if (found)
+    return res.sendStatus(400)
+  const id = uuidv4()
+  console.log(req.body.email)
+  const user = {
+    "id": id,
+    "email": req.body.email,
+    "password": req.body.password,
+    "firstName": req.body.firstName,
+    "lastName": req.body.lastName
+  }
+  users.push(user)
+  res.status(201).send("Signup successful")
+})
+
+app.post("/login",(req,res)=>{
+  const found = users.find( user => user.email == req.body.email)
+  if(!found){
+    return res.sendStatus(400)
+  }
+  const valid = found.password == req.body.password
+  // console.log(valid)
+  if(!valid){
+    return res.sendStatus(401)
+  }
+  jwt.sign({id: found.id, email: found.email},'DFKJLSJDFSDF',{expiresIn: 60*60},(err,token)=>{
+      if(err){
+        res.send(500).send("internal server error")
+      }
+    const sendJson = {authToken :token, "firstName": found.firstName, "lastName": found.lastName, "email" : found.email}
+    return res.status(200).send(sendJson)
+  })
+  // console.log(token)
+  
+})
+
+app.get("/data",(req,res)=>{
+   const found = users.find( user => user.email == req.headers.email)
+
+   if(!found)
+    return res.sendStatus(400)
+  
+  const valid = found.password == req.headers.password
+  if(!valid){
+    return res.sendStatus(401)
+  }
+  const sendData = users.filter(user => {
+    return {firstName : user.firstName, lastName : user.lastName, id : user.id}
+  })
+  res.send({users:sendData})
+})
+
+
+app.get("*",(req,res)=>{
+  res.sendStatus(404)
+})
+
 module.exports = app;
+
+// app.listen(PORT  3nxx';lkjhbbbn bvvbb vb c```21  `q123 

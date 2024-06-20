@@ -36,6 +36,7 @@ describe('API Endpoints', () => {
       };
 
       const directoryPath = path.resolve(__dirname, '../files/');
+      console.log(directoryPath)
       jest
         .spyOn(fs, 'readdir')
         .mockImplementation((directoryPath, callback) => {
