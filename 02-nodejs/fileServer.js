@@ -18,8 +18,45 @@
  */
 const express = require('express');
 const fs = require('fs');
+const fsP = require('fs/promises')
 const path = require('path');
 const app = express();
 
+
+
+app.get("/files", (req, res) => {
+    fs.readdir("./files", (err, files) => {
+        if(err){
+            console.log(`Error reading directory ${err}`)
+            res.status(500).send(`Error reading directory ${err}`)
+            return
+        }
+        res.send(files)
+    })
+})
+
+app.get("/file/:fileName", async (req, res) => {
+    try{
+        let files = await fsP.readdir("./files")
+        if(files.some(fileName => fileName === req.params.fileName)){
+            let fileText = await fsP.readFile(`./files/${req.params.fileName}`, "utf-8")
+            res.send(fileText)
+        }
+        else{
+            res.status(404).send("File not found")
+        }        
+
+    }catch(err){
+        res.status(500).send(`Error accessing/reading file ${err}`)
+    }   
+      
+})
+
+app.use((req, res, next) => {
+    res.status(404).send('Route not found')
+})
+
+// var port = 3000 
+// app.listen(port, () => console.log(`Started listening ${port}`))
 
 module.exports = app;
