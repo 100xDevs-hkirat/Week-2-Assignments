@@ -41,9 +41,111 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
-
 app.use(bodyParser.json());
+
+// app.use(validateBody);
+
+const myTodos = new Map();
+const bodyFormat = new Set(['title','description','completed']);
+
+function validateBody(req,res,next){
+  console.log(myTodos);
+  if (req.method == 'POST' || req.method =='PUT'){
+
+    const reqBody = req.body;
+
+    for (const key in reqBody){
+      if (!bodyFormat.has(key))
+        res.status(401).send();
+    }
+
+  }
+  next();
+}
+
+
+
+function getAllTodos(req,res){
+
+  const result = [];
+
+  for (const vals of myTodos.values()){
+    result.push(vals);
+  }
+  console.log(result);
+  return res.status(200).json(result);
+}
+
+function getUID(length =6){
+  return (Math.random()*1000).toString().substring(4,length+2);
+}
+
+function postTodos(req,res) {
+
+  const reqBody = req.body;
+  
+  const toSaveObj = reqBody;
+  const id = getUID();
+
+  myTodos.set(id,toSaveObj);
+
+  res.status(201).json({id:id});
+  //validating reqBody handled
+}
+
+function getTodosById(req,res){
+
+  const id = req.params.id;
+
+  if (myTodos.has(id)){
+    const dataWithId = myTodos.get(id);
+    dataWithId.id = id;
+    res.status(200).json(dataWithId);
+    return;
+  }
+
+  res.sendStatus(404);
+
+}
+
+function deleteById(req,res){
+  const id = req.params.id;
+
+  if (!myTodos.has(id)){
+    res.sendStatus(404);
+    return;
+  }
+
+  myTodos.delete(id);
+  res.sendStatus(200);
+
+}
+
+function updatedTodo(req,res) {
+
+  const id = req.params.id;
+  const content = req.body;
+  if(!myTodos.has(id)){
+    res.sendStatus(404);
+    return;
+  }
+
+  myTodos.set(id,content);
+  res.sendStatus(200);
+
+}
+
+
+
+app.get('/todos',getAllTodos);
+app.get('/todos/:id',getTodosById);
+app.post('/todos',postTodos);
+app.delete('/todos/:id',deleteById);
+app.put('/todos/:id',updatedTodo);
+
+app.use('*',(req, res) => {
+  res.sendStatus(404);
+});
 
 module.exports = app;

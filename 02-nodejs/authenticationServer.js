@@ -29,9 +29,96 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+
+const users = [];
+
+function genUUID(length = 4){
+  return Math.random()*toString().substring(2,length+2);
+}
+
+function userExists(userEmail,passCheck=false) {
+
+  for (let i =0;i<users.length;i++){
+    if (users[i].email === userEmail){
+      if ( !passCheck || users[i].password == passCheck)
+        return i; 
+    }
+  }
+
+  return -1;
+
+}
+
+function signup(req,res){
+
+  const userData = req.body;
+  const userEmail = userData.email;
+
+  if (userExists(userEmail)!= -1){
+    return res.sendStatus(400);
+  }
+
+  const id = genUUID();
+  let newUser = userData;
+  newUser.authToken = id;
+  users.push(newUser);
+  return res.status(201).send('Signup successful');
+
+}
+
+
+function login(req,res){
+
+  const UserData = req.body;
+  const userEmail = UserData.email;
+  const UserPass = UserData.password;
+
+  const Uid = userExists(userEmail,UserPass);
+  if (Uid == -1){
+    return res.sendStatus(401);
+  }
+
+  return res.status(200).json(users[Uid]);
+
+}
+
+
+function data(req,res){
+
+  if (!req.headers.email || !req.headers.password)
+    return res.sendStatus(401);
+
+  const providedEmail = req.headers.email;
+  const providedPassword = req.headers.password;
+  const toSend = [];
+  if (userExists(providedEmail,providedPassword) != -1){
+      users.forEach((user) => {
+        let obj = { firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email
+                  };
+        toSend.push(obj);          
+                              });
+
+      return res.status(200).json({users:toSend});
+  }
+
+  return res.sendStatus(401);
+}
+
+
+app.post('/signup',signup);
+app.post('/login',login);
+app.get('/data',data);
+app.use('*',(req, res) => {
+  res.status(404).send("Route not found");
+});
 
 module.exports = app;
