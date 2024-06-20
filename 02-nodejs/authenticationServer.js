@@ -29,9 +29,81 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const bodyParser = require("body-parser");
+const express = require("express");
 const PORT = 3000;
 const app = express();
+
+app.use(bodyParser.json());
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const users = [];
+
+let userId = 1;
+
+app.get("/data", (req, res) => {
+  const { email, password } = req.headers;
+
+  const user = users.find((user) => {
+    return user.email === email && user.password === password;
+  });
+
+  if (!user) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  res.status(200).send({ users: users });
+});
+
+app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+
+  if (users.some((user) => user.email === email)) {
+    res.status(400).send("email already exists");
+    return;
+  }
+
+  const newUser = {
+    id: userId++,
+    email,
+    password,
+    firstName,
+    lastName,
+  };
+
+  users.push(newUser);
+
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const user = users.find((user) => {
+    return user.email === email && user.password === password;
+  });
+
+  if (!user) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  res
+    .status(200)
+    .send({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user.id,
+    });
+});
+
+app.use((req, res) => {
+  res.status(404).send("Route not found");
+});
+
+// app.listen(PORT, () => {
+//   console.log("Listening..");
+// });
 module.exports = app;
