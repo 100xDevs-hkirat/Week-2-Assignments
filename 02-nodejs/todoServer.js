@@ -39,11 +39,69 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  const app = express();
+  const port = 3000
+  app.use(bodyParser.json());
+  
+  const todosDb =[];
+  
+  
+  app.get('/todos',(req,res)=>{
+    res.json(todosDb);
+  });
+  
+  app.get('/todos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const findTodo = todosDb.find(e => e.id === id);
+    if (!findTodo) {
+      res.status(404).json('not found');
+    } else {
+      res.json(findTodo);
+    }
+  });
+  
+  app.post('/todos',(req,res)=>{
+    const id = Math.floor(Math.random() * 1000000)
+    const {title,completed, description} = req.body;
+    const newTodo = {id,title,completed,description}
+    todosDb.push(newTodo);
+    res.status(201).json(newTodo);
+  });
+  
+  app.put('/todos/:id',(req,res)=>{
+    const id = parseInt(req.params.id);
+    const {title,completed, description} = req.body;
+    const todoIndex = todosDb.findIndex(t => t.id === id);
+    if (todoIndex === -1) {
+      res.status(404).send();
+    } 
+    else {
+      todosDb[todoIndex].title = title
+      todosDb[todoIndex].completed = completed
+      todosDb[todoIndex].description = description
+      console.log(todosDb[todoIndex]);
+      res.json(todosDb[todoIndex]);
+    }
+  });
+  
+  
+  app.delete('/todos/:id',(req,res)=>{
+    const id = parseInt(req.params.id);
+    const findTodo = todosDb.findIndex(t => t.id === id);
+    if (findTodo === -1) {
+      res.status(404).send();
+    } else {
+      todosDb.splice(findTodo, 1);
+      res.status(200).send();
+    }
+  });
+  
+  
+  app.use((req, res, next) => {
+    res.status(404).send();
+  });
+  
+  module.exports = app;
+  
