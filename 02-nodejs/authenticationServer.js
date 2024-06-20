@@ -32,6 +32,104 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+// write your logic here , DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const jwt = require("jsonwebtoken");
+
+app.use(bodyParser.json());
+
+const USERS = [];
+
+app.post('/signup', (req, res) => {
+  const {email, password, firstName, lastName} = req.body;
+  if (!email || !password || !firstName || !lastName)
+  {
+    res.status(409).send("Provide email, password, firstName and lastName.");
+    return;
+  }
+
+  const existedUser = USERS.find(user => user.email === email);
+
+  if (existedUser)
+  {
+    res.send(400).send("User with this email already exists.");
+    return;
+  }
+
+  const userId = uuidv4();
+  USERS.push({userId, email, password, firstName, lastName});
+  res.status(201).send("Signup successful");
+
+})
+
+app.post('/login', (req, res) => {
+  const {email, password} = req.body;
+  if (!email || !password)
+  {
+    res.status(409).send("Provide username and password.");
+    return;   
+  }
+
+  const existedUser = USERS.find(user => user.email === email);
+  if (!existedUser)
+  {
+    res.status(401).send("User does not exist.");
+    return;
+  }
+
+  if (existedUser.password !== password)
+  {
+    res.send(401).send("Invalid password");
+    return;
+  }
+
+  const authenticationToken = generateAccessToken(existedUser);
+  res.status(200).json({...existedUser, authenticationToken});
+
+})
+
+function generateAccessToken(user)
+{
+  const SECRET_KEY = "e2d91824f2d5aeab74246267c8b0616a4d9ca5c9f7d3b27132815555b0ecec39"
+  return jwt.sign(user,SECRET_KEY);
+}
+
+app.get('/data', (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+
+  if (!email || !password)
+  {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  const existedUser = USERS.find(user => user.email === email);
+
+  if (!existedUser)
+  {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+ 
+  if(existedUser.password !== password)
+  {
+    res.status(401).send(Unauthorized);
+    return;
+  }
+
+  res.status(200).json({users:USERS});
+
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+
+// app.listen(PORT, () => {
+//   console.log(`App is listening on port ${PORT}`);
+// })
 
 module.exports = app;
