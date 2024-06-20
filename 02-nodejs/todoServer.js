@@ -39,11 +39,60 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const todos = [];
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get("/todos", (req, res) => {
+  // return res.status(200).send({ todos: todos });
+  res.send(todos);
+});
+
+app.post("/todos", (req, res) => {
+  const generatedId = Math.random();
+  let newTodo = {
+    id: generatedId,
+    ...req.body,
+  };
+  todos.push(newTodo);
+  res.status(201).send(todos[todos.length - 1]);
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = +req.params.id;
+  let todo = todos.filter((todo) => todo.id === id);
+  if (todo.length !== 0) {
+    return res.send(todo[0]);
+  }
+  res.status(404).send({ msg: "Todo with specified index cannot found" });
+});
+
+app.put("/todos/:id", (req, res) => {
+  let selectedTodoIndex = todos.findIndex((todo) => todo.id === +req.params.id);
+  if (selectedTodoIndex !== -1) {
+    let selectedItem = todos[selectedTodoIndex];
+    todos[selectedTodoIndex] = { ...selectedItem, ...req.body };
+    return res.send(todos[selectedTodoIndex]);
+  }
+  res.status(404).send({ msg: "Todo with a given ID is not found" });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let selectedTodoIndex = todos.findIndex((todo) => todo.id === +req.params.id);
+  if (selectedTodoIndex !== -1) {
+    todos.splice(selectedTodoIndex, 1);
+    return res.send({ todos: todos });
+  }
+  res.status(404).send({ msg: "Todo with a given ID is not found" });
+});
+
+// app.listen(3000, () => {
+//   console.log("started at 3000");
+// });
 
 module.exports = app;
