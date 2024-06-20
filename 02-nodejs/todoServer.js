@@ -41,9 +41,88 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const uuid = require('uuid')
 
 const app = express();
 
 app.use(bodyParser.json());
+
+let todos = [];
+
+app.get('/todos',(req,res) => {
+  res.json(todos)
+})
+
+app.get('/todos/:id' , (req , res) => {
+  // const found = todos.find(todo => todo.id === parseInt(req.params.id))
+  // uuid uses string also in id so ==
+  const found = todos.find(todo => todo.id == req.params.id)
+  
+  if(found){
+    res.status(200).json(found)
+  } else {
+    res.status(404).json({err: 'No Todos with this id'})
+  }
+})
+
+app.post('/todos' , (req , res) => {
+
+  const { title ,completed , description } = req.body;
+
+  const newTodo = {
+    id : uuid.v4() , 
+    title , 
+    completed , 
+    description
+  }
+  
+  todos.push(newTodo);
+
+  res.status(201).json({id:newTodo.id})
+})
+
+
+app.put('/todos/:id' , (req , res) => {
+  const found = todos.find(todo => todo.id == req.params.id)
+
+  if(!found){
+     return res.status(404).json({msg: 'todo not found'})
+  } 
+
+  if(!req.body.title && !req.body.completed && !req.body.description){
+    res.status(400).json({msg: 'please include title, description or completed status'})
+  } else {
+    found.title = req.body.title? req.body.title : found.title;
+    found.completed = req.body.completed? req.body.completed : found.completed;
+    found.description = req.body.description? req.body.description : found.description;
+
+    res.status(200).json({msg: 'todo updated'})
+  }
+})
+
+app.delete('/todos/:id' , (req , res) => {
+  const found = todos.find(todo => todo.id == req.params.id)
+
+  if(!found) { 
+    return res.status(404).json({msg: 'todo not found'}) 
+  }
+
+  todos = todos.filter(todo => todo.id !== parseInt(req.params.id));
+
+  res.status(200).json({msg: 'deleted successfully'})
+
+})
+
+app.use((res,req,next) => {
+  res.status(404).send();
+})
+
+// const PORT = 3000;
+
+// //remove this at last
+// app.listen(PORT , ()=> {
+//   console.log(`Server is running in PORT ${PORT}`)
+// })
+
 
 module.exports = app;
