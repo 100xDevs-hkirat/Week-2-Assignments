@@ -43,7 +43,81 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
+port = 3000
 app.use(bodyParser.json());
 
+var todoList = []
+app.get('/todos',(req,res)=>{
+  res.json(
+    {todoList}
+  )
+})
+
+app.get('/todos/:id',(req,res)=>{
+  let itemId = req.params.id
+  console.log('in get by id')
+  let todoIndex= todoList.findIndex(t => t.id == itemId)
+  if(todoIndex == -1)
+  {
+    res.status(404).send();
+  }
+  else{
+    res.json(todoList[todoIndex]);
+  }
+  // for(var i=0;i<todoList.length;i++)
+  // {
+  //   if(todoList[i].id==itemId)
+  //   {
+  //     res.json({
+  //       "id":todoList[i].id,
+  //       "title":todoList[i].title,
+  //       "descreption":todoList[i].descreption,
+  //       "Completed":todoList[i].completed
+  //     })
+  //     break
+  //   }
+  // }
+})
+
+app.post('/todos',(req,res)=>{
+  console.log('in post')
+  const todoItem ={id:Math.floor(Math.random() * 1000000),
+    title:req.body.title,
+    description:req.body.description};
+  
+  todoList.push(todoItem);
+  res.status(201).json(todoItem)
+})
+
+app.put('/todos/:id',(req,res)=>{
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    console.log('put mai error')
+    res.status(404).send();
+  } else {
+    todoList[todoIndex].title = req.body.title;
+    todoList[todoIndex].description = req.body.description;
+    todoList[todoIndex].completed = req.body.completed
+    res.json(todoList[todoIndex]);
+  }
+})
+
+app.delete('/todos/:id',(req,res)=>{
+  const todoIndex = todoList.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todoList.splice(todoIndex,1)
+    res.status(200).send();
+  }
+})
+
+app.listen(port,started)
+
+function started()
+{
+  console.log(`listening to port ${port}`)
+}
 module.exports = app;
+
+

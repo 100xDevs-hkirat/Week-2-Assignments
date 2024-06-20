@@ -30,8 +30,98 @@
  */
 
 const express = require("express")
-const PORT = 3000;
+const port = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
 module.exports = app;
+
+var users = [];
+
+app.use(express.json());
+app.post("/signup",(req,res)=>{
+  var user = req.body;
+  console.log(user)
+  let userAlreadyExists = false
+  for(var i = 0;i<users.length;i++)
+  {
+    if(users[i].email == user.email)
+    {
+      userAlreadyExists = true
+      break;
+    }
+  }
+  if (userAlreadyExists) {
+    res.sendStatus(400);
+  } else {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  }
+})
+
+function started() {
+  console.log(`Example app listening on port ${port}`)
+}
+
+app.post("/login",(req,res)=>{
+  var userCred = req.body
+  let userFound = null;
+  for (var i = 0; i<users.length; i++) {
+    console.log('in for loop')
+    if (users[i].email === userCred.email && users[i].password === userCred.password) {
+        userFound = users[i];
+        break;
+    }
+  }
+
+  if (userFound) {
+    res.json({
+        firstName: userFound.firstName,
+        lastName: userFound.lastName,
+        email: userFound.email
+    });
+  } else {
+    console.log('Hi unauth')
+    res.sendStatus(401);
+  }
+})
+
+app.get("/data",(req,res)=>{
+  var email = req.headers.email
+  var password = req.headers.password
+  let userAlreadyExists = false
+  console.log(`email is ${email}`)
+  console.log(`password is ${password}`)
+  for(var i = 0;i<users.length;i++)
+  {
+    if(users[i].email === email && users[i].password === password)
+    {
+      userAlreadyExists = true
+      break;
+    }
+  }
+  if(userAlreadyExists)
+  {
+    let usersToReturn = [];
+    for(var i=0;i<users.length;i++)
+    {
+        usersToReturn.push({
+          firstName: users[i].firstName,
+          lastName: users[i].lastName,
+          email: users[i].email
+      });
+    }
+
+    res.json({
+      users
+    })
+  }
+  else
+  {
+    res.sendStatus(401);
+  }
+});
+
+// app.listen(port, started)
+module.exports = app;
+
