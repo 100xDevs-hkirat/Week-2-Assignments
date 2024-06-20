@@ -41,8 +41,70 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
-const app = express();
+const { v4: uuidv4 } = require('uuid');
+  
+  const app = express();
+  let todos = [];
+  
+  const getAllTodos = (req, res) => {
+    res.status(200).json(todos)
+  
+  }
+  const getTodo = (req, res) => {
+    const requestedId = req.params.id
+    const requestedTodo = todos.filter(todo => todo.id === requestedId)
+    if(requestedTodo.length > 0 ){
+      res.status(200).json(requestedTodo[0])
+    }else{
+      res.sendStatus(404)
+    }
+    
+  
+  }
+  const postTodosHandler = (req, res) => {
+    const newTodo = req.body
+    const id = uuidv4()
+    todos.push({id, ... newTodo})
+    res.status(201).json({id})
+  
+  }
+  const updateTodo = (req, res) => {
+    const updateTodoId = req.params.id
+    const updatedTodoBody = req.body
+    const requestedTodo = todos.filter(todo => todo.id === updateTodoId)
+    if(requestedTodo.length){
+      const newTodos  = todos.map(todo => todo.id === updateTodoId ? ({id:todo.id,...updatedTodoBody}): todo)
+      todos = newTodos
+      res.status(200).json(todos)
+    }else{
+      res.sendStatus(404)
+    }
+  }
+  const deleteTodo = (req, res) => {
+    const requestedId = req.params.id
+    const requestedTodo = todos.filter(todo => todo.id === requestedId)
+    if(requestedTodo.length){
+      const newTodos = todos.filter(todo => todo.id !== requestedId)
+      todos = newTodos
+      res.status(200).json(todos)
+    }else{
+      res.sendStatus(404)
+    }
+  }
+  
+  const notFoundHanlder = (req,res) => {
+    res.sendStatus(404)
+  }
+  
+  app.use(bodyParser.json());
+  app.get("/todos", getAllTodos)
+  app.get("/todos/:id", getTodo)
+  app.post("/todos", postTodosHandler)
+  app.put("/todos/:id",updateTodo)
+  app.delete("/todos/:id",deleteTodo)
+  
+  app.get("*", notFoundHanlder)
+  
 
 app.use(bodyParser.json());
 
