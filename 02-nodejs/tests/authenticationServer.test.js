@@ -24,6 +24,8 @@ describe('API Tests', () => {
   it('should allow a user to sign up', async () => {
     const requestBody = JSON.stringify({ email, password, firstName, lastName });
 
+    console.log(requestBody);
+
     const options = {
       method: 'POST',
       path: '/signup',
