@@ -16,10 +16,50 @@
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
+const { error } = require('console');
 const express = require('express');
-const fs = require('fs');
+const fs = require('fs/promises');
+const fs2 = require('fs');
 const path = require('path');
 const app = express();
 
-
+const port = 3001
 module.exports = app;
+
+
+
+app.get('/files', (req, res) => {
+  fs2.readdir(path.join(__dirname, './files/'), (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to retrieve files' });
+    }
+    res.json(files);
+  });
+});
+
+// app.get('/files', readDirectory)
+// function readDirectory(req, res) {
+
+//   fs.readdir(path.join(__dirname, './files/'))
+//     .then(files => res.status(200).json(files))
+//     .catch(err => res.status(500).json({ error: 'Failed to retrieve files' }))
+// }
+
+app.get('/file/:fileName', readFileContent)
+
+
+function readFileContent(req, res) {
+  let fileName = req.params.fileName
+
+  fs.readFile(__dirname + '/files/' + fileName, 'utf8')
+    .then((data) => res.status(200).send(data))
+    .catch((error) => res.status(404).send("File not found"))
+}
+
+
+
+// for all other routes, return 404
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
+});
+//app.listen(port, () => console.log("Server strted at port " + port))
