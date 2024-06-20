@@ -32,6 +32,66 @@
 const express = require("express")
 const PORT = 3000;
 const app = express();
+const bodyParser = require('body-parser');
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+const userName = new Map();
+
+// app.listen(PORT, () => {
+//   console.log(`Server is listening on port ${PORT}`);
+// });
+
+app.post('/signup', (req, res) => {
+  var user = req.body
+  if(userName.has(user.username)){
+    res.status(400).json("username already exists");
+  }else{
+    userName.set(user.username, user);
+    res.status(201).send("Signup successful");
+  }
+});
+
+app.post('/login', (req, res) => {
+  var user = req.body
+  if(userName.has(user.username)){
+    var getUser = userName.get(user.username);
+    if(getUser.password === user.password){
+      var data ={
+        email : getUser.email,
+        firstName : getUser.firstName,
+        lastName : getUser.lastName
+      }
+      res.status(200).json(data);
+    }else{
+      res.status(401).json("Unauthorized")
+    }
+  }else{
+    res.send(404).json("User Not Found");
+  }
+});
+
+app.get("/data", (req, res) => {
+  var email = req.headers.username;
+  var password = req.headers.password;
+  let userFound = false;
+  if(userName.has(email)){
+    var getUser = userName.get(email);
+    if(getUser.password === password){
+      userFound = true;
+    }
+  }
+
+  if (userFound) {
+    let users = [];
+    userName.forEach((user, key) => {
+        users.push(user)
+    })
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+})
 
 module.exports = app;
