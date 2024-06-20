@@ -18,8 +18,38 @@
  */
 const express = require('express');
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 const app = express();
 
+app.get('/files', async (req, res) => {
+  try {
+    fs.readdir(path.join(__dirname, 'files'), (err, data) => {
+      if (err) throw err;
+      res.json(data);
+    });
+  } catch (error) {
+    res.status(500).send('Internal server error');
+  }
+})
 
+app.get('/file/:filename', async (req, res) => {
+  try {
+
+    const filename = req.params.filename;
+    if (fs.existsSync(path.join(__dirname, 'files', filename))) {
+      const fileFound = await fsPromises.readFile(path.join(__dirname, 'files', filename), 'utf-8');
+      res.send(fileFound);
+    }
+    else {
+      res.status(404).send('File not found');
+    }
+  } catch (error) {
+    res.status(500).send("Internal server error");
+  }
+})
+
+app.use((req, res) => {
+  res.status(404).send('Route not found');
+})
 module.exports = app;
