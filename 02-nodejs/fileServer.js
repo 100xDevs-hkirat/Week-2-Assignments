@@ -12,7 +12,7 @@
      Response: 200 OK with the file content as the response body if found, or 404 Not Found if not found. Should return `File not found` as text if file is not found
      Example: GET http://localhost:3000/file/example.txt
 
-    - For any other route not defined in the server return 404
+    - For any other route not defined in the server return 404.Should return `Route not found` as text if route is not found.
 
     Testing the server - run `npm run test-fileServer` command in terminal
  */
