@@ -29,9 +29,150 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
+let users = [];
+
+app.use(bodyParser.json());
+
+app.post("/signup", (req, res) => {
+  const user = req.body;
+  let userAlreadyExists = false;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === user.email) {
+      userAlreadyExists = true;
+      break;
+    }
+  }
+    if (userAlreadyExists) {
+      res.sendStatus(400);
+    } else {
+      users.push(user);
+      res.status(201).send("Signup successful");
+    }
+});
+
+app.post("/login", (req, res) => {
+  const user = req.body;
+  let userfound = null;
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].email === user.email && users[i].password === user.password) {
+      userfound = users[i];
+      break;
+    }
+  }
+  if (userfound) {
+    res.json({
+      firstname: userfound.firstname,
+      lastname: userfound.lastname,
+      id: userfound.id
+    });
+  }
+  else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res) => {
+  let email = req.headers.email;
+  let password = req.headers.password;
+  let userfound = false;
+  for(let i = 0 ; i < users.length; i++){
+    if(users[i].email === email && users[i].password === password){
+      userfound = users[i];
+      break;
+    }
+  }
+  if(userfound){
+    res.json(userfound);
+  }
+  else{
+    res.sendStatus(401);
+  }
+  });
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
-module.exports = app;
+app.use((req, res) => {
+  res.sendStatus(404);
+});
+
+app.listen(PORT,() =>{
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const PORT = 3000;
+// const app = express();
+// let users = [];
+
+// app.use(bodyParser.json());
+
+// app.post("/signup", (req, res) => {
+//   const user = req.body;
+//   let userAlreadyExists = false; // Fixed typo here
+//   for (let i = 0; i < users.length; i++) {
+//     if (users[i].email === user.email) {
+//       userAlreadyExists = true;
+//       break;
+//     }
+//   }
+//   if (userAlreadyExists) {
+//     res.sendStatus(400);
+//   } else {
+//     users.push(user);
+//     res.status(201).send("Signup successful");
+//   }
+// });
+
+// app.post("/login", (req, res) => {
+//   const user = req.body;
+//   let userFound = null; // Improved variable naming consistency
+//   for (let i = 0; i < users.length; i++) {
+//     if (users[i].email === user.email && users[i].password === user.password) {
+//       userFound = users[i];
+//       break;
+//     }
+//   }
+//   if (userFound) {
+//     res.json({
+//       firstname: userFound.firstname,
+//       lastname: userFound.lastname,
+//       id: userFound.id
+//     });
+//   } else {
+//     res.sendStatus(401);
+//   }
+// });
+
+// app.get("/data", (req, res) => {
+//   let email = req.headers.email;
+//   let password = req.headers.password;
+//   let userFound = false;
+//   for (let i = 0; i < users.length; i++) {
+//     if (users[i].email === email && users[i].password === password) {
+//       userFound = users[i];
+//       break;
+//     }
+//   }
+//   if (userFound) {
+//     res.json(userFound);
+//   } else {
+//     res.sendStatus(401);
+//   }
+// });
+
+// // Correctly placing the 404 handler
+// app.use((req, res) => {
+//   res.sendStatus(404);
+// });
+
+// // Corrected the app.listen call
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
+
+// module.exports = app;
