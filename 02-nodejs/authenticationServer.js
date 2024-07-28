@@ -29,9 +29,81 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(bodyParser.json());
+
+const USERS = [];
+
+const findUserByUsername = (username) =>
+  USERS.find((user) => user.username === username);
+app.post("/signup", (req, res) => {
+  let { username, password, firstName, lastName, email } = req.body;
+
+  if (findUserByUsername(username)) {
+    return res.status(400).send("User already present!");
+  }
+
+  let userObj = {
+    username,
+    password,
+    firstName,
+    lastName,
+    email,
+    id: Date.now(),
+  };
+  USERS.push(userObj);
+  return res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  let { username, password } = req.body;
+  for (let i = 0; i < USERS.length; i++) {
+    if (USERS[i].username === username && USERS[i].password === password) {
+      let { firstName, lastName, id, email } = USERS[i];
+      let responseObj = {
+        id,
+        firstName,
+        lastName,
+        email,
+      };
+      return res.status(200).send(responseObj);
+    }
+  }
+  return res.status(401).send("Invalid Credentials");
+});
+
+app.get("/data", (req, res) => {
+  let { username, password } = req.headers;
+
+  const isValidUser = USERS.some(
+    (user) => user.username === username && user.password === password
+  );
+
+  if (!isValidUser) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const users = USERS.map(({ id, username, firstName, lastName, email }) => ({
+    id,
+    username,
+    firstName,
+    lastName,
+    email,
+  }));
+
+  return res.status(200).send({ users });
+});
+
+app.get("*", (req, res) => {
+  res.status(404).send("Invalid route");
+});
+
+// app.listen(PORT, () => {
+//   console.log(`Server is up at ${PORT}`);
+// });
 
 module.exports = app;
