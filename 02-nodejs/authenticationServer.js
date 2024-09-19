@@ -31,7 +31,83 @@
 
 const express = require("express")
 const PORT = 3000;
+const bodyParser = require('body-parser')
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json())
+
+let users = []
+
+app.post('/signup', (req, res) => {
+
+  if (users.find((user) => user.email === req.body.email)) {
+    res.status(400).json({ 'error': "Bad Request. email already exist" })
+  }
+  else {
+    const newUser = {
+      "id": Math.floor(Math.random() * 1000),
+      "email": req.body.email,
+      "password": req.body.password,
+      "firstName": req.body.firstName,
+      "lastName": req.body.lastName
+    }
+    users.push(newUser)
+    res.status(201).json(newUser)
+  }
+})
+
+
+app.post("/login", (req, res) => {
+
+  if (users.find((user) => (user.email == req.body.email & user.password == req.body.password))) {
+    const userData = users.find((user) => user.email == req.body.email)
+    // console.log('userData', userData)
+    res.status(200).json({ "id": userData.id, 'email': userData.email, "firstName": userData.firstName, "lastName": userData.lastName })
+  } else {
+    res.sendStatus(401)
+  }
+
+})
+
+app.get("/data",(req,res)=>{
+  var email = req.headers.email;
+  var password = req.headers.password;
+  let userFound = false;
+  for (var i = 0; i<users.length; i++) {
+    if (users[i].email === email && users[i].password === password) {
+        userFound = true;
+        break;
+    }
+  }
+
+  if (userFound) {
+    let usersToReturn = [];
+    for (let i = 0; i<users.length; i++) {
+        usersToReturn.push({
+            firstName: users[i].firstName,
+            lastName: users[i].lastName,
+            email: users[i].email
+        });
+    }
+    res.json({
+        users
+    });
+  } else {
+    res.sendStatus(401);
+  }
+
+})
+
+
+app.all('*',(req,res)=>{
+  res.status(404).send('Route not found');
+})
+
+
+
+// app.listen(PORT, () => {
+//   console.log(`Example app running on port ${PORT}`)
+// })
 
 module.exports = app;
