@@ -41,9 +41,74 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const port = 3000
 const app = express();
 
 app.use(bodyParser.json());
 
-module.exports = app;
+
+
+let arr = []
+
+app.get("/todos", (req, res) => {
+  res.status(200).json(arr)
+})
+
+app.get("/todos/:id", (req, res) => {
+   const todo = arr.find( i => i.id === parseInt(req.params.id) )
+   if(!todo){
+    res.status(404).json({
+      message: "Error no todo found"
+    })
+  } else {
+    res.json(todo)
+  }
+})
+
+
+app.post("/todos", (req, res) => {
+  const obj = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    description: req.body.description 
+  }
+  arr.push(obj);
+  res.status(200).json(obj)
+})
+
+app.put("/todos/:id", (req, res) => {
+  const todoid = arr.findIndex(i => i.id === parseInt(req.params.id))
+  if(todoid === -1){
+    res.status(400).json({
+      message: "Error no such todo found"
+    })
+  } else {
+    arr[todoid].title = req.body.title
+    arr[todoid].description = req.body.description
+    res.json(arr[todoid])
+  }
+})
+
+app.delete("/todos/:id", (req, res) => {
+  const todoIndex = arr.findIndex(i => i.id === req.params.id)
+  if(!todoIndex) {
+    res.status(400).json({
+      message: "Error Couldnt find the todo from list"
+    })
+  }
+  arr.splice(todoIndex, 1)
+  res.status(200).json(arr)
+})
+
+app.use((req, res, next) => {
+  res.status(404).send();
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+
+
+
+
+

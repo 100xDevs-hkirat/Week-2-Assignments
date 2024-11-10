@@ -29,9 +29,78 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
-const PORT = 3000;
-const app = express();
-// write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
-
-module.exports = app;
+  const express = require("express")
+  const PORT = 3000;
+  const app = express();
+  // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+  app.use(express.json())
+  
+  
+  let users = []
+  
+  app.get('/',(req,res)=>{
+    res.send("Hello Backend")
+  })
+  
+  
+  app.post('/signup',(req,res)=>{
+    let data = req.body
+    let { email , password, firstname, lastname} = data
+   if(!email || !password || !firstname || !lastname) return res.status(400).send("Please Enter All Fields")
+    if(data){
+      
+      for(let i = 0; i < users.length; i++){
+  
+        if(users[i].email == email){
+          return res.status(401).send("User Already Exists")
+        }
+      }
+      
+      users.push(data)
+      res.status(200).send("Successfully signed up")
+    } else {
+      res.status(400).send("Error Please send all fields")
+    }
+  })
+  
+  app.post('/login',(req,res)=>{
+    let data = req.body
+    let {email,password} = data
+    
+    
+    
+    
+    for(let i = 0; i < users.length; i++){
+      if(users[i].email === email && users[i].password == password){
+        return res.status(200).send("Successfully Logged In")
+      } else {
+        return res.status(400).send("Invalid Credentials")
+      }
+    }
+  })
+  
+  app.get('/data',(req,res)=>{
+    for(let i = 0; i < users.length; i++){
+      console.log(users[i])
+    }
+  
+    res.status(200).json({
+      users
+    })
+  })
+  
+  
+  
+  
+  
+  app.listen(PORT,()=>{
+    console.log(`App started in port ${PORT}`)
+  })
+  
+  
+  
+  
+  
+  
+  module.exports = app;
+  
