@@ -39,11 +39,139 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("node:fs/promises");
+const { readFromFile } = require(__dirname + "/common/fileOperation");
+
+const fileName = "todoServer.json";
+
+const port = 3000;
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.post("/todos", async (req, res) => {
+  let tempId = 1;
+  let todos = [];
+  try {
+    const data = await readFromFile(fileName);
+    if (!data) {
+      todos = [];
+      tempId = 1;
+    } else {
+      todos = JSON.parse(data);
+      // let tempId;
+
+      if (todos.length === 0) {
+        tempId = 0;
+      } else {
+        // console.log(...todos.map((todo) => todo.id));
+        // const arr = []...todos.map((todo) => todo.id);
+
+        const max = Math.max(...todos.map((todo) => +todo.id));
+
+        // console.log(max);
+
+        // did not work
+        // const max = todos.reduce(
+        //   (acc, val) => {
+        //     if (val.id > acc.id) {
+        //       return val;
+        //     } else return acc;
+        //   }
+        //   // { id: 0 }
+        // );
+
+        // if()
+
+        // console.log(`Max is: ${max.id}`);
+        // tempId = +max.id + 1;
+        tempId = +max + 1;
+      }
+    }
+    // const temp = id;
+    // console.log(tempId);
+    const item = { ...req.body, id: tempId };
+    todos = [...todos, item];
+    await writeToFile(fileName, todos);
+    // id++;
+    res.status(201).send(item);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/todos/:id", async (req, res) => {
+  // console.log(req.params.id);
+  const todos = JSON.parse(await readFromFile(fileName));
+  const item = todos.find((todo) => +todo.id === +req.params.id);
+  if (!item) {
+    res.status(404).send({ result: "Requested item not found" });
+    return;
+  }
+  // res.status(200).send({ result: item });
+  res.status(200).send(item);
+});
+
+app.get("/todos", async (req, res) => {
+  // res.status(200).send({ result: todos });
+  // res.status(200).send({ todos });
+  const todos = JSON.parse(await readFromFile(fileName));
+
+  res.status(200).send(todos);
+});
+
+app.put("/todos/:id", async (req, res) => {
+  let todos = JSON.parse(await readFromFile(fileName));
+  const index = todos.findIndex((todo) => +todo.id === +req.params.id);
+  if (index === -1) {
+    res.status(404).send({ result: "Requested item not found" });
+    return;
+  }
+
+  todos = [
+    ...todos.slice(0, index),
+    {
+      ...req.body,
+      id: +req.params.id,
+    },
+    ...todos.slice(index + 1, todos.length),
+  ];
+
+  // res.status(200).send({ result: todos });
+
+  await writeToFile(fileName, todos);
+
+  res.status(200).send(todos);
+});
+
+app.delete("/todos/:id", async (req, res) => {
+  let todos = JSON.parse(await readFromFile(fileName));
+  const index = todos.findIndex((todo) => +todo.id === +req.params.id);
+  if (index === -1) {
+    res.status(404).send({ result: "Requested item not found" });
+    return;
+  }
+  todos.splice(index, 1);
+
+  await writeToFile(fileName, todos);
+  res.status(200).send({ result: todos });
+});
+
+app.all("*", (req, res) =>
+  res.status(404).send({ result: "Cannot find a matching route" })
+);
+
+const writeToFile = async (fileName, data) => {
+  try {
+    await fs.writeFile(fileName, JSON.stringify(data));
+  } catch (err) {
+    throw err;
+  }
+};
+
+app.listen(port, () => console.log(`App listening at ${port}`));
 
 module.exports = app;

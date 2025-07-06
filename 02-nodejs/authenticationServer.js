@@ -29,9 +29,117 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const bodyParser = require("body-parser");
+const { v4: uuidv4 } = require("uuid");
+const { sign } = require("jsonwebtoken");
+
+const { jwtAuth, authenticate } = require(__dirname +
+  "/middleware/authentication");
+
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json());
+
+let users = [];
+
+app.post("/signup", (req, res) => {
+  try {
+    // console.log(req.body);
+    const { email, password, firstName, lastName } = req.body;
+    const user = users.length > 0 && findUser(email, password);
+    if (user) {
+      res.status(400).send("User already exists");
+      return;
+    }
+    const id = uuidv4();
+    users = [...users, { id, ...req.body }];
+    res.status(201).send("Signup successful");
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+app.post("/mySignup", (req, res) => {
+  const { username, password, firstName, lastName } = req.body;
+  const user = getUser(username, password);
+  if (user) {
+    res.status(400).send("User already exists");
+    return;
+  }
+  const id = uuidv4();
+  users = [...users, { id, ...req.body }];
+  res.status(201).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const user = users.length > 0 && findUser(email, password);
+  if (!user) {
+    res.status(401).send("Invalid credentials");
+    return;
+  }
+  res.status(200).send({
+    accesstoken: createAccessToken(user.id),
+    message: "User login successfully",
+    ...user,
+  });
+});
+
+app.post("/myLogin", (req, res) => {
+  const { username, password } = req.body;
+  const user = getUser(username, password);
+  if (!user) {
+    res.status(401).send("Invalid credentials");
+    return;
+  }
+  res.status(200).send({
+    accesstoken: createAccessToken(user.id),
+    message: "User login successfully",
+  });
+});
+
+app.get("/getUsers", jwtAuth, (req, res) => {
+  const id = req.id;
+  const user = users.find((user) => user.id === id);
+
+  if (!user) return res.status(400).send("Authentication failed");
+  res.status(200).send(users);
+});
+
+app.get("/data", authenticate, (req, res) => {
+  // const user = users.find(
+  //   (user) => user.email === req.email && user.password === req.password
+  // );
+  const user = users && findUser(req.email, req.password);
+
+  if (!user) return res.status(401).send("Unauthorized");
+  res.status(200).send({ users });
+});
+
+const getUser = (username, password) => {
+  const user = users.find(
+    (user) => user.username === username && user.password === password
+  );
+  return user;
+};
+
+const findUser = (email, password) => {
+  const user =
+    users &&
+    users.find((user) => user.email === email && user.password === password);
+  return user;
+};
+
+const ACCESS_TOKEN_SECRET =
+  "gsPAhGCA@PWNX@wfyzDraz!4E!L_KDFgQY6kRbzRj3y@*YhRKgPDo6Grwpud";
+
+const createAccessToken = (id) => {
+  return sign({ id }, ACCESS_TOKEN_SECRET);
+};
+
+// app.listen(PORT, () => console.log(`Listening for requests on port: ${PORT}`));
 
 module.exports = app;
